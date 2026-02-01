@@ -176,13 +176,6 @@ docker compose up e2e-open
 ```
 
 
-# Development Container
-An easy way to obtain a working development environment is to use the _development container_ provided (see folder `.devcontainer`). This requires [Docker](https://docs.docker.com/get-docker/).
-
-The [following video](https://www.youtube.com/watch?v=ISNCrQ1r-Nw) shows how to setup the dev container using IDE IntelliJ IDEA (Ultimate Edition).
-
-[![How to setup HumanaEthica in IntelliJ using a dev container](https://img.youtube.com/vi/ISNCrQ1r-Nw/mqdefault.jpg)](https://www.youtube.com/embed/ISNCrQ1r-Nw?si=1WeDwCsBdrr5OL5k)
-
 # Contributing
 
 Your contributions are always welcome!
