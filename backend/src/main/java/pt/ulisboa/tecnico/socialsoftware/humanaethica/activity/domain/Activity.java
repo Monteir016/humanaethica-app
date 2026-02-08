@@ -261,16 +261,8 @@ public class Activity {
         return shifts;
     }
 
-    public void setShifts(List<Shift> shifts) {
-        this.shifts = shifts;
-    }
-
     public void addShift(Shift shift) {
         this.shifts.add(shift);
-    }
-
-    public void removeShift(Shift shift) {
-        this.shifts.remove(shift);
     }
 
     public void validate() {

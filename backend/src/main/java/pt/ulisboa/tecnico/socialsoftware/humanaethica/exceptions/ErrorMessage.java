@@ -66,6 +66,14 @@ public enum ErrorMessage {
     REPORT_ACTIVTIY_IS_ALREADY_REPORTED("The activity is already reported"),
     REPORT_AFTER_ACTIVTY_CLOSED("The activity period is already closed"),
     REPORT_NOT_FOUND("Report not found with id %d"),
+
+    // Shift
+    SHIFT_START_TIME_REQUIRED("Shift start time is required"),
+    SHIFT_END_TIME_REQUIRED("Shift end time is required"),
+    SHIFT_PARTICIPANTS_LIMIT_REQUIRED("Shift participants limit is required"),
+    SHIFT_CURRENT_PARTICIPANTS_REQUIRED("Shift current participants is required"),
+    SHIFT_LOCATION_REQUIRED("Shift location is required"),
+    SHIFT_LOCATION_INVALID("Shift location must be between 20 and 200 characters"),
     ;
 
     public final String label;

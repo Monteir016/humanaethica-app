@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
@@ -10,6 +11,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
 
 @Entity
 public class Shift {
@@ -42,6 +45,8 @@ public class Shift {
         setParticipantsLimit(shiftDto.getParticipantsLimit());
         setCurrentParticipants(shiftDto.getCurrentParticipants());
         setLocation(shiftDto.getLocation());
+        
+        verifyInvariants();
     }
 
     public Integer getId() {
@@ -117,5 +122,53 @@ public class Shift {
 
     public void addParticipation(Participation participation) {
         this.participations.add(participation);
+    }
+
+    private void verifyInvariants() {
+        startTimeIsRequired();
+        endTimeIsRequired();
+        participantsLimitIsRequired();
+        currentParticipantsIsRequired();
+        locationIsRequired();
+        locationLengthIsValid();
+    }
+
+    private void startTimeIsRequired() {
+        if (this.startTime == null) {
+            throw new HEException(SHIFT_START_TIME_REQUIRED);
+        }
+    }
+
+    private void endTimeIsRequired() {
+        if (this.endTime == null) {
+            throw new HEException(SHIFT_END_TIME_REQUIRED);
+        }
+    }
+
+    private void participantsLimitIsRequired() {
+        if (this.participantsLimit == null) {
+            throw new HEException(SHIFT_PARTICIPANTS_LIMIT_REQUIRED);
+        }
+    }
+
+    private void currentParticipantsIsRequired() {
+        if (this.currentParticipants == null) {
+            throw new HEException(SHIFT_CURRENT_PARTICIPANTS_REQUIRED);
+        }
+    }
+
+    private void locationIsRequired() {
+        if (this.location == null) {
+            throw new HEException(SHIFT_LOCATION_REQUIRED);
+        }
+    }
+
+    private void locationLengthIsValid() {
+        if (this.location != null) {
+            int length = this.location.trim().length();
+            if (length < 20 || length > 200) {
+                throw new HEException(SHIFT_LOCATION_INVALID);
+            }
+        }
     }
 }
