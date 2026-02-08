@@ -28,6 +28,9 @@ class CreateShiftMethodTest extends SpockTest {
     }
 
     def "create shift with valid data"() {
+        given:
+        shiftDto.location = "A" * length
+
         when:
         def result = new Shift(activity, shiftDto)
 
@@ -37,11 +40,14 @@ class CreateShiftMethodTest extends SpockTest {
         result.getEndTime() == IN_TWO_DAYS
         result.getParticipantsLimit() == 5
         result.getCurrentParticipants() == 0
-        result.getLocation() == "This is a valid location with more than twenty characters"
+        result.getLocation() == shiftDto.location
         result.getEnrollments().isEmpty()
         result.getParticipations().isEmpty()
         and: "invocations"
         1 * activity.addShift(_)
+
+        where:
+        length << [20, 100, 200]
     }
 
     def "create shift with null start time"() {
@@ -105,26 +111,7 @@ class CreateShiftMethodTest extends SpockTest {
     }
 
     @Unroll
-    def "create shift with location too short: #location"() {
-        given:
-        shiftDto.location = location
-
-        when:
-        new Shift(activity, shiftDto)
-
-        then:
-        def error = thrown(HEException)
-        error.getErrorMessage() == SHIFT_LOCATION_INVALID
-
-        where:
-        location << [
-            "",
-            "Exactly nineteen ch"
-        ]
-    }
-
-    @Unroll
-    def "create shift with location too long: length #length"() {
+    def "create shift with invalid location size: length #length"() {
         given:
         shiftDto.location = "A" * length
 
@@ -136,7 +123,7 @@ class CreateShiftMethodTest extends SpockTest {
         error.getErrorMessage() == SHIFT_LOCATION_INVALID
 
         where:
-        length << [201, 250]
+        length << [0, 19, 201, 250]
     }
 
     def "create shift and verify associations are initialized"() {
