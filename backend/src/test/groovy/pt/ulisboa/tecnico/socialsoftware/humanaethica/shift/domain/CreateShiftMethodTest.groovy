@@ -50,11 +50,12 @@ class CreateShiftMethodTest extends SpockTest {
         1 * activity.addShift(_)
 
         where:
-        locationLength | startTime       | endTime                      | timeDescription
-        100            | IN_ONE_DAY      | IN_TWO_DAYS                  | "all middle values"
-        20             | IN_ONE_DAY      | IN_TWO_DAYS                  | "length is 20"
-        200            | TWO_DAYS_AGO    | NOW                          | "length is 200"
-        100            | NOW             | NOW.plusMinutes(1)           | "one minute interval"
+        locationLength | startTime                  | endTime                           | timeDescription
+        100            | IN_ONE_DAY                 | IN_TWO_DAYS                       | "all middle values"
+        20             | IN_ONE_DAY                 | IN_TWO_DAYS                       | "length is 20"
+        200            | IN_TWO_DAYS                | IN_THREE_DAYS                     | "length is 200"
+        100            | IN_ONE_DAY                 | IN_ONE_DAY.plusMinutes(1)         | "one minute interval"
+        50             | NOW.plusMinutes(1)         | NOW.plusMinutes(2)                | "minimum future time (NOW+1min)"
     }
 
     def "create shift with null start time"() {
@@ -150,6 +151,25 @@ class CreateShiftMethodTest extends SpockTest {
         startTime    | endTime      | description
         IN_ONE_DAY   | IN_ONE_DAY   | "start time equal to end time"
         IN_TWO_DAYS  | IN_ONE_DAY   | "start time after end time"
+    }
+
+    @Unroll
+    def "create shift with start time in the past: #description"() {
+        given:
+        shiftDto.startTime = DateHandler.toISOString(startTime)
+        shiftDto.endTime = DateHandler.toISOString(endTime)
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == SHIFT_START_TIME_AFTER_NOW
+
+        where:
+        startTime       | endTime         | description
+        TWO_DAYS_AGO    | IN_ONE_DAY      | "start in past, end future"
+        NOW             | IN_ONE_DAY      | "start now, end future"
     }
 
     def "create shift and verify associations are initialized"() {

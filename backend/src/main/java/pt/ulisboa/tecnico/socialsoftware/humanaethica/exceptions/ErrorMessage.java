@@ -75,6 +75,7 @@ public enum ErrorMessage {
     SHIFT_LOCATION_REQUIRED("Shift location is required"),
     SHIFT_LOCATION_INVALID("Shift location must be between 20 and 200 characters"),
     SHIFT_START_TIME_BEFORE_END_TIME("Shift start time must be before end time"),
+    SHIFT_START_TIME_AFTER_NOW("Shift start time must be in the future"),
     ;
 
     public final String label;
