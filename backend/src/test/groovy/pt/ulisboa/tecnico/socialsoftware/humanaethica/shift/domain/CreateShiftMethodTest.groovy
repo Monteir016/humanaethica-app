@@ -27,20 +27,14 @@ class CreateShiftMethodTest extends SpockTest {
         shiftDto.location = "This is a valid location with more than twenty characters"
     }
 
-    @Unroll
-    def "create shift with valid data: location=#locationLength chars, time=#timeDescription"() {
-        given:
-        shiftDto.location = "A" * locationLength
-        shiftDto.startTime = DateHandler.toISOString(startTime)
-        shiftDto.endTime = DateHandler.toISOString(endTime)
-
+    def "create shift with valid data"() {
         when:
         def result = new Shift(activity, shiftDto)
 
         then: "check result"
         result.getActivity() == activity
-        result.getStartTime() == startTime
-        result.getEndTime() == endTime
+        result.getStartTime() == IN_ONE_DAY
+        result.getEndTime() == IN_TWO_DAYS
         result.getParticipantsLimit() == 5
         result.getCurrentParticipants() == 0
         result.getLocation() == shiftDto.location
@@ -48,14 +42,6 @@ class CreateShiftMethodTest extends SpockTest {
         result.getParticipations().isEmpty()
         and: "invocations"
         1 * activity.addShift(_)
-
-        where:
-        locationLength | startTime                  | endTime                           | timeDescription
-        100            | IN_ONE_DAY                 | IN_TWO_DAYS                       | "all middle values"
-        20             | IN_ONE_DAY                 | IN_TWO_DAYS                       | "length is 20"
-        200            | IN_TWO_DAYS                | IN_THREE_DAYS                     | "length is 200"
-        100            | IN_ONE_DAY                 | IN_ONE_DAY.plusMinutes(1)         | "one minute interval"
-        50             | NOW.plusMinutes(1)         | NOW.plusMinutes(2)                | "minimum future time (NOW+1min)"
     }
 
     def "create shift with null start time"() {
@@ -119,6 +105,30 @@ class CreateShiftMethodTest extends SpockTest {
     }
 
     @Unroll
+    def "create shift with valid location size, boundary analysis: length #length"() {
+        given:
+        shiftDto.location = "A" * length
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then: "check result"
+        result.getActivity() == activity
+        result.getStartTime() == IN_ONE_DAY
+        result.getEndTime() == IN_TWO_DAYS
+        result.getParticipantsLimit() == 5
+        result.getCurrentParticipants() == 0
+        result.getLocation() == shiftDto.location
+        result.getEnrollments().isEmpty()
+        result.getParticipations().isEmpty()
+        and: "invocations"
+        1 * activity.addShift(_)
+
+        where:
+        length << [20, 100, 200]
+    }
+
+    @Unroll
     def "create shift with invalid location size: length #length"() {
         given:
         shiftDto.location = "A" * length
@@ -132,6 +142,27 @@ class CreateShiftMethodTest extends SpockTest {
 
         where:
         length << [0, 19, 201, 250]
+    }
+
+    def "create shift with valid time range, boundary analysis"() {
+        given:
+        shiftDto.startTime = DateHandler.toISOString(IN_ONE_DAY)
+        shiftDto.endTime = DateHandler.toISOString(IN_ONE_DAY.plusMinutes(1))
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then: "check result"
+        result.getActivity() == activity
+        result.getStartTime() == IN_ONE_DAY
+        result.getEndTime() == IN_ONE_DAY.plusMinutes(1)
+        result.getParticipantsLimit() == 5
+        result.getCurrentParticipants() == 0
+        result.getLocation() == shiftDto.location
+        result.getEnrollments().isEmpty()
+        result.getParticipations().isEmpty()
+        and: "invocations"
+        1 * activity.addShift(_)
     }
 
     @Unroll
@@ -154,6 +185,29 @@ class CreateShiftMethodTest extends SpockTest {
     }
 
     @Unroll
+    def "create shift with start time immediately after now"() {
+        given:
+        shiftDto.startTime = DateHandler.toISOString(NOW.plusMinutes(1))
+        shiftDto.endTime = DateHandler.toISOString(IN_TWO_DAYS)
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then: "check result"
+        result.getActivity() == activity
+        result.getStartTime() == NOW.plusMinutes(1)
+        result.getEndTime() == IN_TWO_DAYS
+        result.getParticipantsLimit() == 5
+        result.getCurrentParticipants() == 0
+        result.getLocation() == shiftDto.location
+        result.getEnrollments().isEmpty()
+        result.getParticipations().isEmpty()
+        and: "invocations"
+        1 * activity.addShift(_)
+    }
+
+
+    @Unroll
     def "create shift with start time in the past: #description"() {
         given:
         shiftDto.startTime = DateHandler.toISOString(startTime)
@@ -170,6 +224,51 @@ class CreateShiftMethodTest extends SpockTest {
         startTime       | endTime         | description
         TWO_DAYS_AGO    | IN_ONE_DAY      | "start in past, end future"
         NOW             | IN_ONE_DAY      | "start now, end future"
+    }
+
+    @Unroll
+    def "create shift with dates within activity range: #description"() {
+        given:
+        activity.getStartingDate() >> IN_ONE_DAY
+        activity.getEndingDate() >> IN_THREE_DAYS
+        shiftDto.startTime = DateHandler.toISOString(startTime)
+        shiftDto.endTime = DateHandler.toISOString(endTime)
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then:
+        result.getStartTime() == startTime
+        result.getEndTime() == endTime
+
+        where:
+        startTime                      | endTime                        | description
+        IN_ONE_DAY                     | IN_TWO_DAYS                    | "start at activity start"
+        IN_TWO_DAYS                    | IN_THREE_DAYS                  | "end at activity end"
+    }
+
+
+    @Unroll
+    def "create shift with dates outside activity range: #description"() {
+        given:
+        activity.getStartingDate() >> IN_ONE_DAY
+        activity.getEndingDate() >> IN_THREE_DAYS
+        shiftDto.startTime = DateHandler.toISOString(startTime)
+        shiftDto.endTime = DateHandler.toISOString(endTime)
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == SHIFT_DATES_WITHIN_ACTIVITY
+
+        where:
+        startTime                      | endTime                        | description
+        IN_ONE_DAY.minusHours(10)      | IN_TWO_DAYS                    | "start before activity start"
+        IN_ONE_DAY.minusMinutes(1)     | IN_TWO_DAYS                    | "start one minute before activity start"
+        IN_TWO_DAYS                    | IN_THREE_DAYS.plusMinutes(1)   | "end one minute after activity end"
+        IN_TWO_DAYS                    | IN_THREE_DAYS.plusDays(1)      | "end after activity end"
     }
 
     def "create shift and verify associations are initialized"() {

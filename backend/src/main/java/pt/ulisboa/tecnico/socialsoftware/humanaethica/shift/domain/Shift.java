@@ -133,6 +133,7 @@ public class Shift {
         locationLengthIsValid();
         startTimeBeforeEndTime();
         startTimeAfterNow();
+        shiftDatesWithinActivity();
     }
 
     private void startTimeIsRequired() {
@@ -159,6 +160,23 @@ public class Shift {
         if (this.startTime != null) {
             if (!this.startTime.isAfter(LocalDateTime.now())) {
                 throw new HEException(SHIFT_START_TIME_AFTER_NOW);
+            }
+        }
+    }
+
+    private void shiftDatesWithinActivity() {
+        if (this.activity != null && this.startTime != null && this.endTime != null) {
+            LocalDateTime activityStart = this.activity.getStartingDate();
+            LocalDateTime activityEnd = this.activity.getEndingDate();
+
+            if (activityStart != null && activityEnd != null) {
+                boolean startWithinRange = !this.startTime.isBefore(activityStart)
+                        && !this.startTime.isAfter(activityEnd);
+                boolean endWithinRange = !this.endTime.isBefore(activityStart) && !this.endTime.isAfter(activityEnd);
+
+                if (!startWithinRange || !endWithinRange) {
+                    throw new HEException(SHIFT_DATES_WITHIN_ACTIVITY);
+                }
             }
         }
     }
