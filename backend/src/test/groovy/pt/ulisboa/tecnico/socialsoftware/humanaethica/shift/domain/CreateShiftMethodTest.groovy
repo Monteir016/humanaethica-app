@@ -27,17 +27,20 @@ class CreateShiftMethodTest extends SpockTest {
         shiftDto.location = "This is a valid location with more than twenty characters"
     }
 
-    def "create shift with valid data"() {
+    @Unroll
+    def "create shift with valid data: location=#locationLength chars, time=#timeDescription"() {
         given:
-        shiftDto.location = "A" * length
+        shiftDto.location = "A" * locationLength
+        shiftDto.startTime = DateHandler.toISOString(startTime)
+        shiftDto.endTime = DateHandler.toISOString(endTime)
 
         when:
         def result = new Shift(activity, shiftDto)
 
         then: "check result"
         result.getActivity() == activity
-        result.getStartTime() == IN_ONE_DAY
-        result.getEndTime() == IN_TWO_DAYS
+        result.getStartTime() == startTime
+        result.getEndTime() == endTime
         result.getParticipantsLimit() == 5
         result.getCurrentParticipants() == 0
         result.getLocation() == shiftDto.location
@@ -47,7 +50,11 @@ class CreateShiftMethodTest extends SpockTest {
         1 * activity.addShift(_)
 
         where:
-        length << [20, 100, 200]
+        locationLength | startTime       | endTime                      | timeDescription
+        100            | IN_ONE_DAY      | IN_TWO_DAYS                  | "all middle values"
+        20             | IN_ONE_DAY      | IN_TWO_DAYS                  | "length is 20"
+        200            | TWO_DAYS_AGO    | NOW                          | "length is 200"
+        100            | NOW             | NOW.plusMinutes(1)           | "one minute interval"
     }
 
     def "create shift with null start time"() {
@@ -124,6 +131,25 @@ class CreateShiftMethodTest extends SpockTest {
 
         where:
         length << [0, 19, 201, 250]
+    }
+
+    @Unroll
+    def "create shift with invalid time range: #description"() {
+        given:
+        shiftDto.startTime = DateHandler.toISOString(startTime)
+        shiftDto.endTime = DateHandler.toISOString(endTime)
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == SHIFT_START_TIME_BEFORE_END_TIME
+
+        where:
+        startTime    | endTime      | description
+        IN_ONE_DAY   | IN_ONE_DAY   | "start time equal to end time"
+        IN_TWO_DAYS  | IN_ONE_DAY   | "start time after end time"
     }
 
     def "create shift and verify associations are initialized"() {

@@ -74,6 +74,7 @@ public enum ErrorMessage {
     SHIFT_CURRENT_PARTICIPANTS_REQUIRED("Shift current participants is required"),
     SHIFT_LOCATION_REQUIRED("Shift location is required"),
     SHIFT_LOCATION_INVALID("Shift location must be between 20 and 200 characters"),
+    SHIFT_START_TIME_BEFORE_END_TIME("Shift start time must be before end time"),
     ;
 
     public final String label;

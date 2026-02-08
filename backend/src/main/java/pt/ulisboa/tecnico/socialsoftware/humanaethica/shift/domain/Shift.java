@@ -45,7 +45,7 @@ public class Shift {
         setParticipantsLimit(shiftDto.getParticipantsLimit());
         setCurrentParticipants(shiftDto.getCurrentParticipants());
         setLocation(shiftDto.getLocation());
-        
+
         verifyInvariants();
     }
 
@@ -131,6 +131,7 @@ public class Shift {
         currentParticipantsIsRequired();
         locationIsRequired();
         locationLengthIsValid();
+        startTimeBeforeEndTime();
     }
 
     private void startTimeIsRequired() {
@@ -142,6 +143,14 @@ public class Shift {
     private void endTimeIsRequired() {
         if (this.endTime == null) {
             throw new HEException(SHIFT_END_TIME_REQUIRED);
+        }
+    }
+
+    private void startTimeBeforeEndTime() {
+        if (this.startTime != null && this.endTime != null) {
+            if (!this.startTime.isBefore(this.endTime)) {
+                throw new HEException(SHIFT_START_TIME_BEFORE_END_TIME);
+            }
         }
     }
 
