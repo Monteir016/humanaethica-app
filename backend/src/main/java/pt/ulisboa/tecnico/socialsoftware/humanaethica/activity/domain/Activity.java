@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
 
@@ -22,7 +23,9 @@ public class Activity {
     private static final int MIN_JUSTIFICATION_SIZE = 10;
     private static final int MAX_JUSTIFICATION_SIZE = 250;
 
-    public enum State {REPORTED, APPROVED, SUSPENDED}
+    public enum State {
+        REPORTED, APPROVED, SUSPENDED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +42,7 @@ public class Activity {
     private LocalDateTime suspensionDate;
     @Enumerated(EnumType.STRING)
     private Activity.State state = Activity.State.APPROVED;
-    @ManyToMany (fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "activity_themes")
     private List<Theme> themes = new ArrayList<>();
     @ManyToOne
@@ -54,6 +57,9 @@ public class Activity {
 
     @OneToMany(mappedBy = "activity")
     private List<Report> reports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "activity")
+    private List<Shift> shifts = new ArrayList<>();
 
     public Activity() {
     }
@@ -94,7 +100,6 @@ public class Activity {
         enrollments.remove(enrollment);
     }
 
-
     public Integer getId() {
         return id;
     }
@@ -104,7 +109,7 @@ public class Activity {
     }
 
     public void setName(String name) {
-       this.name = name;
+        this.name = name;
     }
 
     public String getRegion() {
@@ -195,7 +200,9 @@ public class Activity {
         return this.suspensionDate;
     }
 
-    public Integer getSuspendedByUserId() {return this.suspendedByUserId;}
+    public Integer getSuspendedByUserId() {
+        return this.suspendedByUserId;
+    }
 
     public List<Participation> getParticipations() {
         return participations;
@@ -250,6 +257,22 @@ public class Activity {
         this.reports.remove(report);
     }
 
+    public List<Shift> getShifts() {
+        return shifts;
+    }
+
+    public void setShifts(List<Shift> shifts) {
+        this.shifts = shifts;
+    }
+
+    public void addShift(Shift shift) {
+        this.shifts.add(shift);
+    }
+
+    public void removeShift(Shift shift) {
+        this.shifts.remove(shift);
+    }
+
     public void validate() {
         activityAndThemesMustBeApproved();
 
@@ -296,7 +319,7 @@ public class Activity {
         });
     }
 
-    public void addTheme (Theme theme) {
+    public void addTheme(Theme theme) {
         this.themes.add(theme);
         theme.addActivity(this);
     }
@@ -349,9 +372,9 @@ public class Activity {
         }
     }
 
-
     private void hasOneToFiveParticipants() {
-        if (this.participantsNumberLimit == null || this.participantsNumberLimit <= 0 || this.participantsNumberLimit > 5) {
+        if (this.participantsNumberLimit == null || this.participantsNumberLimit <= 0
+                || this.participantsNumberLimit > 5) {
             throw new HEException(ACTIVITY_SHOULD_HAVE_ONE_TO_FIVE_PARTICIPANTS);
         }
     }

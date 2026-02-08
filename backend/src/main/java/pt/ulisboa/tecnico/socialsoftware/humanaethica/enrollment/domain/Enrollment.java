@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,11 @@ public class Enrollment {
     @ManyToOne
     private Volunteer volunteer;
 
-    public Enrollment() {}
+    @ManyToOne
+    private Shift shift;
+
+    public Enrollment() {
+    }
 
     public Enrollment(Activity activity, Volunteer volunteer, EnrollmentDto enrollmentDto) {
         setActivity(activity);
@@ -34,14 +39,14 @@ public class Enrollment {
         verifyInvariants();
     }
 
-    public void update(EnrollmentDto enrollmentDto) {  
+    public void update(EnrollmentDto enrollmentDto) {
         setMotivation(enrollmentDto.getMotivation());
 
         editOrDeleteEnrollmentBeforeDeadline();
         verifyInvariants();
     }
 
-    public void delete(){
+    public void delete() {
         volunteer.removeEnrollment(this);
         activity.removeEnrollment(this);
 
@@ -89,6 +94,17 @@ public class Enrollment {
     public void setVolunteer(Volunteer volunteer) {
         this.volunteer = volunteer;
         this.volunteer.addEnrollment(this);
+    }
+
+    public Shift getShift() {
+        return shift;
+    }
+
+    public void setShift(Shift shift) {
+        this.shift = shift;
+        if (shift != null) {
+            shift.addEnrollment(this);
+        }
     }
 
     private void verifyInvariants() {

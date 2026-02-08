@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
@@ -23,14 +24,15 @@ public class Participation {
     private String volunteerReview;
     private String memberReview;
 
-
-
     @ManyToOne
     private Activity activity;
     @ManyToOne
     private Volunteer volunteer;
+    @ManyToOne
+    private Shift shift;
 
-    public Participation() {}
+    public Participation() {
+    }
 
     public Participation(Activity activity, Volunteer volunteer, ParticipationDto participationDto) {
         setActivity(activity);
@@ -41,24 +43,22 @@ public class Participation {
         setVolunteerRating(participationDto.getVolunteerRating());
         setVolunteerReview(participationDto.getVolunteerReview());
 
-
-
         verifyInvariants();
     }
 
-    public void memberRating(ParticipationDto participationDto){
+    public void memberRating(ParticipationDto participationDto) {
         setMemberRating(participationDto.getMemberRating());
         setMemberReview(participationDto.getMemberReview());
         verifyInvariants();
     }
 
-    public void volunteerRating(ParticipationDto participationDto){
+    public void volunteerRating(ParticipationDto participationDto) {
         setVolunteerRating(participationDto.getVolunteerRating());
         setVolunteerReview(participationDto.getVolunteerReview());
         verifyInvariants();
     }
 
-    public void delete(){
+    public void delete() {
         volunteer.deleteParticipation(this);
         activity.deleteParticipation(this);
     }
@@ -70,7 +70,6 @@ public class Participation {
     public void setId(Integer id) {
         this.id = id;
     }
-
 
     public LocalDateTime getAcceptanceDate() {
         return acceptanceDate;
@@ -130,6 +129,17 @@ public class Participation {
         this.volunteer.addParticipation(this);
     }
 
+    public Shift getShift() {
+        return shift;
+    }
+
+    public void setShift(Shift shift) {
+        this.shift = shift;
+        if (shift != null) {
+            shift.addParticipation(this);
+        }
+    }
+
     private void verifyInvariants() {
         participateOnce();
         numberOfParticipantsLessOrEqualLimit();
@@ -159,11 +169,11 @@ public class Participation {
     }
 
     private void ratingAfterEnd() {
-        if ((volunteerRating != null || memberRating != null) && LocalDateTime.now().isBefore(activity.getEndingDate())) {
+        if ((volunteerRating != null || memberRating != null)
+                && LocalDateTime.now().isBefore(activity.getEndingDate())) {
             throw new HEException(PARTICIPATION_RATING_BEFORE_END);
         }
     }
-
 
     private void ratingBetweenOneAndFive() {
         if (volunteerRating != null && (volunteerRating < 1 || volunteerRating > 5)) {
@@ -185,5 +195,3 @@ public class Participation {
         }
     }
 }
-
-
