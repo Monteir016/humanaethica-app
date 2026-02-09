@@ -271,6 +271,48 @@ class CreateShiftMethodTest extends SpockTest {
         IN_TWO_DAYS                    | IN_THREE_DAYS.plusDays(1)      | "end after activity end"
     }
 
+    @Unroll
+    def "create shift with valid current participants: #description"() {
+        given:
+        shiftDto.participantsLimit = limit
+        shiftDto.currentParticipants = current
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then: "check result"
+        result.getActivity() == activity
+        result.getParticipantsLimit() == limit
+        result.getCurrentParticipants() == current
+        and: "invocations"
+        1 * activity.addShift(_)
+
+        where:
+        limit | current | description
+        5     | 0       | "current participants is zero"
+        5     | 3       | "current participants within limit"
+        5     | 5       | "current participants equals limit (boundary)"
+    }
+
+    @Unroll
+    def "create shift with current participants exceeding limit: #description"() {
+        given:
+        shiftDto.participantsLimit = limit
+        shiftDto.currentParticipants = current
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT
+
+        where:
+        limit | current | description
+        5     | 6       | "current participants exceeds limit by one"
+        5     | 10      | "current participants exceeds limit significantly"
+    }
+
     def "create shift and verify associations are initialized"() {
         when:
         def result = new Shift(activity, shiftDto)

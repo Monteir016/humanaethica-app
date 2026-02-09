@@ -134,6 +134,7 @@ public class Shift {
         startTimeBeforeEndTime();
         startTimeAfterNow();
         shiftDatesWithinActivity();
+        currentParticipantsWithinLimit();
     }
 
     private void startTimeIsRequired() {
@@ -204,6 +205,14 @@ public class Shift {
             int length = this.location.trim().length();
             if (length < 20 || length > 200) {
                 throw new HEException(SHIFT_LOCATION_INVALID);
+            }
+        }
+    }
+
+    private void currentParticipantsWithinLimit() {
+        if (this.currentParticipants != null && this.participantsLimit != null) {
+            if (this.currentParticipants > this.participantsLimit) {
+                throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
             }
         }
     }
