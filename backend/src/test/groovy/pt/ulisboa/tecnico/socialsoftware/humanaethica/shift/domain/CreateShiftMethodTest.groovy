@@ -68,16 +68,42 @@ class CreateShiftMethodTest extends SpockTest {
         error.getErrorMessage() == SHIFT_END_TIME_REQUIRED
     }
 
-    def "create shift with null participants limit"() {
+    @Unroll
+    def "create shift with valid participants limit: #description"() {
         given:
-        shiftDto.participantsLimit = null
+        shiftDto.participantsLimit = limit
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then: "check result"
+        result.getParticipantsLimit() == limit
+        and: "invocations"
+        1 * activity.addShift(_)
+
+        where:
+        limit | description
+        1     | "participants limit is one (minimum valid boundary)"
+        5     | "participants limit is five"
+    }
+
+    @Unroll
+    def "create shift with invalid participants limit: #description"() {
+        given:
+        shiftDto.participantsLimit = limit
 
         when:
         new Shift(activity, shiftDto)
 
         then:
         def error = thrown(HEException)
-        error.getErrorMessage() == SHIFT_PARTICIPANTS_LIMIT_REQUIRED
+        error.getErrorMessage() == SHIFT_PARTICIPANTS_LIMIT_POSITIVE
+
+        where:
+        limit | description
+        null  | "participants limit is not defined"
+        0     | "participants limit is zero (boundary)"
+        -10   | "participants limit is significantly negative"
     }
 
     def "create shift with null current participants"() {

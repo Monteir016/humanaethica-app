@@ -127,7 +127,7 @@ public class Shift {
     private void verifyInvariants() {
         startTimeIsRequired();
         endTimeIsRequired();
-        participantsLimitIsRequired();
+        participantsLimitIsPositive();
         currentParticipantsIsRequired();
         locationIsRequired();
         locationLengthIsValid();
@@ -182,9 +182,9 @@ public class Shift {
         }
     }
 
-    private void participantsLimitIsRequired() {
-        if (this.participantsLimit == null) {
-            throw new HEException(SHIFT_PARTICIPANTS_LIMIT_REQUIRED);
+    private void participantsLimitIsPositive() {
+        if (this.participantsLimit == null || this.participantsLimit <= 0) {
+            throw new HEException(SHIFT_PARTICIPANTS_LIMIT_POSITIVE);
         }
     }
 

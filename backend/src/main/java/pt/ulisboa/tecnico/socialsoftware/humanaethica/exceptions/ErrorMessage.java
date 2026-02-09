@@ -70,7 +70,7 @@ public enum ErrorMessage {
     // Shift
     SHIFT_START_TIME_REQUIRED("Shift start time is required"),
     SHIFT_END_TIME_REQUIRED("Shift end time is required"),
-    SHIFT_PARTICIPANTS_LIMIT_REQUIRED("Shift participants limit is required"),
+    SHIFT_PARTICIPANTS_LIMIT_POSITIVE("Shift participants limit must be greater than zero"),
     SHIFT_CURRENT_PARTICIPANTS_REQUIRED("Shift current participants is required"),
     SHIFT_LOCATION_REQUIRED("Shift location is required"),
     SHIFT_LOCATION_INVALID("Shift location must be between 20 and 200 characters"),
