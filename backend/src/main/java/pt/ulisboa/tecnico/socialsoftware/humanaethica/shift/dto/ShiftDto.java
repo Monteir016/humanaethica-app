@@ -8,7 +8,6 @@ public class ShiftDto {
     private String startTime;
     private String endTime;
     private Integer participantsLimit;
-    private Integer currentParticipants;
     private String location;
     private Integer activityId;
 
@@ -20,7 +19,6 @@ public class ShiftDto {
         setStartTime(DateHandler.toISOString(shift.getStartTime()));
         setEndTime(DateHandler.toISOString(shift.getEndTime()));
         setParticipantsLimit(shift.getParticipantsLimit());
-        setCurrentParticipants(shift.getCurrentParticipants());
         setLocation(shift.getLocation());
         if (shift.getActivity() != null) {
             setActivityId(shift.getActivity().getId());
@@ -59,14 +57,6 @@ public class ShiftDto {
         this.participantsLimit = participantsLimit;
     }
 
-    public Integer getCurrentParticipants() {
-        return currentParticipants;
-    }
-
-    public void setCurrentParticipants(Integer currentParticipants) {
-        this.currentParticipants = currentParticipants;
-    }
-
     public String getLocation() {
         return location;
     }
@@ -90,7 +80,6 @@ public class ShiftDto {
                 ", startTime='" + startTime + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", participantsLimit=" + participantsLimit +
-                ", currentParticipants=" + currentParticipants +
                 ", location='" + location + '\'' +
                 ", activityId=" + activityId +
                 '}';

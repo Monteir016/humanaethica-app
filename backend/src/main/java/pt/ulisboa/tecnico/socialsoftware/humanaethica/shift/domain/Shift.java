@@ -23,7 +23,6 @@ public class Shift {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer participantsLimit;
-    private Integer currentParticipants;
     private String location;
 
     @ManyToOne
@@ -43,7 +42,6 @@ public class Shift {
         setStartTime(DateHandler.toLocalDateTime(shiftDto.getStartTime()));
         setEndTime(DateHandler.toLocalDateTime(shiftDto.getEndTime()));
         setParticipantsLimit(shiftDto.getParticipantsLimit());
-        setCurrentParticipants(shiftDto.getCurrentParticipants());
         setLocation(shiftDto.getLocation());
 
         verifyInvariants();
@@ -82,11 +80,7 @@ public class Shift {
     }
 
     public Integer getCurrentParticipants() {
-        return currentParticipants;
-    }
-
-    public void setCurrentParticipants(Integer currentParticipants) {
-        this.currentParticipants = currentParticipants;
+        return participations.size();
     }
 
     public String getLocation() {
@@ -128,7 +122,6 @@ public class Shift {
         startTimeIsRequired();
         endTimeIsRequired();
         participantsLimitIsPositive();
-        currentParticipantsIsRequired();
         locationIsRequired();
         locationLengthIsValid();
         startTimeBeforeEndTime();
@@ -188,12 +181,6 @@ public class Shift {
         }
     }
 
-    private void currentParticipantsIsRequired() {
-        if (this.currentParticipants == null) {
-            throw new HEException(SHIFT_CURRENT_PARTICIPANTS_REQUIRED);
-        }
-    }
-
     private void locationIsRequired() {
         if (this.location == null) {
             throw new HEException(SHIFT_LOCATION_REQUIRED);
@@ -210,8 +197,8 @@ public class Shift {
     }
 
     private void currentParticipantsWithinLimit() {
-        if (this.currentParticipants != null && this.participantsLimit != null) {
-            if (this.currentParticipants > this.participantsLimit) {
+        if (this.participantsLimit != null) {
+            if (getCurrentParticipants() > this.participantsLimit) {
                 throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
             }
         }

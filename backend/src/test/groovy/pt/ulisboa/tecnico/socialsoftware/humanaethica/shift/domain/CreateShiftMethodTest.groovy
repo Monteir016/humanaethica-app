@@ -23,7 +23,6 @@ class CreateShiftMethodTest extends SpockTest {
         shiftDto.startTime = DateHandler.toISOString(IN_ONE_DAY)
         shiftDto.endTime = DateHandler.toISOString(IN_TWO_DAYS)
         shiftDto.participantsLimit = 5
-        shiftDto.currentParticipants = 0
         shiftDto.location = "This is a valid location with more than twenty characters"
     }
 
@@ -106,17 +105,7 @@ class CreateShiftMethodTest extends SpockTest {
         -10   | "participants limit is significantly negative"
     }
 
-    def "create shift with null current participants"() {
-        given:
-        shiftDto.currentParticipants = null
 
-        when:
-        new Shift(activity, shiftDto)
-
-        then:
-        def error = thrown(HEException)
-        error.getErrorMessage() == SHIFT_CURRENT_PARTICIPANTS_REQUIRED
-    }
 
     def "create shift with null location"() {
         given:
@@ -295,48 +284,6 @@ class CreateShiftMethodTest extends SpockTest {
         IN_ONE_DAY.minusMinutes(1)     | IN_TWO_DAYS                    | "start one minute before activity start"
         IN_TWO_DAYS                    | IN_THREE_DAYS.plusMinutes(1)   | "end one minute after activity end"
         IN_TWO_DAYS                    | IN_THREE_DAYS.plusDays(1)      | "end after activity end"
-    }
-
-    @Unroll
-    def "create shift with valid current participants: #description"() {
-        given:
-        shiftDto.participantsLimit = limit
-        shiftDto.currentParticipants = current
-
-        when:
-        def result = new Shift(activity, shiftDto)
-
-        then: "check result"
-        result.getActivity() == activity
-        result.getParticipantsLimit() == limit
-        result.getCurrentParticipants() == current
-        and: "invocations"
-        1 * activity.addShift(_)
-
-        where:
-        limit | current | description
-        5     | 0       | "current participants is zero"
-        5     | 3       | "current participants within limit"
-        5     | 5       | "current participants equals limit (boundary)"
-    }
-
-    @Unroll
-    def "create shift with current participants exceeding limit: #description"() {
-        given:
-        shiftDto.participantsLimit = limit
-        shiftDto.currentParticipants = current
-
-        when:
-        new Shift(activity, shiftDto)
-
-        then:
-        def error = thrown(HEException)
-        error.getErrorMessage() == SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT
-
-        where:
-        limit | current | description
-        5     | 6       | "current participants exceeds limit by one"
-        5     | 10      | "current participants exceeds limit significantly"
     }
 
     def "create shift and verify associations are initialized"() {
