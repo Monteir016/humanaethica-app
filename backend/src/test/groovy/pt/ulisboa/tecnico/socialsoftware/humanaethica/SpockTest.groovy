@@ -29,6 +29,9 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.dto.ReportDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.ShiftService
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.UserApplicationalService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.UserService
@@ -319,6 +322,25 @@ class SpockTest extends Specification {
         reportRepository.save(report)
         return report
     }
+
+    // shift
+
+    public static final String SHIFT_LOCATION = "Rua Médico Sousa Refóios 64, Mirandela"
+
+    @Autowired
+    ShiftService shiftService
+    @Autowired
+    ShiftRepository shiftRepository
+
+    def createShiftDto(startTime, endTime, participantsNumberLimit, location) {
+        def shiftDto = new ShiftDto()
+        shiftDto.setStartTime(DateHandler.toISOString(startTime))
+        shiftDto.setEndTime(DateHandler.toISOString(endTime))
+        shiftDto.setParticipantsLimit(participantsNumberLimit)
+        shiftDto.setLocation(location)
+        shiftDto
+    }
+
 
     // clean database
 

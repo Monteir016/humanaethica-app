@@ -68,6 +68,7 @@ public enum ErrorMessage {
     REPORT_NOT_FOUND("Report not found with id %d"),
 
     // Shift
+    SHIFT_INFORMATION_REQUIRED("Shift information is required"),
     SHIFT_START_TIME_REQUIRED("Shift start time is required"),
     SHIFT_END_TIME_REQUIRED("Shift end time is required"),
     SHIFT_PARTICIPANTS_LIMIT_REQUIRED("Shift participants limit is required"),
