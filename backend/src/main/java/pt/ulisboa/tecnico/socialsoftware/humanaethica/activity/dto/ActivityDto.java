@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.dto.InstitutionDto;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.dto.ThemeDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
 
@@ -25,12 +26,13 @@ public class ActivityDto {
     private String suspensionDate;
     private Integer suspendedByUserId;
     private List<ThemeDto> themes;
+    private List<ShiftDto> shifts;
     private InstitutionDto institution;
 
-    public ActivityDto(){
+    public ActivityDto() {
     }
 
-    public ActivityDto(Activity activity, boolean deepCopyInstitution){
+    public ActivityDto(Activity activity, boolean deepCopyInstitution) {
         setId(activity.getId());
         setName(activity.getName());
         setRegion(activity.getRegion());
@@ -40,7 +42,11 @@ public class ActivityDto {
         setDescription(activity.getDescription());
 
         this.themes = activity.getThemes().stream()
-                .map(theme->new ThemeDto(theme,false, true, false))
+                .map(theme -> new ThemeDto(theme, false, true, false))
+                .toList();
+
+        this.shifts = activity.getShifts().stream()
+                .map(ShiftDto::new)
                 .toList();
 
         setState(activity.getState().name());
@@ -53,7 +59,7 @@ public class ActivityDto {
         setSuspendedByUserId(activity.getSuspendedByUserId());
 
         if (deepCopyInstitution && (activity.getInstitution() != null)) {
-                setInstitution(new InstitutionDto(activity.getInstitution(), false, false));
+            setInstitution(new InstitutionDto(activity.getInstitution(), false, false));
 
         }
     }
@@ -64,6 +70,14 @@ public class ActivityDto {
 
     public List<ThemeDto> getThemes() {
         return themes;
+    }
+
+    public void setShifts(List<ShiftDto> shifts) {
+        this.shifts = shifts;
+    }
+
+    public List<ShiftDto> getShifts() {
+        return shifts;
     }
 
     public Integer getId() {
@@ -82,10 +96,13 @@ public class ActivityDto {
         this.name = name;
     }
 
-    public String getRegion() { return region; }
+    public String getRegion() {
+        return region;
+    }
 
-    public void setRegion(String region) { this.region = region; }
-
+    public void setRegion(String region) {
+        this.region = region;
+    }
 
     public String getDescription() {
         return description;
@@ -166,7 +183,6 @@ public class ActivityDto {
     public void setInstitution(InstitutionDto institution) {
         this.institution = institution;
     }
-
 
     public Integer getParticipantsNumberLimit() {
         return participantsNumberLimit;

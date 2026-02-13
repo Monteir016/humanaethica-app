@@ -345,6 +345,7 @@ class SpockTest extends Specification {
     // clean database
 
     def deleteAll() {
+        shiftRepository.deleteAll()
         assessmentRepository.deleteAll()
         participationRepository.deleteAll()
         enrollmentRepository.deleteAll()
