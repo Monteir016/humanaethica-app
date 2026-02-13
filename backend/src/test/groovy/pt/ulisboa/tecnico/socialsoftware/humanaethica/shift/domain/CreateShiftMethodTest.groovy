@@ -26,6 +26,8 @@ class CreateShiftMethodTest extends SpockTest {
         shiftDto.location = "This is a valid location with more than twenty characters"
 
         activity.getState() >> Activity.State.APPROVED
+        activity.getShifts() >> []
+        activity.getParticipantsNumberLimit() >> 10
     }
 
     def "create shift with valid data"() {
@@ -303,6 +305,49 @@ class CreateShiftMethodTest extends SpockTest {
         state << [Activity.State.REPORTED, Activity.State.SUSPENDED]
     }
 
+    @Unroll
+    def "create shift with total participants exceeding activity limit"() {
+        given:
+        activity = Mock(Activity)
+        activity.getState() >> Activity.State.APPROVED
+        activity.getParticipantsNumberLimit() >> 10
+        def existingShift = Mock(Shift)
+        existingShift.getParticipantsLimit() >> limit
+        activity.getShifts() >> [existingShift]
+
+        shiftDto.participantsLimit = 3
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == TOTAL_PARTICIPANTS_EXCEEDS_ACTIVITY_LIMIT
+
+        where:
+        limit << [8, 10]
+    }
+
+    @Unroll
+    def "create shift with total participants within activity limit boundary"() {
+        given:
+        activity.getParticipantsNumberLimit() >> 10
+        def existingShift = Mock(Shift)
+        existingShift.getParticipantsLimit() >> limit
+        activity.getShifts() >> [existingShift]
+
+        shiftDto.participantsLimit = 3
+
+        when:
+        def shift = new Shift(activity, shiftDto)
+
+        then:
+        shift.participantsLimit == 3
+
+        where:
+        limit << [1, 7]
+    }
+    
     def "create shift and verify associations are initialized"() {
         when:
         def result = new Shift(activity, shiftDto)

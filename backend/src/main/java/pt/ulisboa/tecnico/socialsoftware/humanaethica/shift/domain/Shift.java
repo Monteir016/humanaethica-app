@@ -129,11 +129,25 @@ public class Shift {
         shiftDatesWithinActivity();
         currentParticipantsWithinLimit();
         checkActivityIsApproved();
+        checkTotalParticipantsLimit();
     }
 
     private void checkActivityIsApproved() {
         if (this.activity != null && this.activity.getState() != Activity.State.APPROVED) {
             throw new HEException(SHIFT_ON_NON_APPROVED_ACTIVITY);
+        }
+    }
+
+    private void checkTotalParticipantsLimit() {
+        if (this.activity != null && this.participantsLimit != null) {
+            int totalParticipants = this.activity.getShifts().stream()
+                    .filter(shift -> shift != this)
+                    .mapToInt(Shift::getParticipantsLimit)
+                    .sum();
+
+            if (totalParticipants + this.participantsLimit > this.activity.getParticipantsNumberLimit()) {
+                throw new HEException(TOTAL_PARTICIPANTS_EXCEEDS_ACTIVITY_LIMIT);
+            }
         }
     }
 
