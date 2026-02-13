@@ -78,6 +78,7 @@ public enum ErrorMessage {
     SHIFT_START_TIME_AFTER_NOW("Shift start time must be in the future"),
     SHIFT_DATES_WITHIN_ACTIVITY("Shift dates must be within activity date range"),
     SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT("Current participants cannot exceed participants limit"),
+    SHIFT_ON_NON_APPROVED_ACTIVITY("Shift cannot be associated with a non-approved activity"),
     ;
 
     public final String label;

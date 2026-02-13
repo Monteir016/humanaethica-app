@@ -128,6 +128,13 @@ public class Shift {
         startTimeAfterNow();
         shiftDatesWithinActivity();
         currentParticipantsWithinLimit();
+        checkActivityIsApproved();
+    }
+
+    private void checkActivityIsApproved() {
+        if (this.activity != null && this.activity.getState() != Activity.State.APPROVED) {
+            throw new HEException(SHIFT_ON_NON_APPROVED_ACTIVITY);
+        }
     }
 
     private void startTimeIsRequired() {

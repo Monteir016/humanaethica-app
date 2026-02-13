@@ -24,6 +24,8 @@ class CreateShiftMethodTest extends SpockTest {
         shiftDto.endTime = DateHandler.toISOString(IN_TWO_DAYS)
         shiftDto.participantsLimit = 5
         shiftDto.location = "This is a valid location with more than twenty characters"
+
+        activity.getState() >> Activity.State.APPROVED
     }
 
     def "create shift with valid data"() {
@@ -104,8 +106,6 @@ class CreateShiftMethodTest extends SpockTest {
         0     | "participants limit is zero (boundary)"
         -10   | "participants limit is significantly negative"
     }
-
-
 
     def "create shift with null location"() {
         given:
@@ -284,6 +284,23 @@ class CreateShiftMethodTest extends SpockTest {
         IN_ONE_DAY.minusMinutes(1)     | IN_TWO_DAYS                    | "start one minute before activity start"
         IN_TWO_DAYS                    | IN_THREE_DAYS.plusMinutes(1)   | "end one minute after activity end"
         IN_TWO_DAYS                    | IN_THREE_DAYS.plusDays(1)      | "end after activity end"
+    }
+
+    @Unroll
+    def "create shift with non-approved activity: #state"() {
+        given:
+        activity = Mock(Activity)
+        activity.getState() >> state
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == SHIFT_ON_NON_APPROVED_ACTIVITY
+
+        where:
+        state << [Activity.State.REPORTED, Activity.State.SUSPENDED]
     }
 
     def "create shift and verify associations are initialized"() {
