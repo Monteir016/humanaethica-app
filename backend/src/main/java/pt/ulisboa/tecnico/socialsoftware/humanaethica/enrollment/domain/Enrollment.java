@@ -124,6 +124,7 @@ public class Enrollment {
         enrollBeforeDeadline();
         atLeastOneShift();
         shiftsActivityConsistency();
+        shiftsHaveOverlappingTime();
     }
 
     private void motivationIsRequired() {
@@ -155,6 +156,21 @@ public class Enrollment {
         if (this.shifts.stream().map(Shift::getActivity).distinct().count() != 1) {
             throw new HEException(ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY);
         }
+    }
+
+    private void shiftsHaveOverlappingTime() {
+        for (Shift shift1 : this.shifts) {
+            for (Shift shift2 : this.shifts) {
+                if (shift1 != shift2 && overlaps(shift1, shift2)) {
+                    throw new HEException(ENROLLMENT_SHIFTS_HAVE_OVERLAPPING_TIME);
+                }
+            }
+        }
+    }
+
+    private boolean overlaps(Shift shift1, Shift shift2) {
+        return shift1.getStartTime().isBefore(shift2.getEndTime()) &&
+                shift2.getStartTime().isBefore(shift1.getEndTime());
     }
 
     private void editOrDeleteEnrollmentBeforeDeadline() {

@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentD
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ENROLLMENT_SHIFTS_HAVE_OVERLAPPING_TIME
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY
 import spock.lang.Unroll
 
@@ -128,6 +129,68 @@ class CreateEnrollmentMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED
+    }
+
+    @Unroll
+    def "create enrollment with overlapping shifts configurations (valid): #description"() {
+        given:
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        activity.getEnrollments() >> []
+        and:
+        shift.getStartTime() >> NOW.plusHours(10)
+        shift.getEndTime() >> NOW.plusHours(12)
+        and:
+        Shift otherShift = Mock()
+        otherShift.getActivity() >> activity
+        otherShift.getStartTime() >> NOW.plusHours(s2Start)
+        otherShift.getEndTime() >> NOW.plusHours(s2End)
+        and:
+        enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
+
+        when:
+        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrolmentDto)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        description           | s2Start | s2End
+        "Before"              | 8       | 9
+        "Touch end-start"     | 8       | 10
+        "Touch start-end"     | 12      | 14
+        "After"               | 13      | 14
+    }
+
+    @Unroll
+    def "create enrollment with overlapping shifts configurations (invalid): #description"() {
+        given:
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        activity.getEnrollments() >> []
+        and:
+        shift.getStartTime() >> NOW.plusHours(10)
+        shift.getEndTime() >> NOW.plusHours(12)
+        and:
+        Shift otherShift = Mock()
+        otherShift.getActivity() >> activity
+        otherShift.getStartTime() >> NOW.plusHours(s2Start)
+        otherShift.getEndTime() >> NOW.plusHours(s2End)
+        and:
+        enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
+
+        when:
+        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrolmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ENROLLMENT_SHIFTS_HAVE_OVERLAPPING_TIME
+
+        where:
+        description           | s2Start | s2End
+        "Overlap start"       | 9       | 11
+        "Inside"              | 10      | 11
+        "Exact match"         | 10      | 12
+        "Encloses"            | 9       | 13
+        "Overlap end"         | 11      | 13
     }
 
     def "create enrollment and violate at least one shift invariant"() {
