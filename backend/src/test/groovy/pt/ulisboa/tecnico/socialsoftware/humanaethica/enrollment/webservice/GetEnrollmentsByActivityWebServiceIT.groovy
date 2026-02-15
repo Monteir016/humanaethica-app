@@ -14,6 +14,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class GetEnrollmentsByActivityWebServiceIT extends SpockTest {
@@ -31,17 +33,21 @@ class GetEnrollmentsByActivityWebServiceIT extends SpockTest {
 
         def institution = institutionService.getDemoInstitution()
 
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
+        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY, IN_TWO_DAYS,IN_THREE_DAYS,null)
 
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 2, SHIFT_LOCATION)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
-        createEnrollment(activity, volunteerOne, ENROLLMENT_MOTIVATION_1)
-        createEnrollment(activity, volunteerTwo, ENROLLMENT_MOTIVATION_2)
+        createEnrollment(activity, volunteerOne, ENROLLMENT_MOTIVATION_1, List.of(shift))
+        createEnrollment(activity, volunteerTwo, ENROLLMENT_MOTIVATION_2, List.of(shift))
     }
 
     def 'member gets two enrollments'() {

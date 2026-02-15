@@ -42,3 +42,4 @@ public class ShiftService {
         return new ShiftDto(shift);
     }
 }
+

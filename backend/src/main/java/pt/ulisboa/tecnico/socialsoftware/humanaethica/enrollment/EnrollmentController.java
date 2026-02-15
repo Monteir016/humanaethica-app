@@ -33,22 +33,22 @@ public class EnrollmentController {
 
     @PostMapping("/activities/{activityId}/enrollments")
     @PreAuthorize("(hasRole('ROLE_VOLUNTEER'))")
-    public EnrollmentDto createEnrollment(Principal principal, @PathVariable Integer activityId, @Valid @RequestBody EnrollmentDto enrollmentDto) {
+    public EnrollmentDto createEnrollment(Principal principal, @PathVariable Integer activityId,
+            @RequestParam List<Integer> shiftIds, @Valid @RequestBody EnrollmentDto enrollmentDto) {
         int userId = ((AuthUser) ((Authentication) principal).getPrincipal()).getUser().getId();
-        return enrollmentService.createEnrollment(userId, activityId, enrollmentDto);
+        return enrollmentService.createEnrollment(userId, activityId, shiftIds, enrollmentDto);
     }
 
     @PutMapping("/enrollments/{enrollmentId}")
     @PreAuthorize("(hasRole('ROLE_VOLUNTEER')) and hasPermission(#enrollmentId, 'ENROLLMENT.MANAGER')")
-    public EnrollmentDto updateEnrollemt(@PathVariable Integer enrollmentId, @Valid @RequestBody EnrollmentDto enrollmentDto) {
+    public EnrollmentDto updateEnrollment(@PathVariable Integer enrollmentId,
+            @Valid @RequestBody EnrollmentDto enrollmentDto) {
         return enrollmentService.updateEnrollment(enrollmentId, enrollmentDto);
     }
 
     @DeleteMapping("/enrollments/{enrollmentId}")
     @PreAuthorize("(hasRole('ROLE_VOLUNTEER')) and hasPermission(#enrollmentId, 'ENROLLMENT.MANAGER')")
-    public EnrollmentDto removeEnrollment(@PathVariable Integer enrollmentId){
+    public EnrollmentDto removeEnrollment(@PathVariable Integer enrollmentId) {
         return enrollmentService.removeEnrollment(enrollmentId);
     }
-
-
 }

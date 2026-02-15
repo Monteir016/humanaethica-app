@@ -14,8 +14,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 import java.time.LocalDateTime
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @DataJpaTest
 class UpdateEnrollmentServiceTest extends SpockTest {
@@ -24,20 +26,27 @@ class UpdateEnrollmentServiceTest extends SpockTest {
     def enrollment
     def activity
     def volunteer
+    def shift
 
     def setup() {
         def institution = institutionService.getDemoInstitution()
 
         given: "activity info"
-        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1,
+        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, null)
         and: "an activity"
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
+
+        and: "a shift"
+        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
+        shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "an enrollment"
-        enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
+        enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1, List.of(shift))
     }
 
 

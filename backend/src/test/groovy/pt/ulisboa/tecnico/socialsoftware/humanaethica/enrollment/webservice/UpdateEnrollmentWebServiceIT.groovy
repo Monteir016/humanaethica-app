@@ -17,6 +17,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 
 
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
+
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UpdateEnrollmentWebServiceIT extends SpockTest {
     @LocalServerPort
@@ -25,6 +29,7 @@ class UpdateEnrollmentWebServiceIT extends SpockTest {
     def activity
     def volunteer
     def enrollmentId
+    def shift
 
     def setup() {
         deleteAll()
@@ -36,17 +41,21 @@ class UpdateEnrollmentWebServiceIT extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
 
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
+        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,5,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,null)
 
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
+        shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.volunteerId = volunteer.id
 
-        enrollmentService.createEnrollment(volunteer.id ,activity.id, enrollmentDto)
+        enrollmentService.createEnrollment(volunteer.id ,activity.id, List.of(shift.id), enrollmentDto)
     
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         enrollmentId = storedEnrollment.id

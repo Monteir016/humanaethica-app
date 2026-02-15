@@ -17,6 +17,9 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import spock.lang.Unroll
 
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
+
 import java.time.LocalDateTime
 
 @DataJpaTest
@@ -28,6 +31,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
     def activity
     def activity2
     def enrollmentTwo
+    def shift = Mock(Shift)
 
     def setup() {
         theme.getState() >> Theme.State.APPROVED
@@ -52,7 +56,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentOne = new Enrollment(activity, volunteer, enrollmentDto)
+        enrollmentOne = new Enrollment(activity, volunteer, List.of(shift), enrollmentDto)
     }
 
 
@@ -64,7 +68,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         then: "checks if the enrollment was deleted in the activtiy and volunteer"
         volunteer.getEnrollments().size() == 0
         activity.getEnrollments().size() == 0
-
+        1 * shift.removeEnrollment(enrollmentOne)
     }
    
     def "try to delete enrollment after deadline"() {
@@ -80,11 +84,13 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         activityDtoTwo.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
         activityDtoTwo.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
         activity2 = new Activity(activityDtoTwo, institution, themes)
+
+        def shift2 = Mock(Shift)
         
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(activity2, volunteer, List.of(shift2), enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
 
         when:
@@ -93,6 +99,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_AFTER_DEADLINE
+        0 * shift2.removeEnrollment(enrollmentTwo)
     }
    
     

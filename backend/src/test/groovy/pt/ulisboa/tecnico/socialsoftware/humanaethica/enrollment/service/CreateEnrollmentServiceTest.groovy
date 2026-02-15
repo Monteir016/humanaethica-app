@@ -21,7 +21,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
 
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
+        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY, IN_TWO_DAYS,IN_THREE_DAYS,null)
 
         activity = new Activity(activityDto, institution, new ArrayList<>())
@@ -32,9 +32,11 @@ class CreateEnrollmentServiceTest extends SpockTest {
         given:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 1, SHIFT_LOCATION)
+        def shift = shiftService.createShift(activity.id, shiftDto)
 
         when:
-        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
+        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, List.of(shift.id), enrollmentDto)
 
         then:
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -51,9 +53,11 @@ class CreateEnrollmentServiceTest extends SpockTest {
         given:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 1, SHIFT_LOCATION)
+        def shift = shiftService.createShift(activity.id, shiftDto)
 
         when:
-        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getActivityId(activityId), getEnrollmentDto(enrollmentValue,enrollmentDto))
+        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getActivityId(activityId), getShiftIds(shiftId, shift), getEnrollmentDto(enrollmentValue,enrollmentDto))
 
         then:
         def error = thrown(HEException)
@@ -62,12 +66,14 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 0
 
         where:
-        volunteerId | activityId | enrollmentValue || errorMessage
-        null        | EXIST      | EXIST           || ErrorMessage.USER_NOT_FOUND
-        NO_EXIST    | EXIST      | EXIST           || ErrorMessage.USER_NOT_FOUND
-        EXIST       | null       | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | NO_EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | EXIST      | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
+        volunteerId | activityId | shiftId | enrollmentValue || errorMessage
+        null        | EXIST      | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
+        NO_EXIST    | EXIST      | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
+        EXIST       | null       | EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
+        EXIST       | NO_EXIST   | EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
+        EXIST       | EXIST      | null    | EXIST           || ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
+        EXIST       | EXIST      | NO_EXIST| EXIST           || ErrorMessage.SHIFT_NOT_FOUND
+        EXIST       | EXIST      | EXIST   | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
     }
 
     def getVolunteerId(volunteerId) {
@@ -84,6 +90,15 @@ class CreateEnrollmentServiceTest extends SpockTest {
             return activity.id
         else if (activityId == NO_EXIST)
             return 222
+        else
+            return null
+    }
+
+    def getShiftIds(shiftId, shift) {
+        if (shiftId == EXIST)
+            return List.of(shift.id)
+        else if (shiftId == NO_EXIST)
+            return List.of(222)
         else
             return null
     }

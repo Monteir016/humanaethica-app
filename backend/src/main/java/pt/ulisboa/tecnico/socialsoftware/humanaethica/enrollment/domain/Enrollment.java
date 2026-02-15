@@ -8,6 +8,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
 
@@ -24,17 +26,18 @@ public class Enrollment {
     @ManyToOne
     private Volunteer volunteer;
 
-    @ManyToOne
-    private Shift shift;
+    @ManyToMany
+    private List<Shift> shifts = new ArrayList<>();
 
     public Enrollment() {
     }
 
-    public Enrollment(Activity activity, Volunteer volunteer, EnrollmentDto enrollmentDto) {
+    public Enrollment(Activity activity, Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
         setActivity(activity);
         setVolunteer(volunteer);
         setMotivation(enrollmentDto.getMotivation());
         setEnrollmentDateTime(LocalDateTime.now());
+        shifts.forEach(this::addShift);
 
         verifyInvariants();
     }
@@ -47,10 +50,12 @@ public class Enrollment {
     }
 
     public void delete() {
+        editOrDeleteEnrollmentBeforeDeadline();
+
         volunteer.removeEnrollment(this);
         activity.removeEnrollment(this);
+        shifts.forEach(shift -> shift.removeEnrollment(this));
 
-        editOrDeleteEnrollmentBeforeDeadline();
         verifyInvariants();
     }
 
@@ -96,21 +101,29 @@ public class Enrollment {
         this.volunteer.addEnrollment(this);
     }
 
-    public Shift getShift() {
-        return shift;
+    public List<Shift> getShifts() {
+        return shifts;
     }
 
-    public void setShift(Shift shift) {
-        this.shift = shift;
-        if (shift != null) {
-            shift.addEnrollment(this);
-        }
+    public void setShifts(List<Shift> shifts) {
+        this.shifts = shifts;
+    }
+
+    public void addShift(Shift shift) {
+        this.shifts.add(shift);
+        shift.addEnrollment(this);
+    }
+
+    public void removeShift(Shift shift) {
+        this.shifts.remove(shift);
+        shift.getEnrollments().remove(this);
     }
 
     private void verifyInvariants() {
         motivationIsRequired();
         enrollOnce();
         enrollBeforeDeadline();
+        atLeastOneShift();
     }
 
     private void motivationIsRequired() {
@@ -129,6 +142,12 @@ public class Enrollment {
     private void enrollBeforeDeadline() {
         if (this.enrollmentDateTime.isAfter(this.activity.getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
+        }
+    }
+
+    private void atLeastOneShift() {
+        if (this.shifts.isEmpty()) {
+            throw new HEException(ENROLLMENT_AT_LEAST_ONE_SHIFT);
         }
     }
 

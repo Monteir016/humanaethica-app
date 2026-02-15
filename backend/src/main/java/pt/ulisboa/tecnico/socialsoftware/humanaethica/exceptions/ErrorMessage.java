@@ -45,6 +45,7 @@ public enum ErrorMessage {
     ENROLLMENT_NOT_FOUND("Enrollment not found with id %d"),
     ENROLLMENT_REQUIRES_MOTIVATION("To apply to an activity you have to write a motivation longer than 10 characters"),
     ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED("The volunteer is already enrolled"),
+    ENROLLMENT_AT_LEAST_ONE_SHIFT("Enrollment must have at least one shift"),
     ENROLLMENT_AFTER_DEADLINE("The enrollment period is already closed"),
     PARTICIPATION_IS_FULL("No vacancies"),
     PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE("The enrollment period is still open"),
@@ -80,6 +81,7 @@ public enum ErrorMessage {
     SHIFT_DATES_WITHIN_ACTIVITY("Shift dates must be within activity date range"),
     SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT("Current participants cannot exceed participants limit"),
     SHIFT_ON_NON_APPROVED_ACTIVITY("Shift cannot be associated with a non-approved activity"),
+    SHIFT_NOT_FOUND("Shift not found with id %d"),
     TOTAL_PARTICIPANTS_EXCEEDS_ACTIVITY_LIMIT("Total participants of shifts exceeds activity limit"),
     ;
 

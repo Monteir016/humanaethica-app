@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
@@ -46,7 +47,10 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
 
         and: "enrollment"
-        enrollment = new Enrollment(activity, volunteer, EnrollmentDtoOne)
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        def shift = Mock(Shift)
+        enrollment = new Enrollment(activity, volunteer, List.of(shift), enrollmentDto)
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
@@ -107,7 +111,8 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, enrollmentDtoTwo)
+        def shift2 = Mock(Shift)
+        enrollmentTwo = new Enrollment(activity2, volunteer, List.of(shift2), enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 

@@ -261,10 +261,10 @@ class SpockTest extends Specification {
     @Autowired
     EnrollmentRepository enrollmentRepository
 
-    def createEnrollment(activity, volunteer, motivation) {
+    def createEnrollment(activity, volunteer, motivation, shifts = []) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(activity, volunteer, enrollmentDto)
+        def enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto)
         enrollmentRepository.save(enrollment)
         return enrollment
     }
@@ -345,11 +345,11 @@ class SpockTest extends Specification {
     // clean database
 
     def deleteAll() {
-        shiftRepository.deleteAll()
         assessmentRepository.deleteAll()
         participationRepository.deleteAll()
         enrollmentRepository.deleteAll()
         reportRepository.deleteAll()
+        shiftRepository.deleteAll()
         activityRepository.deleteAllActivityTheme()
         activityRepository.deleteAll()
         authUserRepository.deleteAll()

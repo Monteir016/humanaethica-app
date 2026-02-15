@@ -11,7 +11,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentD
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.repository.UserRepository;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,10 +28,13 @@ public class EnrollmentService {
     private ActivityRepository activityRepository;
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+    @Autowired
+    private ShiftRepository shiftRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<EnrollmentDto> getEnrollmentsByActivity(Integer activityId) {
-        if (activityId == null) throw  new HEException(ACTIVITY_NOT_FOUND);
+        if (activityId == null)
+            throw new HEException(ACTIVITY_NOT_FOUND);
         activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
         return enrollmentRepository.getEnrollmentsByActivityId(activityId).stream()
@@ -39,7 +45,8 @@ public class EnrollmentService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<EnrollmentDto> getVolunteerEnrollments(Integer userId) {
-        if (userId == null) throw new HEException(USER_NOT_FOUND);
+        if (userId == null)
+            throw new HEException(USER_NOT_FOUND);
 
         return enrollmentRepository.getEnrollmentsForVolunteerId(userId).stream()
                 .sorted(Comparator.comparing(Enrollment::getEnrollmentDateTime))
@@ -48,16 +55,31 @@ public class EnrollmentService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public EnrollmentDto createEnrollment(Integer userId, Integer activityId, EnrollmentDto enrollmentDto) {
-        if (enrollmentDto == null) throw  new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
+    public EnrollmentDto createEnrollment(Integer userId, Integer activityId, List<Integer> shiftIds,
+            EnrollmentDto enrollmentDto) {
+        if (enrollmentDto == null)
+            throw new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
 
-        if (userId == null) throw new HEException(USER_NOT_FOUND);
-        Volunteer volunteer = (Volunteer) userRepository.findById(userId).orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
+        if (userId == null)
+            throw new HEException(USER_NOT_FOUND);
+        Volunteer volunteer = (Volunteer) userRepository.findById(userId)
+                .orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
 
-        if (activityId == null) throw  new HEException(ACTIVITY_NOT_FOUND);
-        Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
+        if (activityId == null)
+            throw new HEException(ACTIVITY_NOT_FOUND);
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
-        Enrollment enrollment = new Enrollment(activity, volunteer, enrollmentDto);
+        if (shiftIds == null || shiftIds.isEmpty()) {
+            throw new HEException(ENROLLMENT_AT_LEAST_ONE_SHIFT);
+        }
+
+        List<Shift> shifts = shiftIds.stream()
+                .map(shiftId -> shiftRepository.findById(shiftId)
+                        .orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId)))
+                .toList();
+
+        Enrollment enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto);
         enrollmentRepository.save(enrollment);
 
         return new EnrollmentDto(enrollment);
@@ -65,12 +87,14 @@ public class EnrollmentService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public EnrollmentDto updateEnrollment(Integer enrollmentId, EnrollmentDto enrollmentDto) {
-        if (enrollmentDto == null) throw new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
+        if (enrollmentDto == null)
+            throw new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
 
-        if (enrollmentId == null) throw new HEException(ENROLLMENT_NOT_FOUND);
+        if (enrollmentId == null)
+            throw new HEException(ENROLLMENT_NOT_FOUND);
 
-
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId).orElseThrow(() -> new HEException(ENROLLMENT_NOT_FOUND, enrollmentId));
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new HEException(ENROLLMENT_NOT_FOUND, enrollmentId));
 
         enrollment.update(enrollmentDto);
 
@@ -80,10 +104,12 @@ public class EnrollmentService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public EnrollmentDto removeEnrollment(Integer enrollmentId) {
-        if (enrollmentId == null) throw new HEException(ENROLLMENT_NOT_FOUND);
+        if (enrollmentId == null)
+            throw new HEException(ENROLLMENT_NOT_FOUND);
 
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId).orElseThrow(() -> new HEException(ENROLLMENT_NOT_FOUND, enrollmentId));
-        
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new HEException(ENROLLMENT_NOT_FOUND, enrollmentId));
+
         enrollment.delete();
 
         enrollmentRepository.delete(enrollment);

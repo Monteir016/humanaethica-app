@@ -28,7 +28,7 @@ public class Shift {
     @ManyToOne
     private Activity activity;
 
-    @OneToMany(mappedBy = "shift")
+    @ManyToMany(mappedBy = "shifts")
     private List<Enrollment> enrollments = new ArrayList<>();
 
     @OneToMany(mappedBy = "shift")
@@ -108,6 +108,10 @@ public class Shift {
 
     public void addEnrollment(Enrollment enrollment) {
         this.enrollments.add(enrollment);
+    }
+
+    public void removeEnrollment(Enrollment enrollment) {
+        this.enrollments.remove(enrollment);
     }
 
     public List<Participation> getParticipations() {
