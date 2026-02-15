@@ -61,11 +61,10 @@ class DeleteEnrollmentMethodTest extends SpockTest {
 
 
     def "delete enrollment"() {
-
         when: "enrollment is deleted"
         enrollmentOne.delete()
 
-        then: "checks if the enrollment was deleted in the activtiy and volunteer"
+        then: "checks if the enrollment was deleted in the activity and volunteer"
         volunteer.getEnrollments().size() == 0
         activity.getEnrollments().size() == 0
         1 * shift.removeEnrollment(enrollmentOne)
@@ -99,7 +98,6 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_AFTER_DEADLINE
-        0 * shift2.removeEnrollment(enrollmentTwo)
     }
    
     

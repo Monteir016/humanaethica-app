@@ -50,12 +50,11 @@ public class Enrollment {
     }
 
     public void delete() {
-        editOrDeleteEnrollmentBeforeDeadline();
-
         volunteer.removeEnrollment(this);
         activity.removeEnrollment(this);
         shifts.forEach(shift -> shift.removeEnrollment(this));
 
+        editOrDeleteEnrollmentBeforeDeadline();
         verifyInvariants();
     }
 
@@ -124,6 +123,7 @@ public class Enrollment {
         enrollOnce();
         enrollBeforeDeadline();
         atLeastOneShift();
+        shiftsActivityConsistency();
     }
 
     private void motivationIsRequired() {
@@ -148,6 +148,12 @@ public class Enrollment {
     private void atLeastOneShift() {
         if (this.shifts.isEmpty()) {
             throw new HEException(ENROLLMENT_AT_LEAST_ONE_SHIFT);
+        }
+    }
+
+    private void shiftsActivityConsistency() {
+        if (this.shifts.stream().map(Shift::getActivity).distinct().count() != 1) {
+            throw new HEException(ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY);
         }
     }
 

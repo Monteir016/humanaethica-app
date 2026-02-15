@@ -10,6 +10,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
@@ -27,6 +29,8 @@ class CreateEnrollmentMethodTest extends SpockTest {
         given: "enrolment info"
         enrolmentDto = new EnrollmentDto()
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        and:
+        shift.getActivity() >> activity
     }
 
     def "create enrollment"() {
@@ -88,6 +92,26 @@ class CreateEnrollmentMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_AFTER_DEADLINE
+    }
+
+    def "create enrollment with shift from another activity"() {
+        given:
+        Activity otherActivity = Mock()
+        activity.getEnrollments() >> []
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        and:
+        Shift otherShift = Mock()
+        otherShift.getActivity() >> otherActivity
+        and: "an enrollment dto"
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.setMotivation(ENROLLMENT_MOTIVATION_1)
+
+        when:
+        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY
     }
 
     def "create enrollment and violate enroll once invariant"() {
