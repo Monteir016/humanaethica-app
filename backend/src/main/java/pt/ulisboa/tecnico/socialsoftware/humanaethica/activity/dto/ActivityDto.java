@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto;
 
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.dto.InstitutionDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.dto.ThemeDto;
@@ -37,7 +36,10 @@ public class ActivityDto {
         setName(activity.getName());
         setRegion(activity.getRegion());
         setParticipantsNumberLimit(activity.getParticipantsNumberLimit());
-        setNumberOfEnrollments(activity.getEnrollments().size());
+        setNumberOfEnrollments((int) activity.getShifts().stream()
+                .flatMap(shift -> shift.getEnrollments().stream())
+                .distinct()
+                .count());
         setNumberOfParticipations(activity.getParticipations().size());
         setDescription(activity.getDescription());
 

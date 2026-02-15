@@ -55,7 +55,7 @@ class UpdateEnrollmentWebServiceIT extends SpockTest {
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.volunteerId = volunteer.id
 
-        enrollmentService.createEnrollment(volunteer.id ,activity.id, List.of(shift.id), enrollmentDto)
+        enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
     
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         enrollmentId = storedEnrollment.id

@@ -13,14 +13,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
-import spock.lang.Unroll
-
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 class DeleteEnrollmentMethodTest extends SpockTest {
@@ -56,7 +50,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentOne = new Enrollment(activity, volunteer, List.of(shift), enrollmentDto)
+        enrollmentOne = new Enrollment(volunteer, List.of(shift), enrollmentDto)
     }
 
 
@@ -66,7 +60,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
 
         then: "checks if the enrollment was deleted in the activity and volunteer"
         volunteer.getEnrollments().size() == 0
-        activity.getEnrollments().size() == 0
+
         1 * shift.removeEnrollment(enrollmentOne)
     }
    
@@ -85,11 +79,12 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         activity2 = new Activity(activityDtoTwo, institution, themes)
 
         def shift2 = Mock(Shift)
+        shift2.getActivity() >> activity2
         
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, List.of(shift2), enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(volunteer, List.of(shift2), enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
 
         when:

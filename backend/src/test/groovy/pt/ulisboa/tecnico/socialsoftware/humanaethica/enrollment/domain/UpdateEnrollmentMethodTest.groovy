@@ -6,14 +6,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
@@ -24,8 +20,6 @@ import java.time.LocalDateTime
 class UpdateEnrollmentMethodTest extends SpockTest {
     Institution institution = Mock()
     Activity activity = Mock()
-    Enrollment otherEnrollment = Mock()
-    Theme theme = Mock()
 
     def enrollment
     def enrollmentDtoOne
@@ -40,8 +34,8 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         given:
         enrollmentDtoOne = new EnrollmentDto()
         enrollmentDtoOne.motivation = ENROLLMENT_MOTIVATION_1
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_TWO_DAYS
+        activity.getId() >> 1
 
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
@@ -50,7 +44,8 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         def shift = Mock(Shift)
-        enrollment = new Enrollment(activity, volunteer, List.of(shift), enrollmentDto)
+        shift.getActivity() >> activity
+        enrollment = new Enrollment(volunteer, List.of(shift), enrollmentDto)
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
@@ -65,7 +60,7 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         then: "checks results"
         enrollment.getMotivation() == ENROLLMENT_MOTIVATION_2
         enrollment.enrollmentDateTime.isBefore(LocalDateTime.now())
-        enrollment.activity == activity
+        enrollment.getActivity() == activity
         enrollment.volunteer == volunteer
         
     }
@@ -92,28 +87,18 @@ class UpdateEnrollmentMethodTest extends SpockTest {
 
     def "try to update enrollment after deadline"() {
         given:
-        institution.getActivities() >> []
-        theme.getState() >> Theme.State.APPROVED
-
-        def activityDtoTwo
-        def themes = [theme]
-        activityDtoTwo = new ActivityDto()
-        activityDtoTwo.name = ACTIVITY_NAME_1
-        activityDtoTwo.region = ACTIVITY_REGION_1
-        activityDtoTwo.participantsNumberLimit = 2
-        activityDtoTwo.description = ACTIVITY_DESCRIPTION_1
-        activityDtoTwo.startingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDtoTwo.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
-        activityDtoTwo.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
-        
-        activity2 = new Activity(activityDtoTwo, institution, themes)
+        def deadline = IN_ONE_DAY
+        activity2 = Mock(Activity)
+        activity2.getId() >> 2
+        activity2.getApplicationDeadline() >> { deadline }
         
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
         def shift2 = Mock(Shift)
-        enrollmentTwo = new Enrollment(activity2, volunteer, List.of(shift2), enrollmentDtoTwo)
-        activity2.setApplicationDeadline(ONE_DAY_AGO)
+        shift2.getActivity() >> activity2
+        enrollmentTwo = new Enrollment(volunteer, List.of(shift2), enrollmentDtoTwo)
+        deadline = ONE_DAY_AGO
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 
         when:

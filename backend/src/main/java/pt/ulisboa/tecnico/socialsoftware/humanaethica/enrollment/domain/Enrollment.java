@@ -22,18 +22,14 @@ public class Enrollment {
     private String motivation;
     private LocalDateTime enrollmentDateTime;
     @ManyToOne
-    private Activity activity;
-    @ManyToOne
     private Volunteer volunteer;
-
     @ManyToMany
     private List<Shift> shifts = new ArrayList<>();
 
     public Enrollment() {
     }
 
-    public Enrollment(Activity activity, Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
-        setActivity(activity);
+    public Enrollment(Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
         setVolunteer(volunteer);
         setMotivation(enrollmentDto.getMotivation());
         setEnrollmentDateTime(LocalDateTime.now());
@@ -51,7 +47,6 @@ public class Enrollment {
 
     public void delete() {
         volunteer.removeEnrollment(this);
-        activity.removeEnrollment(this);
         shifts.forEach(shift -> shift.removeEnrollment(this));
 
         editOrDeleteEnrollmentBeforeDeadline();
@@ -83,12 +78,10 @@ public class Enrollment {
     }
 
     public Activity getActivity() {
-        return activity;
-    }
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-        this.activity.addEnrollment(this);
+        if (shifts.isEmpty()) {
+            return null;
+        }
+        return shifts.getFirst().getActivity();
     }
 
     public Volunteer getVolunteer() {
@@ -104,25 +97,16 @@ public class Enrollment {
         return shifts;
     }
 
-    public void setShifts(List<Shift> shifts) {
-        this.shifts = shifts;
-    }
-
     public void addShift(Shift shift) {
         this.shifts.add(shift);
         shift.addEnrollment(this);
     }
 
-    public void removeShift(Shift shift) {
-        this.shifts.remove(shift);
-        shift.getEnrollments().remove(this);
-    }
-
     private void verifyInvariants() {
         motivationIsRequired();
-        enrollOnce();
         enrollBeforeDeadline();
         atLeastOneShift();
+        enrollOnce();
         shiftsActivityConsistency();
         shiftsHaveOverlappingTime();
     }
@@ -134,14 +118,18 @@ public class Enrollment {
     }
 
     private void enrollOnce() {
-        if (this.activity.getEnrollments().stream()
-                .anyMatch(enrollment -> enrollment != this && enrollment.getVolunteer() == this.volunteer)) {
+        Activity myActivity = getActivity();
+
+        if (this.volunteer.getEnrollments().stream()
+                .filter(enrollment -> enrollment != this)
+                .map(Enrollment::getActivity)
+                .anyMatch(activity -> activity != null && activity.getId().equals(myActivity.getId()))) {
             throw new HEException(ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED);
         }
     }
 
     private void enrollBeforeDeadline() {
-        if (this.enrollmentDateTime.isAfter(this.activity.getApplicationDeadline())) {
+        if (getActivity() != null && this.enrollmentDateTime.isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }
@@ -174,7 +162,7 @@ public class Enrollment {
     }
 
     private void editOrDeleteEnrollmentBeforeDeadline() {
-        if (LocalDateTime.now().isAfter(this.activity.getApplicationDeadline())) {
+        if (getActivity() != null && LocalDateTime.now().isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }

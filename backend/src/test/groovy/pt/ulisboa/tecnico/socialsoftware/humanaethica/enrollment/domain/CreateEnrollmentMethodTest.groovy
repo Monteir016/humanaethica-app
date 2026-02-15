@@ -21,7 +21,6 @@ import java.time.LocalDateTime
 class CreateEnrollmentMethodTest extends SpockTest {
     Activity activity = Mock()
     Volunteer volunteer = Mock()
-    Volunteer otherVolunteer = Mock()
     Enrollment otherEnrollment = Mock()
     Shift shift = Mock()
     def enrolmentDto
@@ -32,26 +31,25 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
         and:
         shift.getActivity() >> activity
+        volunteer.getEnrollments() >> []
+        activity.getId() >> 1
     }
 
     def "create enrollment"() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        otherEnrollment.getVolunteer() >> otherVolunteer
         
         when:
-        def result = new Enrollment(activity, volunteer, List.of(shift), enrolmentDto)
+        def result = new Enrollment(volunteer, List.of(shift), enrolmentDto)
 
         then: "checks results"
         result.motivation == ENROLLMENT_MOTIVATION_1
         result.enrollmentDateTime.isBefore(LocalDateTime.now())
-        result.activity == activity
+        result.getActivity() == activity
         result.volunteer == volunteer
         result.getShifts().size() == 1
         result.getShifts().contains(shift)
         and: "check that it is added"
-        1 * activity.addEnrollment(_)
         1 * volunteer.addEnrollment(_)
         1 * shift.addEnrollment(_)
     }
@@ -59,14 +57,12 @@ class CreateEnrollmentMethodTest extends SpockTest {
     @Unroll
     def "create enrollment and violate motivation is required invariant: motivation=#motivation"() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        otherEnrollment.getVolunteer() >> otherVolunteer
         and:
         enrolmentDto.motivation = motivation
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift), enrolmentDto)
+        new Enrollment(volunteer, List.of(shift), enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -81,14 +77,12 @@ class CreateEnrollmentMethodTest extends SpockTest {
 
     def "create enrollment and violate enrollment before deadline invariant"() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> ONE_DAY_AGO
-        otherEnrollment.getVolunteer() >> otherVolunteer
         and:
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift), enrolmentDto)
+        new Enrollment(volunteer, List.of(shift), enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -98,7 +92,6 @@ class CreateEnrollmentMethodTest extends SpockTest {
     def "create enrollment with shift from another activity"() {
         given:
         Activity otherActivity = Mock()
-        activity.getEnrollments() >> []
         activity.getApplicationDeadline() >> IN_ONE_DAY
         and:
         Shift otherShift = Mock()
@@ -108,7 +101,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrollmentDto.setMotivation(ENROLLMENT_MOTIVATION_1)
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrollmentDto)
+        new Enrollment(volunteer, List.of(shift, otherShift), enrollmentDto)
 
         then:
         def error = thrown(HEException)
@@ -117,14 +110,15 @@ class CreateEnrollmentMethodTest extends SpockTest {
 
     def "create enrollment and violate enroll once invariant"() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
+        volunteer = Mock()
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        otherEnrollment.getVolunteer() >> volunteer
+        volunteer.getEnrollments() >> [otherEnrollment]
+        otherEnrollment.getActivity() >> activity
         and:
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift), enrolmentDto)
+        new Enrollment(volunteer, List.of(shift), enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -135,7 +129,6 @@ class CreateEnrollmentMethodTest extends SpockTest {
     def "create enrollment with overlapping shifts configurations (valid): #description"() {
         given:
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        activity.getEnrollments() >> []
         and:
         shift.getStartTime() >> NOW.plusHours(10)
         shift.getEndTime() >> NOW.plusHours(12)
@@ -148,7 +141,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrolmentDto)
+        new Enrollment(volunteer, List.of(shift, otherShift), enrolmentDto)
 
         then:
         noExceptionThrown()
@@ -165,7 +158,6 @@ class CreateEnrollmentMethodTest extends SpockTest {
     def "create enrollment with overlapping shifts configurations (invalid): #description"() {
         given:
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        activity.getEnrollments() >> []
         and:
         shift.getStartTime() >> NOW.plusHours(10)
         shift.getEndTime() >> NOW.plusHours(12)
@@ -178,7 +170,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, List.of(shift, otherShift), enrolmentDto)
+        new Enrollment(volunteer, List.of(shift, otherShift), enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -195,16 +187,14 @@ class CreateEnrollmentMethodTest extends SpockTest {
 
     def "create enrollment and violate at least one shift invariant"() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_ONE_DAY
-        otherEnrollment.getVolunteer() >> otherVolunteer
 
         when:
-        new Enrollment(activity, volunteer, new ArrayList<>(), enrolmentDto)
+        new Enrollment(volunteer, new ArrayList<>(), enrolmentDto)
 
         then:
         def error = thrown(HEException)
-        error.getErrorMessage() == ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
+        error.getErrorMessage() == ENROLLMENT_AT_LEAST_ONE_SHIFT
     }
 
     @TestConfiguration

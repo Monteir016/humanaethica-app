@@ -52,7 +52,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
 
-        enrollmentService.createEnrollment(volunteer.id, activity.id, List.of(shift.id), enrollmentDto)
+        enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
 
         activity.setStartingDate(NOW.minusDays(4))
         activity.setEndingDate(NOW.minusDays(3))

@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution;
@@ -49,8 +48,6 @@ public class Activity {
     private Institution institution;
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
-    @OneToMany(mappedBy = "activity")
-    private List<Enrollment> enrollments = new ArrayList<>();
 
     @OneToMany(mappedBy = "activity")
     private List<Participation> participations = new ArrayList<>();
@@ -94,10 +91,6 @@ public class Activity {
         setThemes(themes);
 
         verifyInvariants();
-    }
-
-    public void removeEnrollment(Enrollment enrollment) {
-        enrollments.remove(enrollment);
     }
 
     public Integer getId() {
@@ -166,18 +159,6 @@ public class Activity {
 
     public void setState(Activity.State state) {
         this.state = state;
-    }
-
-    public List<Enrollment> getEnrollments() {
-        return enrollments;
-    }
-
-    public void setEnrollments(List<Enrollment> enrollments) {
-        this.enrollments = enrollments;
-    }
-
-    public void addEnrollment(Enrollment enrollment) {
-        this.enrollments.add(enrollment);
     }
 
     public void suspend(Integer userId, String justification) {

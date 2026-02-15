@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
@@ -14,7 +13,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.repository.UserReposi
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -55,7 +53,7 @@ public class EnrollmentService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public EnrollmentDto createEnrollment(Integer userId, Integer activityId, List<Integer> shiftIds,
+    public EnrollmentDto createEnrollment(Integer userId, List<Integer> shiftIds,
             EnrollmentDto enrollmentDto) {
         if (enrollmentDto == null)
             throw new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
@@ -64,11 +62,6 @@ public class EnrollmentService {
             throw new HEException(USER_NOT_FOUND);
         Volunteer volunteer = (Volunteer) userRepository.findById(userId)
                 .orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
-
-        if (activityId == null)
-            throw new HEException(ACTIVITY_NOT_FOUND);
-        Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
         if (shiftIds == null || shiftIds.isEmpty()) {
             throw new HEException(ENROLLMENT_AT_LEAST_ONE_SHIFT);
@@ -79,7 +72,7 @@ public class EnrollmentService {
                         .orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId)))
                 .toList();
 
-        Enrollment enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto);
+        Enrollment enrollment = new Enrollment(volunteer, shifts, enrollmentDto);
         enrollmentRepository.save(enrollment);
 
         return new EnrollmentDto(enrollment);

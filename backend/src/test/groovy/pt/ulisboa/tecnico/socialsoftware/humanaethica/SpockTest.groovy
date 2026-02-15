@@ -24,7 +24,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institu
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
@@ -261,10 +260,10 @@ class SpockTest extends Specification {
     @Autowired
     EnrollmentRepository enrollmentRepository
 
-    def createEnrollment(activity, volunteer, motivation, shifts = []) {
+    def createEnrollment(volunteer, motivation, shifts = []) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto)
+        def enrollment = new Enrollment(volunteer, shifts, enrollmentDto)
         enrollmentRepository.save(enrollment)
         return enrollment
     }

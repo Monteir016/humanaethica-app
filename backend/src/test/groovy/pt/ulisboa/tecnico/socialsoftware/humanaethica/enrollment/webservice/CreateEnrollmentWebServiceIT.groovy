@@ -52,7 +52,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         when:
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
-                        .path('/activities/' + activity.id + '/enrollments')
+                        .path('/enrollments')
                         .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
@@ -81,7 +81,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         when:
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
-                        .path('/activities/' + activity.id + '/enrollments')
+                        .path('/enrollments')
                         .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
@@ -106,7 +106,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         when:
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
-                        .path('/activities/' + activity.id + '/enrollments')
+                        .path('/enrollments')
                         .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
@@ -131,7 +131,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         when:
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
-                        .path('/activities/' + activity.id + '/enrollments')
+                        .path('/enrollments')
                         .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))

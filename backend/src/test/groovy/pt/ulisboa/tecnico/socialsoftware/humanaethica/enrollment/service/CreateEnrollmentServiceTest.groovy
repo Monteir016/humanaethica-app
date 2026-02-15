@@ -36,7 +36,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def shift = shiftService.createShift(activity.id, shiftDto)
 
         when:
-        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, List.of(shift.id), enrollmentDto)
+        def result = enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
 
         then:
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -49,7 +49,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
     }
 
     @Unroll
-    def 'invalid arguments: volunteerId=#volunteerId | activityId=#activityId'() {
+    def 'invalid arguments: volunteerId=#volunteerId | shiftId=#shiftId'() {
         given:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
@@ -57,7 +57,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def shift = shiftService.createShift(activity.id, shiftDto)
 
         when:
-        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getActivityId(activityId), getShiftIds(shiftId, shift), getEnrollmentDto(enrollmentValue,enrollmentDto))
+        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getShiftIds(shiftId, shift), getEnrollmentDto(enrollmentValue,enrollmentDto))
 
         then:
         def error = thrown(HEException)
@@ -66,29 +66,18 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 0
 
         where:
-        volunteerId | activityId | shiftId | enrollmentValue || errorMessage
-        null        | EXIST      | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
-        NO_EXIST    | EXIST      | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
-        EXIST       | null       | EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | NO_EXIST   | EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | EXIST      | null    | EXIST           || ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
-        EXIST       | EXIST      | NO_EXIST| EXIST           || ErrorMessage.SHIFT_NOT_FOUND
-        EXIST       | EXIST      | EXIST   | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
+        volunteerId | shiftId | enrollmentValue || errorMessage
+        null        | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
+        NO_EXIST    | EXIST   | EXIST           || ErrorMessage.USER_NOT_FOUND
+        EXIST       | null    | EXIST           || ErrorMessage.ENROLLMENT_AT_LEAST_ONE_SHIFT
+        EXIST       | NO_EXIST| EXIST           || ErrorMessage.SHIFT_NOT_FOUND
+        EXIST       | EXIST   | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
     }
 
     def getVolunteerId(volunteerId) {
         if (volunteerId == EXIST)
             return volunteer.id
         else if (volunteerId == NO_EXIST)
-            return 222
-        else
-            return null
-    }
-
-    def getActivityId(activityId) {
-        if (activityId == EXIST)
-            return activity.id
-        else if (activityId == NO_EXIST)
             return 222
         else
             return null

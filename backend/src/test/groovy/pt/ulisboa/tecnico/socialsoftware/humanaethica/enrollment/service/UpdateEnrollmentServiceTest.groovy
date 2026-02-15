@@ -5,19 +5,14 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.EnrollmentRepository
-
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 import java.time.LocalDateTime
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @DataJpaTest
 class UpdateEnrollmentServiceTest extends SpockTest {
@@ -46,7 +41,7 @@ class UpdateEnrollmentServiceTest extends SpockTest {
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "an enrollment"
-        enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1, List.of(shift))
+        enrollment = createEnrollment(volunteer, ENROLLMENT_MOTIVATION_1, List.of(shift))
     }
 
 
