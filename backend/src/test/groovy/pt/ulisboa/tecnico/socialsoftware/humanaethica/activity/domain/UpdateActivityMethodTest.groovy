@@ -21,26 +21,16 @@ class UpdateActivityMethodTest extends SpockTest {
     Theme themeTwo = Mock()
     Activity otherActivity = Mock()
     def activity
-    def activityDtoOne
     def activityDtoTwo
 
     def setup() {
         given:
-        activityDtoOne = new ActivityDto()
-        activityDtoOne.name = ACTIVITY_NAME_1
-        activityDtoOne.region = ACTIVITY_REGION_1
-        activityDtoOne.participantsNumberLimit = 2
-        activityDtoOne.description = ACTIVITY_DESCRIPTION_1
-        activityDtoOne.startingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDtoOne.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
-        activityDtoOne.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
-        and: "activity"
         otherActivity.getName() >> ACTIVITY_NAME_3
         institution.getActivities() >> [otherActivity]
         institution.getActivities() >> []
         themeOne.getState() >> Theme.State.APPROVED
         def themes = [themeOne]
-        activity = new Activity(activityDtoOne, institution, themes)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         and:
         activityDtoTwo = new ActivityDto()
         activityDtoTwo.name = ACTIVITY_NAME_2

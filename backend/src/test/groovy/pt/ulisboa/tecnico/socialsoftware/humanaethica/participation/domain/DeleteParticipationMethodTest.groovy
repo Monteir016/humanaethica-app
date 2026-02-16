@@ -5,17 +5,11 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 class DeleteParticipationMethodTest extends SpockTest {
@@ -36,21 +30,11 @@ class DeleteParticipationMethodTest extends SpockTest {
         institution.getActivities() >> [otherActivity]
         given: "an activity"
         def themes = [theme]
-        def activityDto
-        activityDto = new ActivityDto()
-        activityDto.name = ACTIVITY_NAME_1
-        def NOW = LocalDateTime.now()
-        activityDto.name = ACTIVITY_NAME_1
-        activityDto.region = ACTIVITY_REGION_1
-        activityDto.participantsNumberLimit = 2
-        activityDto.description = ACTIVITY_DESCRIPTION_1
-        activityDto.startingDate = DateHandler.toISOString(NOW.plusDays(1))
-        activityDto.endingDate = DateHandler.toISOString(NOW.plusDays(3))
-        activityDto.applicationDeadline = DateHandler.toISOString(NOW.minusHours(1))
-        activity = new Activity(activityDto, institution, themes)
-        def shiftDto = createShiftDto(NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
-        shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        def deadline = NOW.minusHours(1)
+        def start = NOW.plusDays(1)
+        def end = NOW.plusDays(3)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
+        shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "a participation"
@@ -65,7 +49,6 @@ class DeleteParticipationMethodTest extends SpockTest {
         then: "checks results"
         shift.getParticipations().size() == 0
         volunteer.getParticipations().size() == 0
-
     }
 
     def "delete one of multiple participations in activity"() {
@@ -84,20 +67,11 @@ class DeleteParticipationMethodTest extends SpockTest {
     def "delete one of multiple participations in volunteer"() {
         given: "another participation for the same volunteer"
         def themes = [theme]
-        def activityDto
-        activityDto = new ActivityDto()
-        def NOW = LocalDateTime.now()
-        activityDto.name = ACTIVITY_NAME_1
-        activityDto.region = ACTIVITY_REGION_1
-        activityDto.participantsNumberLimit = 2
-        activityDto.description = ACTIVITY_DESCRIPTION_1
-        activityDto.startingDate = DateHandler.toISOString(NOW.plusDays(1))
-        activityDto.endingDate = DateHandler.toISOString(NOW.plusDays(3))
-        activityDto.applicationDeadline = DateHandler.toISOString(NOW.minusHours(1))
-        def otherActivity = new Activity(activityDto, institution, themes)
-        def otherShiftDto = createShiftDto(NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
-        def otherShift = new Shift(otherActivity, otherShiftDto)
-        shiftRepository.save(otherShift)
+        def deadline = NOW.minusHours(1)
+        def start = NOW.plusDays(1)
+        def end = NOW.plusDays(3)
+        def otherActivity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
+        def otherShift = createShift(otherActivity, start.plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         participationDto = new ParticipationDto()
         otherParticipation = new Participation(volunteer, otherShift, participationDto)
 

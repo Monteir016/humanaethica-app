@@ -7,27 +7,17 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.dto.AssessmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import spock.lang.Unroll
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 class UpdateAssessmentMethodTest extends SpockTest {
     Institution institution = Mock()
     Activity activity = Mock()
-    Enrollment otherEnrollment = Mock()
-    Theme theme = Mock()
-
     def assessmentDtoEdit
 
     def volunteer
@@ -35,7 +25,6 @@ class UpdateAssessmentMethodTest extends SpockTest {
 
     def setup() {
         given:
-        activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_TWO_DAYS
         activity.getEndingDate() >> DateHandler.now()
         institution.getActivities() >> [activity]

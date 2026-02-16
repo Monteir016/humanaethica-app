@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
@@ -27,18 +26,10 @@ class UpdateVolunteerRatingParticipationServiceTest extends SpockTest {
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         member = authUserService.loginDemoMemberAuth().getUser()
         and:
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,3,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO, ONE_DAY_AGO, NOW,null)
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
+
         and:
-        def shift = new Shift()
-        shift.setActivity(activity)
-        shift.setStartTime(TWO_DAYS_AGO)
-        shift.setEndTime(ONE_DAY_AGO)
-        shift.setParticipantsLimit(3)
-        shift.setLocation(SHIFT_LOCATION)
-        shiftRepository.save(shift)
+        createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5

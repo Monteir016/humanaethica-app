@@ -5,6 +5,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.AssessmentRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.AssessmentService
@@ -29,6 +30,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.dto.ReportDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.ShiftService
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
@@ -249,6 +251,13 @@ class SpockTest extends Specification {
         activityDto
     }
 
+    def createActivity(institution, name, region, number, description, deadline, start, end, themes = []) {
+        def activityDto = createActivityDto(name, region, number, description, deadline, start, end, null)
+        def activity = new Activity(activityDto, institution, themes)
+        activityRepository.save(activity)
+        return activity
+    }
+
 
     // enrollment
 
@@ -339,7 +348,13 @@ class SpockTest extends Specification {
         shiftDto
     }
 
-
+    def createShift(activity, startTime, endTime, participantsLimit, location) {
+        def shiftDto = createShiftDto(startTime, endTime, participantsLimit, location)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        return shift
+    }
+    
     // clean database
 
     def deleteAll() {

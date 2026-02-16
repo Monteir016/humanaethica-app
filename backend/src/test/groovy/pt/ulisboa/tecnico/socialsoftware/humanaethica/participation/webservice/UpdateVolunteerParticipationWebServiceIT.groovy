@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.webservice
+package pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.webservice
 
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
@@ -36,10 +35,8 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         and:
         def institution = institutionService.getDemoInstitution()
         and:
-        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
-                NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3), null)
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
+
         and:
         def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         def shift = new Shift(activity, shiftDto)
@@ -51,6 +48,7 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         activity.setEndingDate(ONE_DAY_AGO)
         activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
         activityRepository.save(activity)
+
         and:
         shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))

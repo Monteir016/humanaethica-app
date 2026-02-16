@@ -4,12 +4,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 
 
@@ -27,19 +25,10 @@ class DeleteEnrollmentServiceTest extends SpockTest {
 
     def setup() {
         def institution = institutionService.getDemoInstitution()
-
         given: "activity info"
-        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
-                IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, null)
-        
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
-
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
         and: "a shift"
-        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
-        shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
-
+        shift = createShift(activity, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "enrollment"
@@ -53,12 +42,10 @@ class DeleteEnrollmentServiceTest extends SpockTest {
         enrollmentService.removeEnrollment(firstEnrollment.id)
         then: "check that enrollment was deleted"
         enrollmentRepository.findAll().size() == 0
-
     }
 
     @Unroll
     def 'two enrollments exist and one is removed'() {
-        
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def enrollment2 = createEnrollment(volunteer2, ENROLLMENT_MOTIVATION_2, List.of(shift))
@@ -100,7 +87,6 @@ class DeleteEnrollmentServiceTest extends SpockTest {
 
     @Unroll
     def 'invalid arguments: enrollmentId=#enrollmentId'() {
-
         when:
         enrollmentService.removeEnrollment(enrollmentId)
 

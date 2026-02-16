@@ -1,19 +1,14 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.service
 
-import org.checkerframework.checker.units.qual.A
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.dto.AssessmentDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import spock.lang.Unroll
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 class CreateAssessmentServiceTest extends SpockTest {
@@ -25,12 +20,7 @@ class CreateAssessmentServiceTest extends SpockTest {
     def setup() {
         institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO,ONE_DAY_AGO,NOW,null)
-
-        def activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
+        createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(1), TWO_DAYS_AGO, NOW)
     }
 
     def 'create assessment' () {

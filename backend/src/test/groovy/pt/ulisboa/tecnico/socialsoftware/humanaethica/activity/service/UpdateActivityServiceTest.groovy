@@ -21,14 +21,11 @@ class UpdateActivityServiceTest extends SpockTest {
     def setup() {
         def institution = institutionService.getDemoInstitution()
         given: "activity info"
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
-                IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,null)
-        and: "a theme"
         def themes = new ArrayList<>()
         themes.add(createTheme(THEME_NAME_1,Theme.State.APPROVED,null))
         and: "an activity"
-        activity = new Activity(activityDto, institution, themes)
-        activityRepository.save(activity)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
+
     }
 
     def "update activity"() {

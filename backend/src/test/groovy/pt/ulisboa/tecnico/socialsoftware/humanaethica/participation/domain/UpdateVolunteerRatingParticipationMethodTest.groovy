@@ -5,14 +5,10 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
@@ -39,19 +35,12 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def NOW = LocalDateTime.now()
         and:
-        def activityDto = new ActivityDto()
-        activityDto.name = ACTIVITY_NAME_1
-        activityDto.region = ACTIVITY_REGION_1
-        activityDto.participantsNumberLimit = 2
-        activityDto.description = ACTIVITY_DESCRIPTION_1
-        activityDto.startingDate = DateHandler.toISOString(NOW.plusDays(1))
-        activityDto.endingDate = DateHandler.toISOString(NOW.plusDays(3))
-        activityDto.applicationDeadline = DateHandler.toISOString(NOW.plusHours(1))
-        activity = new Activity(activityDto, institution, themes)
+        def deadline = NOW.plusHours(1)
+        def start = NOW.plusDays(1)
+        def end = NOW.plusDays(3)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
         and:
-        def shiftDto = createShiftDto(NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
-        def shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        def shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and:
         // Change to past dates to allow rating (invariants check constructor only)
         activity.setStartingDate(NOW.minusDays(3))

@@ -133,7 +133,6 @@ public class Shift {
         locationIsRequired();
         locationLengthIsValid();
         startTimeBeforeEndTime();
-        startTimeAfterNow();
         shiftDatesWithinActivity();
         currentParticipantsWithinLimit();
         checkActivityIsApproved();
@@ -175,14 +174,6 @@ public class Shift {
         if (this.startTime != null && this.endTime != null) {
             if (!this.startTime.isBefore(this.endTime)) {
                 throw new HEException(SHIFT_START_TIME_BEFORE_END_TIME);
-            }
-        }
-    }
-
-    private void startTimeAfterNow() {
-        if (this.startTime != null) {
-            if (!this.startTime.isAfter(LocalDateTime.now())) {
-                throw new HEException(SHIFT_START_TIME_AFTER_NOW);
             }
         }
     }

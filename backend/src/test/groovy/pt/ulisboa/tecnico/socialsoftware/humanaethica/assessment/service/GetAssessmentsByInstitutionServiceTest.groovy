@@ -4,7 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
@@ -17,17 +16,12 @@ class GetAssessmentsByInstitutionServiceTest extends SpockTest {
 
     def setup() {
         institution = institutionService.getDemoInstitution()
-
         otherInstitution = createInstitution(INSTITUTION_1_NAME, INSTITUTION_1_EMAIL, INSTITUTION_1_NIF)
+        and:
+        createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO, ONE_DAY_AGO, NOW, new ArrayList<>())
+        and:
+        createActivity(otherInstitution, ACTIVITY_NAME_2, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO, ONE_DAY_AGO, NOW, new ArrayList<>())
 
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO, ONE_DAY_AGO,NOW,null)
-
-        def activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
-
-        def otherActivity = new Activity(activityDto, otherInstitution, new ArrayList<>())
-        activityRepository.save(otherActivity)
     }
 
     def "get two assessments of the same institution"() {
@@ -73,8 +67,6 @@ class GetAssessmentsByInstitutionServiceTest extends SpockTest {
         where:
         institutionId << [null, 222]
     }
-
-
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}

@@ -5,8 +5,6 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.dto.AssessmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
@@ -14,8 +12,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class GetEnrollmentsByActivityWebServiceIT extends SpockTest {
@@ -33,15 +29,9 @@ class GetEnrollmentsByActivityWebServiceIT extends SpockTest {
 
         def institution = institutionService.getDemoInstitution()
 
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
-                IN_ONE_DAY, IN_TWO_DAYS,IN_THREE_DAYS,null)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
 
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
-
-        def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 2, SHIFT_LOCATION)
-        def shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        def shift = createShift(activity, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 2, SHIFT_LOCATION)
 
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)

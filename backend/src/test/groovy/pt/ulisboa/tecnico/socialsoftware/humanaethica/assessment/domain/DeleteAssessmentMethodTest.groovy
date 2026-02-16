@@ -5,24 +5,19 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.dto.AssessmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
-
-import java.time.LocalDateTime
 
 @DataJpaTest
 class DeleteAssessmentMethodTest extends SpockTest {
     Institution institution = Mock()
     Activity activity = Mock()
     Volunteer volunteer = Mock()
-    Volunteer otherVolunteer = Mock()
     Assessment otherAssessment = Mock()
     Activity otherActivity = Mock()
     Theme theme = Mock()
@@ -37,16 +32,7 @@ class DeleteAssessmentMethodTest extends SpockTest {
 
         given: "an activity"
         def themes = [theme]
-        def activityDto
-        activityDto = new ActivityDto()
-        activityDto.name = ACTIVITY_NAME_1
-        activityDto.region = ACTIVITY_REGION_1
-        activityDto.participantsNumberLimit = 2
-        activityDto.description = ACTIVITY_DESCRIPTION_1
-        activityDto.startingDate = DateHandler.toISOString(TWO_DAYS_AGO)
-        activityDto.endingDate = DateHandler.toISOString(ONE_DAY_AGO)
-        activityDto.applicationDeadline = DateHandler.toISOString(DateHandler.now().minusDays(3))
-        activity = new Activity(activityDto, institution, themes)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, NOW.minusDays(3), TWO_DAYS_AGO, ONE_DAY_AGO, themes)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "an assessment"

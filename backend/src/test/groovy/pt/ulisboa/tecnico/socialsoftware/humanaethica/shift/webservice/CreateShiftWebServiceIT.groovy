@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
@@ -31,11 +30,7 @@ class CreateShiftWebServiceIT extends SpockTest {
         headers.setContentType(MediaType.APPLICATION_JSON)
 
         def institution = institutionService.getDemoInstitution()
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
-                IN_ONE_DAY, IN_TWO_DAYS,IN_THREE_DAYS,null)
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
-
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
         shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1),IN_THREE_DAYS.minusHours(1),1, SHIFT_LOCATION)
     }
 

@@ -224,24 +224,7 @@ class CreateShiftMethodTest extends SpockTest {
     }
 
 
-    @Unroll
-    def "create shift with start time in the past: #description"() {
-        given:
-        shiftDto.startTime = DateHandler.toISOString(startTime)
-        shiftDto.endTime = DateHandler.toISOString(endTime)
 
-        when:
-        new Shift(activity, shiftDto)
-
-        then:
-        def error = thrown(HEException)
-        error.getErrorMessage() == SHIFT_START_TIME_AFTER_NOW
-
-        where:
-        startTime       | endTime         | description
-        TWO_DAYS_AGO    | IN_ONE_DAY      | "start in past, end future"
-        NOW             | IN_ONE_DAY      | "start now, end future"
-    }
 
     @Unroll
     def "create shift with dates within activity range: #description"() {

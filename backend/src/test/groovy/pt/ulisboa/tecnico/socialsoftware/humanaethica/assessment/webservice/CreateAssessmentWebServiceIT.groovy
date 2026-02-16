@@ -8,9 +8,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.dto.AssessmentDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CreateAssessmentWebServiceIT extends SpockTest {
@@ -22,20 +20,16 @@ class CreateAssessmentWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         institution = institutionService.getDemoInstitution()
-        def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO,ONE_DAY_AGO,NOW,null)
-
-        def activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
-
+        authUserService.loginDemoVolunteerAuth().getUser()
+        and:
+        createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), TWO_DAYS_AGO)
+        and:
         assessmentDto = new AssessmentDto()
         assessmentDto.review = ASSESSMENT_REVIEW_1
     }

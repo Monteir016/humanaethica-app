@@ -4,12 +4,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 
 @DataJpaTest
@@ -24,30 +22,13 @@ class GetParticipationsByActivityServiceTest extends SpockTest {
     def setup() {
         def institution = institutionService.getDemoInstitution()
         and:
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,3,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO, ONE_DAY_AGO, NOW,null)
-        activity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(activity)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
         and:
-        shift = new Shift()
-        shift.setActivity(activity)
-        shift.setStartTime(TWO_DAYS_AGO)
-        shift.setEndTime(ONE_DAY_AGO)
-        shift.setParticipantsLimit(3)
-        shift.setLocation(SHIFT_LOCATION)
-        shiftRepository.save(shift)
+        shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
-        activityDto.name = ACTIVITY_NAME_2
-        otherActivity = new Activity(activityDto, institution, new ArrayList<>())
-        activityRepository.save(otherActivity)
+        otherActivity = createActivity(institution, ACTIVITY_NAME_2, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
         and:
-        otherShift = new Shift()
-        otherShift.setActivity(otherActivity)
-        otherShift.setStartTime(TWO_DAYS_AGO)
-        otherShift.setEndTime(ONE_DAY_AGO)
-        otherShift.setParticipantsLimit(3)
-        otherShift.setLocation(SHIFT_LOCATION)
-        shiftRepository.save(otherShift)
+        otherShift = createShift(otherActivity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         participationDto1 = new ParticipationDto()
         participationDto1.memberRating = 1

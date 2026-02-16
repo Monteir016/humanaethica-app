@@ -6,14 +6,11 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 
 @DataJpaTest
@@ -30,23 +27,11 @@ class DeleteEnrollmentMethodTest extends SpockTest {
     def setup() {
         theme.getState() >> Theme.State.APPROVED
         institution.getActivities() >> []
-
         given:"activity"
         def themes = [theme]
-        def activityDtoOne
-        activityDtoOne = new ActivityDto()
-        activityDtoOne.name = ACTIVITY_NAME_1
-        activityDtoOne.region = ACTIVITY_REGION_1
-        activityDtoOne.participantsNumberLimit = 2
-        activityDtoOne.description = ACTIVITY_DESCRIPTION_1
-        activityDtoOne.startingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDtoOne.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
-        activityDtoOne.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
-        activity = new Activity(activityDtoOne, institution, themes)
-
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
@@ -66,17 +51,8 @@ class DeleteEnrollmentMethodTest extends SpockTest {
    
     def "try to delete enrollment after deadline"() {
         given:
-        def activityDtoTwo
         def themes = [theme]
-        activityDtoTwo = new ActivityDto()
-        activityDtoTwo.name = ACTIVITY_NAME_1
-        activityDtoTwo.region = ACTIVITY_REGION_1
-        activityDtoTwo.participantsNumberLimit = 2
-        activityDtoTwo.description = ACTIVITY_DESCRIPTION_1
-        activityDtoTwo.startingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDtoTwo.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
-        activityDtoTwo.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
-        activity2 = new Activity(activityDtoTwo, institution, themes)
+        activity2 = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
 
         def shift2 = Mock(Shift)
         shift2.getActivity() >> activity2
