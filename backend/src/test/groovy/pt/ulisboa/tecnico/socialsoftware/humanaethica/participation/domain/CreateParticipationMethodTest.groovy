@@ -14,7 +14,6 @@ import spock.lang.Unroll
 
 import java.time.LocalDateTime
 
-
 @DataJpaTest
 class CreateParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
@@ -106,19 +105,52 @@ class CreateParticipationMethodTest extends SpockTest {
         error.getErrorMessage() == ErrorMessage.PARTICIPATION_RATING_BEFORE_END
     }
 
-    def "create participant and violate number of participants less or equal limit invariant"() {
+    def "create participant and violate shift participants less or equal limit invariant"() {
         given:
+        def specificShift = Mock(Shift)
+        specificShift.getActivity() >> activity
+        specificShift.getParticipantsLimit() >> 1
+        specificShift.getParticipations() >> [otherParticipation, Mock(Participation)]
+        
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 1
-        otherParticipation.getVolunteer() >> otherVolunteer
+        activity.getParticipantsNumberLimit() >> 10
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(volunteer, specificShift, participationDto)
 
         then:
         def error = thrown(HEException)
-        error.getErrorMessage() == ErrorMessage.PARTICIPATION_IS_FULL
+        error.getErrorMessage() == ErrorMessage.SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT
+    }
+
+    @Unroll
+    def "create participant with success (limit boundary): existing=#existing, limit=#limit"() {
+        given:
+        def specificShift = Mock(Shift)
+        specificShift.getActivity() >> activity
+        specificShift.getParticipantsLimit() >> limit
+        def participationsList = new ArrayList()
+        for (int i = 0; i < existing + 1; i++) {
+            participationsList.add(Mock(Participation))
+        }
+        specificShift.getParticipations() >> participationsList
+
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        activity.getParticipantsNumberLimit() >> 10
+
+        when:
+        new Participation(volunteer, specificShift, participationDto)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        existing | limit
+        0        | 10
+        5        | 10
+        9        | 10
     }
 
     @Unroll

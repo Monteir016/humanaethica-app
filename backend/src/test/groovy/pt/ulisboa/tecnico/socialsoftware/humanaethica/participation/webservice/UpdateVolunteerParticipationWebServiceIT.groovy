@@ -10,13 +10,9 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
-
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
@@ -211,7 +207,7 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         def participation = participationRepository.findAll().get(0)
         participation.getVolunteerRating() ==  5
         participation.getVolunteerReview() == VOLUNTEER_REVIEW
-        
+
         cleanup:
         deleteAll()
     }

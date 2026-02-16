@@ -150,9 +150,9 @@ public class Participation {
     }
 
     private void numberOfParticipantsLessOrEqualLimit() {
-        if (this.shift.getActivity().getNumberOfParticipatingVolunteers() > this.shift.getActivity()
-                .getParticipantsNumberLimit()) {
-            throw new HEException(PARTICIPATION_IS_FULL);
+        if (this.shift.getParticipantsLimit() != null
+                && this.shift.getParticipations().size() > this.shift.getParticipantsLimit()) {
+            throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
         }
     }
 

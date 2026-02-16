@@ -49,7 +49,6 @@ public enum ErrorMessage {
     ENROLLMENT_AFTER_DEADLINE("The enrollment period is already closed"),
     ENROLLMENT_SHIFTS_MUST_BELONG_TO_SAME_ACTIVITY("All shifts in enrollment must belong to the same activity"),
     ENROLLMENT_SHIFTS_HAVE_OVERLAPPING_TIME("The enrolment shifts cannot have overlapping time periods"),
-    PARTICIPATION_IS_FULL("No vacancies"),
     PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE("The enrollment period is still open"),
     PARTICIPATION_NOT_FOUND("Participation not found with id %d"),
     PARTICIPATION_RATING_BEFORE_END("Rate only after activity end"),
