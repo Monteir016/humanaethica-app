@@ -5,7 +5,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
@@ -48,9 +47,6 @@ public class Activity {
     private Institution institution;
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
-
-    @OneToMany(mappedBy = "activity")
-    private List<Participation> participations = new ArrayList<>();
 
     @OneToMany(mappedBy = "activity")
     private List<Report> reports = new ArrayList<>();
@@ -185,24 +181,10 @@ public class Activity {
         return this.suspendedByUserId;
     }
 
-    public List<Participation> getParticipations() {
-        return participations;
-    }
-
-    public void addParticipation(Participation participation) {
-        this.participations.add(participation);
-    }
-
-    public void deleteParticipation(Participation participation) {
-        this.participations.remove(participation);
-    }
-
     public int getNumberOfParticipatingVolunteers() {
-        return this.participations.size();
-    }
-
-    public void setParticipations(List<Participation> participations) {
-        this.participations = participations;
+        return this.shifts.stream()
+                .mapToInt(Shift::getCurrentParticipants)
+                .sum();
     }
 
     private void activityCannotBeSuspended() {

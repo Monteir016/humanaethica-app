@@ -40,7 +40,7 @@ public class ActivityDto {
                 .flatMap(shift -> shift.getEnrollments().stream())
                 .distinct()
                 .count());
-        setNumberOfParticipations(activity.getParticipations().size());
+        setNumberOfParticipations(activity.getNumberOfParticipatingVolunteers());
         setDescription(activity.getDescription());
 
         this.themes = activity.getThemes().stream()

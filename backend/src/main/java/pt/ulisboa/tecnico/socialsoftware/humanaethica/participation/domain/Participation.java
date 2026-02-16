@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain;
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
@@ -25,8 +24,6 @@ public class Participation {
     private String memberReview;
 
     @ManyToOne
-    private Activity activity;
-    @ManyToOne
     private Volunteer volunteer;
     @ManyToOne
     private Shift shift;
@@ -34,9 +31,9 @@ public class Participation {
     public Participation() {
     }
 
-    public Participation(Activity activity, Volunteer volunteer, ParticipationDto participationDto) {
-        setActivity(activity);
+    public Participation(Volunteer volunteer, Shift shift, ParticipationDto participationDto) {
         setVolunteer(volunteer);
+        setShift(shift);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
         setMemberReview(participationDto.getMemberReview());
@@ -60,7 +57,7 @@ public class Participation {
 
     public void delete() {
         volunteer.deleteParticipation(this);
-        activity.deleteParticipation(this);
+        shift.removeParticipation(this);
     }
 
     public Integer getId() {
@@ -112,12 +109,7 @@ public class Participation {
     }
 
     public Activity getActivity() {
-        return activity;
-    }
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-        this.activity.addParticipation(this);
+        return this.shift.getActivity();
     }
 
     public Volunteer getVolunteer() {
@@ -150,27 +142,29 @@ public class Participation {
     }
 
     private void participateOnce() {
-        if (this.activity.getParticipations().stream()
+        if (this.shift.getActivity().getShifts().stream()
+                .flatMap(s -> s.getParticipations().stream())
                 .anyMatch(participation -> participation != this && participation.getVolunteer() == this.volunteer)) {
             throw new HEException(PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING);
         }
     }
 
     private void numberOfParticipantsLessOrEqualLimit() {
-        if (this.activity.getNumberOfParticipatingVolunteers() > this.activity.getParticipantsNumberLimit()) {
+        if (this.shift.getActivity().getNumberOfParticipatingVolunteers() > this.shift.getActivity()
+                .getParticipantsNumberLimit()) {
             throw new HEException(PARTICIPATION_IS_FULL);
         }
     }
 
     private void acceptanceAfterDeadline() {
-        if (this.acceptanceDate.isBefore(this.activity.getApplicationDeadline())) {
+        if (this.acceptanceDate.isBefore(this.shift.getActivity().getApplicationDeadline())) {
             throw new HEException(PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE);
         }
     }
 
     private void ratingAfterEnd() {
         if ((volunteerRating != null || memberRating != null)
-                && LocalDateTime.now().isBefore(activity.getEndingDate())) {
+                && LocalDateTime.now().isBefore(this.shift.getActivity().getEndingDate())) {
             throw new HEException(PARTICIPATION_RATING_BEFORE_END);
         }
     }

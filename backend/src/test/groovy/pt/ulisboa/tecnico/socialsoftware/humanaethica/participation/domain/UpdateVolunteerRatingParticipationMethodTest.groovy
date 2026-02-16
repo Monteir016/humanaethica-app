@@ -5,9 +5,15 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
@@ -16,28 +22,49 @@ import java.time.LocalDateTime
 
 @DataJpaTest
 class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
-    Activity activity = Mock()
+    Activity activity
+    Activity otherActivity = Mock()
     Volunteer volunteer = Mock()
-    Participation otherParticipation = Mock()
+    Institution institution = Mock()
+    Theme theme = Mock()
+    def themes = [theme]
     def participation
     def participationDto
     def participationDtoUpdated
 
 
     def setup() {
-        given:
-
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
-        activity.getApplicationDeadline() >> TWO_DAYS_AGO
-        activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
-
+        otherActivity.getName() >> ACTIVITY_NAME_2
+        institution.getActivities() >> [otherActivity]
+        theme.getState() >> Theme.State.APPROVED
+        def NOW = LocalDateTime.now()
+        and:
+        def activityDto = new ActivityDto()
+        activityDto.name = ACTIVITY_NAME_1
+        activityDto.region = ACTIVITY_REGION_1
+        activityDto.participantsNumberLimit = 2
+        activityDto.description = ACTIVITY_DESCRIPTION_1
+        activityDto.startingDate = DateHandler.toISOString(NOW.plusDays(1))
+        activityDto.endingDate = DateHandler.toISOString(NOW.plusDays(3))
+        activityDto.applicationDeadline = DateHandler.toISOString(NOW.plusHours(1))
+        activity = new Activity(activityDto, institution, themes)
+        and:
+        def shiftDto = createShiftDto(NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        and:
+        // Change to past dates to allow rating (invariants check constructor only)
+        activity.setStartingDate(NOW.minusDays(3))
+        activity.setEndingDate(NOW.minusDays(1))
+        activity.setApplicationDeadline(NOW.minusDays(4))
+        shift.setStartTime(NOW.minusDays(3).plusHours(1))
+        shift.setEndTime(NOW.minusDays(2))
+        shiftRepository.save(shift)
+        and:
         participationDto = new ParticipationDto()
-        participationDto.volunteerRating = 4
-        participationDto.volunteerReview = MEMBER_REVIEW
-        participation = new Participation(activity, volunteer, participationDto)
-
+        participationDto.memberRating = 5
+        participationDto.memberReview = MEMBER_REVIEW
+        participation = new Participation(volunteer, shift, participationDto)
         participationDtoUpdated = new ParticipationDto()
     }
 
@@ -45,7 +72,6 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         given:
         participationDtoUpdated.volunteerRating = 3
         participationDtoUpdated.volunteerReview = VOLUNTEER_REVIEW
-
 
         when:
         participation.volunteerRating(participationDtoUpdated)

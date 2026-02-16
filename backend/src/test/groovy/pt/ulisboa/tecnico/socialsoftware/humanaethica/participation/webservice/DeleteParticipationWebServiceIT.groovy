@@ -12,7 +12,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
+
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DeleteParticipationWebServiceIT extends SpockTest {
@@ -23,34 +26,43 @@ class DeleteParticipationWebServiceIT extends SpockTest {
     def volunteer
     def participationId
 
-
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO, ONE_DAY_AGO, NOW, null)
+        and:
+        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
+                NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3), null)
 
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
+        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        and:
+        activity.setStartingDate(TWO_DAYS_AGO)
+        activity.setEndingDate(ONE_DAY_AGO)
+        activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
+        activityRepository.save(activity)
+        and:
+        shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
+        shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
+        shiftRepository.save(shift)
+        and:
         def participationDto= new ParticipationDto()
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
-
-
-        participationService.createParticipation(activity.id, participationDto)
-
+        participationDto.shiftId = shift.id
+        participationService.createParticipation(shift.id, participationDto)
         def storedParticipation = participationRepository.findAll().get(0)
         participationId = storedParticipation.id
-
     }
 
     def 'login as a member and delete a participation'() {
@@ -126,7 +138,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
         demoVolunteerLogin()
 
         when: 'the volunteer tries to delete the participation'
-       webClient.delete()
+        webClient.delete()
                 .uri("/participations/" + participationId)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .retrieve()

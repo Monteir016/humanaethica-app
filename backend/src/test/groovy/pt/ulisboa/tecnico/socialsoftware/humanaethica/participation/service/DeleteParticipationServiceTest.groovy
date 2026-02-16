@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import spock.lang.Unroll
 
@@ -20,6 +21,7 @@ class DeleteParticipationServiceTest extends SpockTest {
     public static final Integer FIRST_PARTICIPATION_RATING = 5
     public static final Integer SECOND_PARTICIPATION_RATING = 2
     def activity
+    def shift
     def participation
     def firstParticipation
     def volunteer
@@ -31,16 +33,22 @@ class DeleteParticipationServiceTest extends SpockTest {
                 TWO_DAYS_AGO, ONE_DAY_AGO, NOW, null)
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
+        and:
+        shift = new Shift()
+        shift.setActivity(activity)
+        shift.setStartTime(TWO_DAYS_AGO)
+        shift.setEndTime(ONE_DAY_AGO)
+        shift.setParticipantsLimit(3)
+        shift.setLocation(SHIFT_LOCATION)
+        shiftRepository.save(shift)
+        and:
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-
-
+        and:
         def participationDto = new ParticipationDto()
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
-
-        participation = createParticipation(activity, volunteer, participationDto)
-
+        participation = createParticipation(volunteer, shift, participationDto)
     }
 
     def 'delete participation'() {
@@ -62,7 +70,7 @@ class DeleteParticipationServiceTest extends SpockTest {
         participationDto2.volunteerRating = 2
         participationDto2.volunteerReview = VOLUNTEER_REVIEW
         participationDto2.volunteerId = volunteer2.id
-        createParticipation(activity, volunteer2, participationDto2 )
+        createParticipation(volunteer2, shift, participationDto2)
         firstParticipation = participationRepository.findAll().get(0)
         secondParticipation = participationRepository.findAll().get(1)
 
@@ -96,7 +104,7 @@ class DeleteParticipationServiceTest extends SpockTest {
         participationDto2.volunteerRating = 2
         participationDto2.volunteerReview = VOLUNTEER_REVIEW
         participationDto2.volunteerId = volunteer2.id
-        createParticipation(activity, volunteer2, participationDto2 )
+        createParticipation(volunteer2, shift, participationDto2 )
         firstParticipation = participationRepository.findAll().get(0)
         secondParticipation = participationRepository.findAll().get(1)
 
@@ -110,7 +118,6 @@ class DeleteParticipationServiceTest extends SpockTest {
 
     @Unroll
     def 'invalid arguments: participationId:#participationId'() {
-
         when:
         participationService.deleteParticipation(participationId)
 

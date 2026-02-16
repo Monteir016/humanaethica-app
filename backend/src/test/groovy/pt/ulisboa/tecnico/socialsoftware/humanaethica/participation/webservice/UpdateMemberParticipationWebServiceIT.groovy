@@ -28,51 +28,47 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         member = authUserService.loginDemoMemberAuth().getUser()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-
+        and:
         def institution = institutionService.getDemoInstitution()
-
+        and:
         def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3), null)
-
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
         def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         def shift = new Shift(activity, shiftDto)
         shiftRepository.save(shift)
-
+        and:
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
+        and:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
-
         enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
-
+        and:
         activity.setStartingDate(NOW.minusDays(4))
         activity.setEndingDate(NOW.minusDays(3))
         activity.setApplicationDeadline(NOW.minusDays(5))
         activityRepository.save(activity)
-
+        and:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
-
-        participationService.createParticipation(activity.id,participationDto)
+        participationDto.shiftId = shift.id
+        participationService.createParticipation(shift.id, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
-
     }
 
     def 'login as a member and update a participation'() {
@@ -82,7 +78,6 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         participationDtoUpdate.memberRating = 1
         participationDtoUpdate.memberReview = "NEW REVIEW"
         participationDtoUpdate.volunteerId = volunteer.getId()
-
 
         when: 'the member edits the participation'
         def response = webClient.put()
@@ -220,7 +215,6 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         participation.getMemberRating() ==  5
         participation.getMemberReview() == MEMBER_REVIEW
 
-
         cleanup:
         deleteAll()
     }
@@ -249,7 +243,6 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         def participation = participationRepository.findAll().get(0)
         participation.getMemberRating() ==  5
         participation.getMemberReview() == MEMBER_REVIEW
-
 
         cleanup:
         deleteAll()

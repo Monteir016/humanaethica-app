@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
@@ -20,18 +21,23 @@ class CreateParticipationServiceTest extends SpockTest {
     def member
     def activity
 
-
-
     def setup() {
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         member = authUserService.loginDemoMemberAuth().getUser()
-
+        and:
         def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,3,ACTIVITY_DESCRIPTION_1,
                 TWO_DAYS_AGO, ONE_DAY_AGO, NOW,null)
-
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
+        and:
+        def shift = new Shift()
+        shift.setActivity(activity)
+        shift.setStartTime(TWO_DAYS_AGO)
+        shift.setEndTime(ONE_DAY_AGO)
+        shift.setParticipantsLimit(3)
+        shift.setLocation(SHIFT_LOCATION)
+        shiftRepository.save(shift)
     }
 
     def 'create participation as member' () {
@@ -40,9 +46,10 @@ class CreateParticipationServiceTest extends SpockTest {
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
         participationDto.volunteerId = volunteer.id
+        participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        def result = participationService.createParticipation(activity.id, participationDto)
+        def result = participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
 
         then:
         result.memberRating == 5
@@ -57,17 +64,17 @@ class CreateParticipationServiceTest extends SpockTest {
         storedParticipation.volunteer.id == volunteer.id
     }
 
-
     @Unroll
-    def 'invalid arguments: volunteerId=#volunteerId | activityId=#activityId'() {
+    def 'invalid arguments: volunteerId=#volunteerId | shiftId=#shiftId'() {
         given:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
         participationDto.volunteerId = getVolunteerId(volunteerId)
+        participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        participationService.createParticipation(getActivityId(activityId), getParticipationDto(participationValue,participationDto))
+        participationService.createParticipation(getShiftId(shiftId), getParticipationDto(participationValue,participationDto))
 
         then:
         def error = thrown(HEException)
@@ -76,11 +83,11 @@ class CreateParticipationServiceTest extends SpockTest {
         participationRepository.findAll().size() == 0
 
         where:
-        volunteerId | activityId | participationValue || errorMessage
+        volunteerId | shiftId    | participationValue || errorMessage
         null        | EXIST      | EXIST              || ErrorMessage.USER_NOT_FOUND
         NO_EXIST    | EXIST      | EXIST              || ErrorMessage.USER_NOT_FOUND
-        EXIST       | null       | EXIST              || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | NO_EXIST   | EXIST              || ErrorMessage.ACTIVITY_NOT_FOUND
+        EXIST       | null       | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
+        EXIST       | NO_EXIST   | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
         EXIST       | EXIST      | null               || ErrorMessage.PARTICIPATION_REQUIRES_INFORMATION
     }
 
@@ -91,9 +98,10 @@ class CreateParticipationServiceTest extends SpockTest {
         participationDto.volunteerReview = review
         participationDto.volunteerRating = rating
         participationDto.volunteerId = volunteer.id
+        participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        participationService.createParticipation(activity.id, participationDto)
+        participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
 
         then:
         def error = thrown(HEException)
@@ -118,10 +126,10 @@ class CreateParticipationServiceTest extends SpockTest {
             return null
     }
 
-    def getActivityId(activityId) {
-        if (activityId == EXIST)
-            return activity.id
-        else if (activityId == NO_EXIST)
+    def getShiftId(shiftId) {
+        if (shiftId == EXIST)
+            return activity.getShifts().get(0).getId()
+        else if (shiftId == NO_EXIST)
             return 222
         else
             return null

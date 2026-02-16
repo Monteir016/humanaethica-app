@@ -22,52 +22,56 @@ class CreateParticipationWebServiceIT extends SpockTest {
     private int port
 
     def activity
+    def shift
     def participationDtoMember
     def participationDtoVolunteer
 
-
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
-
+        and:
         def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3), null)
-
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
         def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
-        def shift = new Shift(activity, shiftDto)
+        shift = new Shift(activity, shiftDto)
         shiftRepository.save(shift)
-
+        and:
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
+        and:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
-
         enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
-
+        and:
         activity.setStartingDate(NOW.minusDays(4))
         activity.setEndingDate(NOW.minusDays(3))
         activity.setApplicationDeadline(NOW.minusDays(5))
         activityRepository.save(activity)
-
+        and:
+        shift.setStartTime(NOW.minusDays(4).plusHours(1))
+        shift.setEndTime(NOW.minusDays(4).plusHours(3))
+        shiftRepository.save(shift)
+        and:
         participationDtoMember = new ParticipationDto()
         participationDtoMember.memberRating = 5
         participationDtoMember.memberReview = MEMBER_REVIEW
         participationDtoMember.volunteerId = volunteer.id
-
+        participationDtoMember.shiftId = shift.id
+        and:
         participationDtoVolunteer = new ParticipationDto()
         participationDtoVolunteer.volunteerRating = 5
         participationDtoVolunteer.volunteerReview = VOLUNTEER_REVIEW
         participationDtoVolunteer.volunteerId = volunteer.id
+        participationDtoVolunteer.shiftId = shift.id
     }
 
     def 'member create participation'() {
@@ -76,7 +80,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/participations')
+                .uri('/participations/' + shift.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -92,7 +96,6 @@ class CreateParticipationWebServiceIT extends SpockTest {
         storedParticipant.memberRating == 5
         storedParticipant.memberReview == MEMBER_REVIEW
 
-
         cleanup:
         deleteAll()
     }
@@ -105,7 +108,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/participations')
+                .uri('/participations/' + shift.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -127,7 +130,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/participations')
+                .uri('/participations/' + shift.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -149,7 +152,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/participations')
+                .uri('/participations/' + shift.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()

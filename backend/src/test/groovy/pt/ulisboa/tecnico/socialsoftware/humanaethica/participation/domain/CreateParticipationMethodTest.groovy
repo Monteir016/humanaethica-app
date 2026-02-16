@@ -4,10 +4,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
@@ -20,49 +21,51 @@ class CreateParticipationMethodTest extends SpockTest {
     Volunteer volunteer = Mock()
     Volunteer otherVolunteer = Mock()
     Participation otherParticipation = Mock()
+    Shift shift = Mock()
     def participationDto
-
+    
     def setup() {
         given:
         participationDto = new ParticipationDto()
+        shift.getActivity() >> activity
+        activity.getShifts() >> [shift]
+        shift.getParticipations() >> [otherParticipation]
+        activity.getNumberOfParticipatingVolunteers() >> 2
     }
 
     def "member creates a participation"() {
         given:
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Participation(activity, volunteer, participationDto)
+        def result = new Participation(volunteer, shift, participationDto)
 
         then: "checks results"
         result.memberRating == 5
         result.memberReview ==  MEMBER_REVIEW
         result.acceptanceDate.isBefore(LocalDateTime.now())
+        result.shift == shift
         result.activity == activity
         result.volunteer == volunteer
         and: "check that it is added"
-        1 * activity.addParticipation(_)
+        1 * shift.addParticipation(_)
         1 * volunteer.addParticipation(_)
     }
 
     def "create participation and violate participate once invariant"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
         otherParticipation.getVolunteer() >> volunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -71,8 +74,6 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participation and violate acceptance after deadline invariant"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> IN_ONE_DAY
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
@@ -81,7 +82,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberRating = null
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -92,15 +93,13 @@ class CreateParticipationMethodTest extends SpockTest {
         given:
         participationDto.memberReview = MEMBER_REVIEW
         participationDto.memberRating = 5
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
-        activity.getApplicationDeadline() >> ONE_DAY_AGO
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -109,15 +108,13 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participant and violate number of participants less or equal limit invariant"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 1
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -127,8 +124,6 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate member rating in range 1..5: rating=#rating"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
@@ -137,7 +132,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberRating = rating
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -150,8 +145,6 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate volunteer rating in range 1..5: rating=#rating"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
@@ -160,7 +153,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.volunteerRating = rating
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -173,8 +166,6 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate volunteer review length: review=#review"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
@@ -183,7 +174,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.volunteerReview = review
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -196,8 +187,6 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate member review length: review=#review"() {
         given:
-        activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
@@ -206,7 +195,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberReview = review
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(volunteer, shift, participationDto)
 
         then:
         def error = thrown(HEException)

@@ -15,6 +15,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.EnrollmentRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Member;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
@@ -33,6 +35,8 @@ public class HEPermissionEvaluator implements PermissionEvaluator {
     private AssessmentRepository assessmentRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private ShiftRepository shiftRepository;
 
 
     @Override
@@ -43,6 +47,10 @@ public class HEPermissionEvaluator implements PermissionEvaluator {
             int id = (int) targetDomainObject;
             String permissionValue = (String) permission;
             switch (permissionValue) {
+                case "SHIFT.MEMBER":
+                    Shift shift = shiftRepository.findById(id).orElse(null);
+                    if (shift == null) return false;
+                    return shift.getActivity().getInstitution().getId().equals(((Member)authUser.getUser()).getInstitution().getId());
                 case "ACTIVITY.MEMBER":
                     Activity activity = activityRepository.findById(id).orElse(null);
                     if (activity == null) return false;

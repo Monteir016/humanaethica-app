@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
@@ -17,27 +18,25 @@ import java.time.LocalDateTime
 @DataJpaTest
 class UpdateMemberRatingParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
+    Shift shift = Mock()
     Volunteer volunteer = Mock()
-    Participation otherParticipation = Mock()
     def participation
     def participationDto
     def participationDtoUpdated
 
     def setup() {
         given:
-
-        activity.getParticipations() >> [otherParticipation]
+        activity.getShifts() >> [shift]
+        shift.getParticipations() >> []
         activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-
+        shift.getActivity() >> activity
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
         participationDto.memberReview = VOLUNTEER_REVIEW
-        participation = new Participation(activity, volunteer, participationDto)
-
-
+        participation = new Participation(volunteer, shift, participationDto)
         participationDtoUpdated = new ParticipationDto()
     }
 
@@ -62,6 +61,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         given:
         participationDtoUpdated.memberRating = rating
         participationDtoUpdated.memberReview = MEMBER_REVIEW
+
         when:
         participation.memberRating(participationDtoUpdated)
 
@@ -78,7 +78,6 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         given:
         participationDtoUpdated.memberRating = 5
         participationDtoUpdated.memberReview = review
-
 
         when:
         participation.memberRating(participationDtoUpdated)

@@ -13,7 +13,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
+
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class GetParticipationsByActivityWebServiceIT extends SpockTest {
@@ -21,35 +24,47 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
     private int port
 
     def activity
+    def shift
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
-
-        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,3,ACTIVITY_DESCRIPTION_1,
-                TWO_DAYS_AGO, ONE_DAY_AGO, NOW,null)
-
+        and:
+        def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,5,ACTIVITY_DESCRIPTION_1,
+                NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3),null)
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
+        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
+        shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        and:
+        activity.setStartingDate(TWO_DAYS_AGO)
+        activity.setEndingDate(ONE_DAY_AGO)
+        activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
+        activityRepository.save(activity)
+        and:
+        shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
+        shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
+        shiftRepository.save(shift)
+        and:
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-
+        and:
         def participationDto1 = new ParticipationDto()
         participationDto1.memberRating = 1
         participationDto1.memberReview = MEMBER_REVIEW
         def participationDto2 = new ParticipationDto()
         participationDto2.memberRating = 2
         participationDto2.memberReview = MEMBER_REVIEW
-
         and:
-        createParticipation(activity, volunteerOne, participationDto1)
-        createParticipation(activity, volunteerTwo, participationDto2)
+        createParticipation(volunteerOne, shift, participationDto1)
+        createParticipation(volunteerTwo, shift, participationDto2)
     }
 
     def 'member gets two participations'() {

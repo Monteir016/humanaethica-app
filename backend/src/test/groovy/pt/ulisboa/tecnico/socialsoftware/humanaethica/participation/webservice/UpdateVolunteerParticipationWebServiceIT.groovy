@@ -13,7 +13,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
+
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest.SHIFT_LOCATION
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
@@ -25,41 +28,46 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
     def participationId
     def member
 
-
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         member = authUserService.loginDemoMemberAuth().getUser()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-
+        and:
         def institution = institutionService.getDemoInstitution()
-
-        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
+        and:
+        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3), null)
-
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
+        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        and:
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
-        activity.setStartingDate(NOW.minusDays(4))
-        activity.setEndingDate(NOW.minusDays(3))
-        activity.setApplicationDeadline(NOW.minusDays(5))
+        and:
+        activity.setStartingDate(TWO_DAYS_AGO)
+        activity.setEndingDate(ONE_DAY_AGO)
+        activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
         activityRepository.save(activity)
-
+        and:
+        shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
+        shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
+        shiftRepository.save(shift)
+        and:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
-
-        participationService.createParticipation(activity.id,participationDto)
+        participationDto.shiftId = shift.id
+        participationService.createParticipation(shift.id, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
     }
 
@@ -70,7 +78,6 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         participationDtoUpdate.volunteerRating = 1
         participationDtoUpdate.volunteerReview = "NEW REVIEW"
         participationDtoUpdate.volunteerId = volunteer.getId()
-
 
         when: 'the member edits the participation'
         def response = webClient.put()
@@ -89,7 +96,6 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         def participation = participationRepository.findAll().get(0)
         participation.getVolunteerRating() == 1
         participation.getVolunteerReview() == "NEW REVIEW"
-
 
         cleanup:
         deleteAll()
@@ -150,7 +156,6 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         participation.getVolunteerRating() == 5
         participation.getVolunteerReview() == VOLUNTEER_REVIEW
 
-
         cleanup:
         deleteAll()
     }
@@ -179,7 +184,6 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         participation.getVolunteerRating() == 5
         participation.getVolunteerReview() == VOLUNTEER_REVIEW
 
-
         cleanup:
         deleteAll()
     }
@@ -207,8 +211,7 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         def participation = participationRepository.findAll().get(0)
         participation.getVolunteerRating() ==  5
         participation.getVolunteerReview() == VOLUNTEER_REVIEW
-
-
+        
         cleanup:
         deleteAll()
     }

@@ -8,12 +8,10 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
-
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.PARTICIPATION_MEMBER_REVIEW_NOT_ALLOWED
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.PARTICIPATION_VOLUNTEER_REVIEW_NOT_ALLOWED
 
 @DataJpaTest
 class UpdateMemberRatingParticipationServiceTest extends SpockTest {
@@ -28,18 +26,26 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         member = authUserService.loginDemoMemberAuth().getUser()
-
+        and:
         def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,3,ACTIVITY_DESCRIPTION_1,
                 TWO_DAYS_AGO, ONE_DAY_AGO, NOW,null)
-
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
-
+        and:
+        def shift = new Shift()
+        shift.setActivity(activity)
+        shift.setStartTime(TWO_DAYS_AGO)
+        shift.setEndTime(ONE_DAY_AGO)
+        shift.setParticipantsLimit(3)
+        shift.setLocation(SHIFT_LOCATION)
+        shiftRepository.save(shift)
+        and:
         def participationDto = new ParticipationDto()
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.getId()
-        participation = participationService.createParticipation(activity.id, participationDto)
+        participationDto.shiftId = activity.getShifts().get(0).getId()
+        participation = participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
     }
 
     def 'member updates a participation' () {
@@ -64,7 +70,6 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
         storedParticipation.acceptanceDate.isBefore(LocalDateTime.now())
         storedParticipation.activity.id == activity.id
         storedParticipation.volunteer.id == volunteer.id
-
     }
 
     @Unroll
@@ -73,7 +78,6 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
         def updatedParticipationDto = new ParticipationDto()
         updatedParticipationDto.memberRating = rating
         updatedParticipationDto.memberReview = review
-
 
         when:
         participationService.memberRating(getParticipationId(participationId), updatedParticipationDto)

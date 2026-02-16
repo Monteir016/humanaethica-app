@@ -122,6 +122,10 @@ public class Shift {
         this.participations.add(participation);
     }
 
+    public void removeParticipation(Participation participation) {
+        this.participations.remove(participation);
+    }
+
     private void verifyInvariants() {
         startTimeIsRequired();
         endTimeIsRequired();
