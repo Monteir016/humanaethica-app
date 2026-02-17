@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.EnrollmentRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
@@ -29,6 +31,9 @@ public class ParticipationService {
     private ParticipationRepository participationRepository;
     @Autowired
     private ShiftRepository shiftRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ParticipationDto> getParticipationsByActivity(Integer activityId) {
@@ -76,22 +81,21 @@ public class ParticipationService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public ParticipationDto createParticipation(Integer shiftId, ParticipationDto participationDto) {
-        if (participationDto == null)
-            throw new HEException(PARTICIPATION_REQUIRES_INFORMATION);
-
-        if (participationDto.getVolunteerId() == null)
-            throw new HEException(USER_NOT_FOUND);
-
-        Volunteer volunteer = (Volunteer) userRepository.findById(participationDto.getVolunteerId())
-                .orElseThrow(() -> new HEException(USER_NOT_FOUND, participationDto.getVolunteerId()));
+    public ParticipationDto createParticipation(Integer shiftId, Integer enrollmentId, ParticipationDto participationDto) {
+        if (enrollmentId == null)
+            throw  new HEException(ENROLLMENT_NOT_FOUND);
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new HEException(ENROLLMENT_NOT_FOUND));
 
         if (shiftId == null)
             throw new HEException(SHIFT_NOT_FOUND);
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId));
 
-        Participation participation = new Participation(volunteer, shift, participationDto);
+        if (participationDto == null)
+            throw new HEException(PARTICIPATION_REQUIRES_INFORMATION);
+
+        Participation participation = new Participation(enrollment, shift, participationDto);
         participationRepository.save(participation);
 
         return new ParticipationDto(participation, User.Role.MEMBER);

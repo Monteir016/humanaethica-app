@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
@@ -25,6 +26,8 @@ public class Enrollment {
     private Volunteer volunteer;
     @ManyToMany
     private List<Shift> shifts = new ArrayList<>();
+    @OneToOne(mappedBy = "enrollment")
+    private Participation participation;
 
     public Enrollment() {
     }
@@ -100,6 +103,14 @@ public class Enrollment {
     public void addShift(Shift shift) {
         this.shifts.add(shift);
         shift.addEnrollment(this);
+    }
+
+    public Participation getParticipation() {
+        return participation;
+    }
+
+    public void setParticipation(Participation participation) {
+        this.participation = participation;
     }
 
     private void verifyInvariants() {

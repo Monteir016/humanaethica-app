@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
@@ -51,6 +52,19 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
+        def enrollment1 = new Enrollment()
+        enrollment1.setMotivation(ENROLLMENT_MOTIVATION_1)
+        enrollment1.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment1.@volunteer = volunteerOne
+        enrollment1.addShift(shift)
+        enrollmentRepository.save(enrollment1)
+        def enrollment2 = new Enrollment()
+        enrollment2.setMotivation(ENROLLMENT_MOTIVATION_1)
+        enrollment2.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment2.@volunteer = volunteerTwo
+        enrollment2.addShift(shift)
+        enrollmentRepository.save(enrollment2)
+        and:
         def participationDto1 = new ParticipationDto()
         participationDto1.memberRating = 1
         participationDto1.memberReview = MEMBER_REVIEW
@@ -58,8 +72,8 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
         participationDto2.memberRating = 2
         participationDto2.memberReview = MEMBER_REVIEW
         and:
-        createParticipation(volunteerOne, shift, participationDto1)
-        createParticipation(volunteerTwo, shift, participationDto2)
+        createParticipation(enrollment1, shift, participationDto1)
+        createParticipation(enrollment2, shift, participationDto2)
     }
 
     def 'member gets two participations'() {

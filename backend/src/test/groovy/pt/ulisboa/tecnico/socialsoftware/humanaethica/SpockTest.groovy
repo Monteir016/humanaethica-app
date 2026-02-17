@@ -277,14 +277,24 @@ class SpockTest extends Specification {
         return enrollment
     }
 
+    def createEnrollmentBypass(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1) {
+        def enrollment = new Enrollment()
+        enrollment.setMotivation(motivation)
+        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment.setVolunteer(volunteer)
+        shifts.each { shift -> enrollment.addShift(shift) }
+        enrollmentRepository.save(enrollment)
+        return enrollment
+    }
+
     // participation
 
     public static final int MAX_REVIEW_LENGTH = 100
     public static final String MEMBER_REVIEW = "The volunteer did an excellent job."
     public static final String VOLUNTEER_REVIEW = "The activity was fun."
 
-    def createParticipation(volunteer, shift, participationDto) {
-        def participation = new Participation(volunteer, shift, participationDto)
+    def createParticipation(enrollment, shift, participationDto) {
+        def participation = new Participation(enrollment, shift, participationDto)
         participationRepository.save(participation)
         return participation
     }
@@ -354,16 +364,15 @@ class SpockTest extends Specification {
         shiftRepository.save(shift)
         return shift
     }
-    
+
     // clean database
 
     def deleteAll() {
         assessmentRepository.deleteAll()
-        participationRepository.deleteAll()
-        enrollmentRepository.deleteAll()
+        participationRepository.deleteAllParticipations()
+        enrollmentRepository.deleteAllEnrollments()
         reportRepository.deleteAll()
         shiftRepository.deleteAll()
-        activityRepository.deleteAllActivityTheme()
         activityRepository.deleteAll()
         authUserRepository.deleteAll()
         userRepository.deleteAll()
@@ -371,6 +380,4 @@ class SpockTest extends Specification {
         themeRepository.deleteAll()
 
     }
-
-
 }

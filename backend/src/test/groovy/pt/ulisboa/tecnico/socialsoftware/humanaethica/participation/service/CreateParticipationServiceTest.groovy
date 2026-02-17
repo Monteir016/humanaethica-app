@@ -5,29 +5,54 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
+
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import spock.lang.Unroll
-
+import jakarta.persistence.EntityManager
+import org.springframework.beans.factory.annotation.Autowired
 
 import java.time.LocalDateTime
 
 @DataJpaTest
 class CreateParticipationServiceTest extends SpockTest {
+    @Autowired
+    EntityManager entityManager
     public static final String EXIST = 'exist'
     public static final String NO_EXIST = 'noExist'
     def volunteer
     def member
     def activity
+    def enrollment
 
     def setup() {
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         member = authUserService.loginDemoMemberAuth().getUser()
-        and:
-        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
-        and:
-        createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
+
+        and: 'create activity with past dates'
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
+                THREE_DAYS_AGO, TWO_DAYS_AGO, ONE_DAY_AGO)
+
+        and: 'create shift within activity dates'
+        def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
+
+        and: 'create enrollment bypassing constructor invariants'
+        volunteer = userRepository.findById(volunteer.getId()).get()
+        enrollment = new Enrollment()
+        enrollment.setMotivation(ENROLLMENT_MOTIVATION_1)
+        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment.setVolunteer(volunteer)
+        enrollment.addShift(shift)
+        enrollmentRepository.save(enrollment)
+
+        entityManager.flush()
+        entityManager.clear()
+
+        volunteer = userRepository.findById(volunteer.getId()).get()
+        activity = activityRepository.findById(activity.getId()).get()
+        enrollment = enrollmentRepository.findById(enrollment.getId()).get()
     }
 
     def 'create participation as member' () {
@@ -39,7 +64,7 @@ class CreateParticipationServiceTest extends SpockTest {
         participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        def result = participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
+        def result = participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
 
         then:
         result.memberRating == 5
@@ -55,16 +80,16 @@ class CreateParticipationServiceTest extends SpockTest {
     }
 
     @Unroll
-    def 'invalid arguments: volunteerId=#volunteerId | shiftId=#shiftId'() {
+    def 'invalid arguments: enrollmentId=#enrollmentId | shiftId=#shiftId'() {
         given:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
-        participationDto.volunteerId = getVolunteerId(volunteerId)
+        participationDto.volunteerId = volunteer.id
         participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        participationService.createParticipation(getShiftId(shiftId), getParticipationDto(participationValue,participationDto))
+        participationService.createParticipation(getShiftId(shiftId), getEnrollmentId(enrollmentId), getParticipationDto(participationValue,participationDto))
 
         then:
         def error = thrown(HEException)
@@ -73,12 +98,12 @@ class CreateParticipationServiceTest extends SpockTest {
         participationRepository.findAll().size() == 0
 
         where:
-        volunteerId | shiftId    | participationValue || errorMessage
-        null        | EXIST      | EXIST              || ErrorMessage.USER_NOT_FOUND
-        NO_EXIST    | EXIST      | EXIST              || ErrorMessage.USER_NOT_FOUND
-        EXIST       | null       | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
-        EXIST       | NO_EXIST   | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
-        EXIST       | EXIST      | null               || ErrorMessage.PARTICIPATION_REQUIRES_INFORMATION
+        enrollmentId | shiftId    | participationValue || errorMessage
+        null         | EXIST      | EXIST              || ErrorMessage.ENROLLMENT_NOT_FOUND
+        NO_EXIST     | EXIST      | EXIST              || ErrorMessage.ENROLLMENT_NOT_FOUND
+        EXIST        | null       | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
+        EXIST        | NO_EXIST   | EXIST              || ErrorMessage.SHIFT_NOT_FOUND
+        EXIST        | EXIST      | null               || ErrorMessage.PARTICIPATION_REQUIRES_INFORMATION
     }
 
     @Unroll
@@ -91,12 +116,13 @@ class CreateParticipationServiceTest extends SpockTest {
         participationDto.shiftId = activity.getShifts().get(0).getId()
 
         when:
-        participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
+        participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
 
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == errorMessage
         and:
+        entityManager.clear()
         participationRepository.findAll().size() == 0
 
         where:
@@ -107,10 +133,10 @@ class CreateParticipationServiceTest extends SpockTest {
         VOLUNTEER_REVIEW                    | 10     || ErrorMessage.PARTICIPATION_RATING_BETWEEN_ONE_AND_FIVE
     }
 
-    def getVolunteerId(volunteerId) {
-        if (volunteerId == EXIST)
-            return volunteer.id
-        else if (volunteerId == NO_EXIST)
+    def getEnrollmentId(enrollmentId) {
+        if (enrollmentId == EXIST)
+            return enrollment.getId()
+        else if (enrollmentId == NO_EXIST)
             return 222
         else
             return null

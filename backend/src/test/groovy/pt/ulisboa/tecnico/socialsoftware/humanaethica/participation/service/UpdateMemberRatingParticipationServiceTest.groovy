@@ -28,14 +28,17 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
 
         and:
-        createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
+        def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
+        and:
+        volunteer = userRepository.findById(volunteer.getId()).get()
+        def enrollment = createEnrollmentBypass(volunteer, [shift])
         and:
         def participationDto = new ParticipationDto()
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.getId()
         participationDto.shiftId = activity.getShifts().get(0).getId()
-        participation = participationService.createParticipation(activity.getShifts().get(0).getId(), participationDto)
+        participation = participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
     }
 
     def 'member updates a participation' () {
@@ -95,8 +98,6 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
             return 222
         return null
     }
-
-
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}

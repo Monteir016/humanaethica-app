@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
@@ -23,16 +24,16 @@ public class Participation {
     private String volunteerReview;
     private String memberReview;
 
-    @ManyToOne
-    private Volunteer volunteer;
+    @OneToOne(optional = false)
+    private Enrollment enrollment;
     @ManyToOne
     private Shift shift;
 
     public Participation() {
     }
 
-    public Participation(Volunteer volunteer, Shift shift, ParticipationDto participationDto) {
-        setVolunteer(volunteer);
+    public Participation(Enrollment enrollment, Shift shift, ParticipationDto participationDto) {
+        setEnrollment(enrollment);
         setShift(shift);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
@@ -56,7 +57,9 @@ public class Participation {
     }
 
     public void delete() {
-        volunteer.deleteParticipation(this);
+        if (enrollment != null) {
+            enrollment.setParticipation(null);
+        }
         shift.removeParticipation(this);
     }
 
@@ -113,12 +116,16 @@ public class Participation {
     }
 
     public Volunteer getVolunteer() {
-        return volunteer;
+        return this.enrollment.getVolunteer();
     }
 
-    public void setVolunteer(Volunteer volunteer) {
-        this.volunteer = volunteer;
-        this.volunteer.addParticipation(this);
+    public Enrollment getEnrollment() {
+        return enrollment;
+    }
+
+    public void setEnrollment(Enrollment enrollment) {
+        this.enrollment = enrollment;
+        this.enrollment.setParticipation(this);
     }
 
     public Shift getShift() {
@@ -133,7 +140,6 @@ public class Participation {
     }
 
     private void verifyInvariants() {
-        participateOnce();
         numberOfParticipantsLessOrEqualLimit();
         acceptanceAfterDeadline();
         ratingAfterEnd();
@@ -141,30 +147,22 @@ public class Participation {
         reviewSizeIsCorrect();
     }
 
-    private void participateOnce() {
-        if (this.shift.getActivity().getShifts().stream()
-                .flatMap(s -> s.getParticipations().stream())
-                .anyMatch(participation -> participation != this && participation.getVolunteer() == this.volunteer)) {
-            throw new HEException(PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING);
-        }
-    }
-
     private void numberOfParticipantsLessOrEqualLimit() {
-        if (this.shift.getParticipantsLimit() != null
-                && this.shift.getParticipations().size() > this.shift.getParticipantsLimit()) {
+        if (shift.getParticipantsLimit() != null && shift.getParticipations().size() > shift.getParticipantsLimit()) {
             throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
         }
     }
 
     private void acceptanceAfterDeadline() {
-        if (this.acceptanceDate.isBefore(this.shift.getActivity().getApplicationDeadline())) {
+        if (this.enrollment.getActivity() != null &&
+                this.acceptanceDate.isBefore(this.enrollment.getActivity().getApplicationDeadline())) {
             throw new HEException(PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE);
         }
     }
 
     private void ratingAfterEnd() {
-        if ((volunteerRating != null || memberRating != null)
-                && LocalDateTime.now().isBefore(this.shift.getActivity().getEndingDate())) {
+        if ((volunteerRating != null || memberRating != null) && this.enrollment.getActivity() != null
+                && LocalDateTime.now().isBefore(this.enrollment.getActivity().getEndingDate())) {
             throw new HEException(PARTICIPATION_RATING_BEFORE_END);
         }
     }

@@ -7,6 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -30,16 +32,27 @@ class DeleteParticipationMethodTest extends SpockTest {
         institution.getActivities() >> [otherActivity]
         given: "an activity"
         def themes = [theme]
-        def deadline = NOW.minusHours(1)
+        def deadline = NOW.plusHours(1)
         def start = NOW.plusDays(1)
         def end = NOW.plusDays(3)
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
         shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        
+        and: "an enrollment"
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.setMotivation("Motivation necessary for enrollment")
+        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
+        enrollment.setEnrollmentDateTime(NOW.minusHours(2))
+        enrollmentRepository.save(enrollment)
+        
         and: "a participation"
+        activity.setApplicationDeadline(NOW.minusHours(1))
+        activityRepository.save(activity)
+        
         participationDto = new ParticipationDto()
-        participation = new Participation(volunteer, shift, participationDto)
+        participation = new Participation(enrollment, shift, participationDto)
     }
 
     def "delete participation"() {
@@ -54,7 +67,19 @@ class DeleteParticipationMethodTest extends SpockTest {
     def "delete one of multiple participations in activity"() {
         given: "another participation for the same activity"
         def otherVolunteer = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        otherParticipation = new Participation(otherVolunteer, shift, participationDto)
+        activity.setApplicationDeadline(NOW.plusHours(1))
+        activityRepository.save(activity)
+        
+        def otherEnrollmentDto = new EnrollmentDto()
+        otherEnrollmentDto.setMotivation("Another valid motivation")
+        def otherEnrollment = new Enrollment(otherVolunteer, [shift], otherEnrollmentDto)
+        otherEnrollment.setEnrollmentDateTime(NOW.minusHours(2))
+        enrollmentRepository.save(otherEnrollment)
+        
+        activity.setApplicationDeadline(NOW.minusHours(1))
+        activityRepository.save(activity)
+        
+        otherParticipation = new Participation(otherEnrollment, shift, participationDto)
 
         when: "one participation is deleted"
         participation.delete()
@@ -67,13 +92,23 @@ class DeleteParticipationMethodTest extends SpockTest {
     def "delete one of multiple participations in volunteer"() {
         given: "another participation for the same volunteer"
         def themes = [theme]
-        def deadline = NOW.minusHours(1)
+        def deadline = NOW.plusHours(1)
         def start = NOW.plusDays(1)
         def end = NOW.plusDays(3)
         def otherActivity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
         def otherShift = createShift(otherActivity, start.plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         participationDto = new ParticipationDto()
-        otherParticipation = new Participation(volunteer, otherShift, participationDto)
+        
+        def otherEnrollmentDto = new EnrollmentDto()
+        otherEnrollmentDto.setMotivation("Motivation again")
+        def otherEnrollment = new Enrollment(volunteer, [otherShift], otherEnrollmentDto)
+        otherEnrollment.setEnrollmentDateTime(NOW.minusHours(2))
+        enrollmentRepository.save(otherEnrollment)
+        
+        otherActivity.setApplicationDeadline(NOW.minusHours(1)) // Ensure deadline strictness for participation
+        activityRepository.save(otherActivity)
+
+        otherParticipation = new Participation(otherEnrollment, otherShift, participationDto)
 
         when: "one participation is deleted"
         participation.delete()

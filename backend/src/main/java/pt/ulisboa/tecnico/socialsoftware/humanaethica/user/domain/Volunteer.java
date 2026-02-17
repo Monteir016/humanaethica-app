@@ -9,15 +9,13 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @DiscriminatorValue(User.UserTypes.VOLUNTEER)
 public class Volunteer extends User {
     @OneToMany(mappedBy = "volunteer")
     private List<Enrollment> enrollments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "volunteer")
-    private List<Participation> participations = new ArrayList<>();
 
     @OneToMany(mappedBy = "volunteer")
     private List<Assessment> assessments = new ArrayList<>();
@@ -53,19 +51,10 @@ public class Volunteer extends User {
     }
 
     public List<Participation> getParticipations() {
-        return participations;
-    }
-
-    public void setParticipations(List<Participation> participations) {
-        this.participations = participations;
-    }
-
-    public void addParticipation(Participation participation) {
-        this.participations.add(participation);
-    }
-
-    public void deleteParticipation(Participation participation) {
-        this.participations.remove(participation);
+        return enrollments.stream()
+                .map(Enrollment::getParticipation)
+                .filter(p -> p != null)
+                .collect(Collectors.toList());
     }
 
     public List<Assessment> getAssessments() {
@@ -79,7 +68,7 @@ public class Volunteer extends User {
     public void deleteAssessment(Assessment assessment) {
         this.assessments.remove(assessment);
     }
-    
+
     public void addReport(Report report) {
         this.reports.add(report);
     }

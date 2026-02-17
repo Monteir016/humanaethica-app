@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -42,8 +43,6 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         def shift = new Shift(activity, shiftDto)
         shiftRepository.save(shift)
         and:
-        def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-        and:
         activity.setStartingDate(TWO_DAYS_AGO)
         activity.setEndingDate(ONE_DAY_AGO)
         activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
@@ -54,6 +53,13 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
         shiftRepository.save(shift)
         and:
+        Enrollment enrollment = new Enrollment()
+        enrollment.setMotivation(ENROLLMENT_MOTIVATION_1)
+        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment.@volunteer = userRepository.findById(volunteer.id).get()
+        enrollment.addShift(shift)
+        enrollmentRepository.save(enrollment)
+        and:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
@@ -61,7 +67,7 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = shift.id
-        participationService.createParticipation(shift.id, participationDto)
+        participationService.createParticipation(shift.id, enrollment.id, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
     }
 

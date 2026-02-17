@@ -4,6 +4,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
@@ -18,7 +19,9 @@ import java.time.LocalDateTime
 class CreateParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
     Volunteer volunteer = Mock()
+    Enrollment enrollment = Mock()
     Volunteer otherVolunteer = Mock()
+    Enrollment otherEnrollment = Mock()
     Participation otherParticipation = Mock()
     Shift shift = Mock()
     def participationDto
@@ -28,8 +31,16 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto = new ParticipationDto()
         shift.getActivity() >> activity
         activity.getShifts() >> [shift]
-        shift.getParticipations() >> [otherParticipation]
+        def initialEnrollment = Mock(Enrollment)
+        initialEnrollment.getParticipation() >> otherParticipation
+        shift.getEnrollments() >> [initialEnrollment]
         activity.getNumberOfParticipatingVolunteers() >> 2
+        enrollment.getVolunteer() >> volunteer
+        enrollment.getActivity() >> activity
+        enrollment.getShifts() >> [shift]
+        enrollment.getParticipation() >> Mock(Participation)
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        otherParticipation.getEnrollment() >> otherEnrollment
     }
 
     def "member creates a participation"() {
@@ -39,10 +50,9 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Participation(volunteer, shift, participationDto)
+        def result = new Participation(enrollment, shift, participationDto)
 
         then: "checks results"
         result.memberRating == 5
@@ -53,22 +63,7 @@ class CreateParticipationMethodTest extends SpockTest {
         result.volunteer == volunteer
         and: "check that it is added"
         1 * shift.addParticipation(_)
-        1 * volunteer.addParticipation(_)
-    }
-
-    def "create participation and violate participate once invariant"() {
-        given:
-        activity.getApplicationDeadline() >> TWO_DAYS_AGO
-        activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> volunteer
-
-        when:
-        new Participation(volunteer, shift, participationDto)
-
-        then:
-        def error = thrown(HEException)
-        error.getErrorMessage() == ErrorMessage.PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING
+        1 * enrollment.setParticipation(_)
     }
 
     def "create participation and violate acceptance after deadline invariant"() {
@@ -76,12 +71,11 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> IN_ONE_DAY
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
         and:
         participationDto.memberRating = null
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -95,10 +89,9 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -110,14 +103,12 @@ class CreateParticipationMethodTest extends SpockTest {
         def specificShift = Mock(Shift)
         specificShift.getActivity() >> activity
         specificShift.getParticipantsLimit() >> 1
-        specificShift.getParticipations() >> [otherParticipation, Mock(Participation)]
-        
-        activity.getApplicationDeadline() >> TWO_DAYS_AGO
-        activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 10
+        specificShift.getParticipations() >> [Mock(Participation), Mock(Participation)]
+        and:
+        def localEnrollment = Mock(Enrollment)
 
         when:
-        new Participation(volunteer, specificShift, participationDto)
+        new Participation(localEnrollment, specificShift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -130,18 +121,17 @@ class CreateParticipationMethodTest extends SpockTest {
         def specificShift = Mock(Shift)
         specificShift.getActivity() >> activity
         specificShift.getParticipantsLimit() >> limit
-        def participationsList = new ArrayList()
-        for (int i = 0; i < existing + 1; i++) {
-            participationsList.add(Mock(Participation))
+        def participationList = new ArrayList()
+        for (int i = 0; i < existing; i++) {
+            def p = Mock(Participation)
+            participationList.add(p)
         }
-        specificShift.getParticipations() >> participationsList
-
-        activity.getApplicationDeadline() >> TWO_DAYS_AGO
-        activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 10
+        specificShift.getParticipations() >> participationList
+        and:
+        def localEnrollment = Mock(Enrollment)
 
         when:
-        new Participation(volunteer, specificShift, participationDto)
+        new Participation(localEnrollment, specificShift, participationDto)
 
         then:
         noExceptionThrown()
@@ -159,12 +149,10 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
-        and:
         participationDto.memberRating = rating
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -180,12 +168,10 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
-        and:
         participationDto.volunteerRating = rating
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -201,12 +187,10 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
-        and:
         participationDto.volunteerReview = review
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -222,12 +206,10 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        otherParticipation.getVolunteer() >> otherVolunteer
-        and:
         participationDto.memberReview = review
 
         when:
-        new Participation(volunteer, shift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)

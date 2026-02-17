@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
@@ -50,12 +51,19 @@ class DeleteParticipationWebServiceIT extends SpockTest {
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
         shiftRepository.save(shift)
         and:
+        def enrollment = new Enrollment()
+        enrollment.setMotivation(ENROLLMENT_MOTIVATION_1)
+        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment.@volunteer = userRepository.findById(volunteer.id).get()
+        enrollment.addShift(shift)
+        enrollmentRepository.save(enrollment)
+        and:
         def participationDto= new ParticipationDto()
         participationDto.volunteerRating = 5
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = shift.id
-        participationService.createParticipation(shift.id, participationDto)
+        participationService.createParticipation(shift.id, enrollment.id, participationDto)
         def storedParticipation = participationRepository.findAll().get(0)
         participationId = storedParticipation.id
     }

@@ -19,6 +19,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
     def activity
     def shift
+    def enrollment
     def participationDtoMember
     def participationDtoVolunteer
 
@@ -44,7 +45,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
         enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
-        enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
+        enrollment = enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
         and:
         activity.setStartingDate(NOW.minusDays(4))
         activity.setEndingDate(NOW.minusDays(3))
@@ -75,7 +76,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/participations/' + shift.id)
+                .uri('/participations/' + shift.id + '/enrollment/' + enrollment.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -103,7 +104,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/participations/' + shift.id)
+                .uri('/participations/' + shift.id + '/enrollment/' + enrollment.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -125,7 +126,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/participations/' + shift.id)
+                .uri('/participations/' + shift.id + '/enrollment/' + enrollment.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()
@@ -147,7 +148,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/participations/' + shift.id)
+                .uri('/participations/' + shift.id + '/enrollment/' + enrollment.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(participationDtoMember)
                 .retrieve()

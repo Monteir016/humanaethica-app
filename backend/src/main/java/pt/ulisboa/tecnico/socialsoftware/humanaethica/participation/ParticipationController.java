@@ -29,11 +29,11 @@ public class ParticipationController {
         return participationService.getVolunteerParticipations(userId);
     }
 
-    @PostMapping("/participations/{shiftId}")
+    @PostMapping("/participations/{shiftId}/enrollment/{enrollmentId}")
     @PreAuthorize("(hasRole('ROLE_MEMBER') and hasPermission(#shiftId, 'SHIFT.MEMBER'))")
-    public ParticipationDto createParticipation(@PathVariable Integer shiftId,
+    public ParticipationDto createParticipation(@PathVariable Integer shiftId, @PathVariable Integer enrollmentId,
             @Valid @RequestBody ParticipationDto participationDto) {
-        return participationService.createParticipation(shiftId, participationDto);
+        return participationService.createParticipation(shiftId, enrollmentId, participationDto);
     }
 
     @PutMapping("/participations/{participationId}/volunteer")

@@ -9,6 +9,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
@@ -30,6 +32,7 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
 
 
     def setup() {
+        volunteer.getEnrollments() >> []
         otherActivity.getName() >> ACTIVITY_NAME_2
         institution.getActivities() >> [otherActivity]
         theme.getState() >> Theme.State.APPROVED
@@ -42,10 +45,16 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         and:
         def shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and:
-        // Change to past dates to allow rating (invariants check constructor only)
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.setMotivation("Motivation needed >= 10 chars")
+        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
+        enrollment.setEnrollmentDateTime(NOW.minusDays(5))
+        enrollmentRepository.save(enrollment)
+
         activity.setStartingDate(NOW.minusDays(3))
         activity.setEndingDate(NOW.minusDays(1))
         activity.setApplicationDeadline(NOW.minusDays(4))
+        
         shift.setStartTime(NOW.minusDays(3).plusHours(1))
         shift.setEndTime(NOW.minusDays(2))
         shiftRepository.save(shift)
@@ -53,7 +62,7 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW
-        participation = new Participation(volunteer, shift, participationDto)
+        participation = new Participation(enrollment, shift, participationDto)
         participationDtoUpdated = new ParticipationDto()
     }
 
