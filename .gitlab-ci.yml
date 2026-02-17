@@ -1,5 +1,5 @@
 image:
-  name: "registry.rnl.tecnico.ulisboa.pt/es/humanaethica"
+  name: "registry.rnl.tecnico.ulisboa.pt/es/humanaethica-base-es26"
 
 stages:
   - prepare
