@@ -106,6 +106,7 @@ class CreateParticipationMethodTest extends SpockTest {
         specificShift.getParticipations() >> [Mock(Participation), Mock(Participation)]
         and:
         def localEnrollment = Mock(Enrollment)
+        localEnrollment.getShifts() >> [specificShift]
 
         when:
         new Participation(localEnrollment, specificShift, participationDto)
@@ -129,6 +130,7 @@ class CreateParticipationMethodTest extends SpockTest {
         specificShift.getParticipations() >> participationList
         and:
         def localEnrollment = Mock(Enrollment)
+        localEnrollment.getShifts() >> [specificShift]
 
         when:
         new Participation(localEnrollment, specificShift, participationDto)
@@ -217,6 +219,25 @@ class CreateParticipationMethodTest extends SpockTest {
 
         where:
         review << ["", "123456789","a".repeat(MAX_REVIEW_LENGTH + 1)]
+    }
+
+    def "create participation and violate shift belongs to enrollment invariant"() {
+        given:
+        def otherShift = Mock(Shift)
+        otherShift.getActivity() >> activity
+        otherShift.getParticipantsLimit() >> 10
+        otherShift.getParticipations() >> []
+        and:
+        def localEnrollment = Mock(Enrollment)
+        localEnrollment.getShifts() >> [shift]
+        localEnrollment.getActivity() >> activity
+
+        when:
+        new Participation(localEnrollment, otherShift, participationDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.PARTICIPATION_SHIFT_NOT_IN_ENROLLMENT
     }
 
     @TestConfiguration

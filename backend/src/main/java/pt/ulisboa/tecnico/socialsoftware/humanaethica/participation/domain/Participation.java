@@ -140,6 +140,7 @@ public class Participation {
     }
 
     private void verifyInvariants() {
+        shiftBelongsToEnrollment();
         numberOfParticipantsLessOrEqualLimit();
         acceptanceAfterDeadline();
         ratingAfterEnd();
@@ -184,6 +185,13 @@ public class Participation {
 
         if (memberReview != null && (memberReview.length() < 10 || memberReview.length() > 100)) {
             throw new HEException(PARTICIPATION_REVIEW_LENGTH_INVALID, memberReview.length());
+        }
+    }
+
+    private void shiftBelongsToEnrollment() {
+        if (this.enrollment != null && this.shift != null
+                && !this.enrollment.getShifts().contains(this.shift)) {
+            throw new HEException(PARTICIPATION_SHIFT_NOT_IN_ENROLLMENT);
         }
     }
 }
