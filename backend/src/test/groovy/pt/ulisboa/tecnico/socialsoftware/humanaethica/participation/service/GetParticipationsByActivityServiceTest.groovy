@@ -42,8 +42,8 @@ class GetParticipationsByActivityServiceTest extends SpockTest {
         given:
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollmentOne = createEnrollmentBypass(volunteerOne, [shift])
-        def enrollmentTwo = createEnrollmentBypass(volunteerTwo, [shift])
+        def enrollmentOne = createEnrollmentBypassInvariantsValidation(volunteerOne, [shift])
+        def enrollmentTwo = createEnrollmentBypassInvariantsValidation(volunteerTwo, [shift])
         and:
         createParticipation(enrollmentOne, shift, participationDto1)
         createParticipation(enrollmentTwo, shift, participationDto2)
@@ -60,8 +60,8 @@ class GetParticipationsByActivityServiceTest extends SpockTest {
     def "get one participation of an activity"() {
         given:
         def volunteer = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollmentForShift = createEnrollmentBypass(volunteer, [shift])
-        def enrollmentForOtherShift = createEnrollmentBypass(volunteer, [otherShift])
+        def enrollmentForShift = createEnrollmentBypassInvariantsValidation(volunteer, [shift])
+        def enrollmentForOtherShift = createEnrollmentBypassInvariantsValidation(volunteer, [otherShift])
         and:
         createParticipation(enrollmentForShift, shift, participationDto1)
         createParticipation(enrollmentForOtherShift, otherShift, participationDto1)

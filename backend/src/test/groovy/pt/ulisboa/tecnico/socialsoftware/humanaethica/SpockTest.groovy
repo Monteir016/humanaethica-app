@@ -269,7 +269,7 @@ class SpockTest extends Specification {
     @Autowired
     EnrollmentRepository enrollmentRepository
 
-    def createEnrollment(volunteer, motivation, shifts = []) {
+    def createEnrollment(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
         def enrollment = new Enrollment(volunteer, shifts, enrollmentDto)
@@ -277,10 +277,10 @@ class SpockTest extends Specification {
         return enrollment
     }
 
-    def createEnrollmentBypass(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1) {
+    def createEnrollmentBypassInvariantsValidation(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1, enrollmentDateTime = THREE_DAYS_AGO.minusDays(1)) {
         def enrollment = new Enrollment()
         enrollment.setMotivation(motivation)
-        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
+        enrollment.setEnrollmentDateTime(enrollmentDateTime)
         enrollment.setVolunteer(volunteer)
         shifts.each { shift -> enrollment.addShift(shift) }
         enrollmentRepository.save(enrollment)

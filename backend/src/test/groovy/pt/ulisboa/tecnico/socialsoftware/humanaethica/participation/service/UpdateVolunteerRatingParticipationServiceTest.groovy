@@ -32,7 +32,7 @@ class UpdateVolunteerRatingParticipationServiceTest extends SpockTest {
         def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         volunteer = userRepository.findById(volunteer.getId()).get()
-        def enrollment = createEnrollmentBypass(volunteer, [shift])
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift])
         and:
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5

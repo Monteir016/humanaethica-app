@@ -33,8 +33,8 @@ class GetEnrollmentsByActivityServiceTest extends SpockTest {
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
-        createEnrollment(volunteerOne, ENROLLMENT_MOTIVATION_1, List.of(shift))
-        createEnrollment(volunteerTwo, ENROLLMENT_MOTIVATION_2, List.of(shift))
+        createEnrollment(volunteerOne, List.of(shift), ENROLLMENT_MOTIVATION_1)
+        createEnrollment(volunteerTwo, List.of(shift), ENROLLMENT_MOTIVATION_2)
 
         when:
         def enrollments = enrollmentService.getEnrollmentsByActivity(activity.id)
@@ -49,8 +49,8 @@ class GetEnrollmentsByActivityServiceTest extends SpockTest {
         given:
         def volunteer = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
-        createEnrollment(volunteer, ENROLLMENT_MOTIVATION_1, List.of(shift))
-        createEnrollment(volunteer, ENROLLMENT_MOTIVATION_2, List.of(otherShift))
+        createEnrollment(volunteer, List.of(shift), ENROLLMENT_MOTIVATION_1)
+        createEnrollment(volunteer, List.of(otherShift), ENROLLMENT_MOTIVATION_2)
 
         when:
         def enrollments = enrollmentService.getEnrollmentsByActivity(activity.id)

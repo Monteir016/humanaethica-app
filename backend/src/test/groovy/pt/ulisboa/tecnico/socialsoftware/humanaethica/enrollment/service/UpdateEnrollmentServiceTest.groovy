@@ -30,7 +30,7 @@ class UpdateEnrollmentServiceTest extends SpockTest {
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "an enrollment"
-        enrollment = createEnrollment(volunteer, ENROLLMENT_MOTIVATION_1, List.of(shift))
+        enrollment = createEnrollment(volunteer, List.of(shift), ENROLLMENT_MOTIVATION_1)
     }
 
 
