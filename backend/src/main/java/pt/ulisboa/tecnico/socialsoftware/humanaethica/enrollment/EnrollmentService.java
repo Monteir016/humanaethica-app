@@ -53,7 +53,7 @@ public class EnrollmentService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public EnrollmentDto createEnrollment(Integer userId, List<Integer> shiftIds,
+    public EnrollmentDto createEnrollment(Integer userId,
             EnrollmentDto enrollmentDto) {
         if (enrollmentDto == null)
             throw new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
@@ -63,6 +63,7 @@ public class EnrollmentService {
         Volunteer volunteer = (Volunteer) userRepository.findById(userId)
                 .orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
 
+        List<Integer> shiftIds = enrollmentDto.getShiftIds();
         if (shiftIds == null || shiftIds.isEmpty()) {
             throw new HEException(ENROLLMENT_AT_LEAST_ONE_SHIFT);
         }

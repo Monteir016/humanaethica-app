@@ -50,7 +50,8 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
-        def enrollment = enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
+        enrollmentDto.shiftIds = [shift.id]
+        def enrollment = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
         and:
         activity.setStartingDate(NOW.minusDays(4))
         activity.setEndingDate(NOW.minusDays(3))

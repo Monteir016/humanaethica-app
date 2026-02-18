@@ -24,13 +24,14 @@ class CreateEnrollmentServiceTest extends SpockTest {
 
     def 'create enrollment' () {
         given:
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 1, SHIFT_LOCATION)
         def shift = shiftService.createShift(activity.id, shiftDto)
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shift.id]
 
         when:
-        def result = enrollmentService.createEnrollment(volunteer.id, List.of(shift.id), enrollmentDto)
+        def result = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
 
         then:
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -51,7 +52,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def shift = shiftService.createShift(activity.id, shiftDto)
 
         when:
-        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getShiftIds(shiftId, shift), getEnrollmentDto(enrollmentValue,enrollmentDto))
+        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getEnrollmentDto(enrollmentValue, enrollmentDto, shiftId, shift))
 
         then:
         def error = thrown(HEException)
@@ -86,11 +87,13 @@ class CreateEnrollmentServiceTest extends SpockTest {
             return null
     }
 
-    def getEnrollmentDto(value, enrollmentDto) {
-        if (value == EXIST) {
-            return enrollmentDto
+    def getEnrollmentDto(value, enrollmentDto, shiftId, shift) {
+        if (value == null) {
+            return null
         }
-        return null
+        def dto = enrollmentDto
+        dto.shiftIds = getShiftIds(shiftId, shift)
+        return dto
     }
 
     @TestConfiguration
