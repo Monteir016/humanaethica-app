@@ -83,7 +83,7 @@ The [following video](https://youtu.be/D0JABlXCdlo) shows how setup when you ins
 
 # Docker Compose Installation
 
-* Install [Docker](https://docs.docker.com/engine/install/) in you machine.
+* Install [Docker](https://docs.docker.com/engine/install/) in you machine, and **login into Docker**.
 
 * Copy data/access.log.example to data/access.log
 ```
@@ -112,7 +112,7 @@ docker compose up -d frontend
 
 * See container logs, for instance for backend
 ```
-docker logs backend
+docker compose logs backend
 ```
 
 * After changing backend code, for a quick recompile and restart
