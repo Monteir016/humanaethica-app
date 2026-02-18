@@ -14,6 +14,9 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepo
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.ACTIVITY_NOT_FOUND;
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.SHIFT_INFORMATION_REQUIRED;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Service
 public class ShiftService {
 
@@ -41,5 +44,19 @@ public class ShiftService {
 
         return new ShiftDto(shift);
     }
-}
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public List<ShiftDto> getShiftsByActivity(Integer activityId) {
+        if (activityId == null) {
+            throw new HEException(ACTIVITY_NOT_FOUND);
+        }
+
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
+
+        return activity.getShifts().stream()
+                .sorted(Comparator.comparing(Shift::getStartTime))
+                .map(ShiftDto::new)
+                .toList();
+    }
+}
