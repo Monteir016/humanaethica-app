@@ -31,21 +31,15 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
         def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         volunteer = userRepository.findById(volunteer.getId()).get()
-        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift])
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto = new ParticipationDto()
-        participationDto.volunteerRating = 5
-        participationDto.volunteerReview = VOLUNTEER_REVIEW
-        participationDto.volunteerId = volunteer.getId()
-        participationDto.shiftId = activity.getShifts().get(0).getId()
+        def participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
         participation = participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
     }
 
     def 'member updates a participation' () {
         given:
-        def updatedParticipationDto = new ParticipationDto()
-        updatedParticipationDto.memberReview = MEMBER_REVIEW
-        updatedParticipationDto.memberRating = 5
+        def updatedParticipationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         updatedParticipationDto.volunteerId = volunteer.getId()
 
         when:
@@ -68,9 +62,7 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
     @Unroll
     def 'invalid arguments: rating=#rating | review=#review |participationId=#participationId'() {
         given:
-        def updatedParticipationDto = new ParticipationDto()
-        updatedParticipationDto.memberRating = rating
-        updatedParticipationDto.memberReview = review
+        def updatedParticipationDto = createParticipationDto(rating, review, null, null)
 
         when:
         participationService.memberRating(getParticipationId(participationId), updatedParticipationDto)

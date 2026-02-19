@@ -44,7 +44,6 @@ class DeleteReportServiceTest extends SpockTest {
 
     @Unroll
     def 'two reports exist and one is removed'() {
-        
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def report2 = createReport(activity, volunteer2, REPORT_JUSTIFICATION_2)

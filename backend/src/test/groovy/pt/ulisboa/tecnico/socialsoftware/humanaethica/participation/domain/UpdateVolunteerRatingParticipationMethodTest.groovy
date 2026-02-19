@@ -30,7 +30,6 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
     def participationDto
     def participationDtoUpdated
 
-
     def setup() {
         volunteer.getEnrollments() >> []
         otherActivity.getName() >> ACTIVITY_NAME_2
@@ -45,11 +44,7 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         and:
         def shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and:
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.setMotivation("Motivation needed >= 10 chars")
-        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
-        enrollment.setEnrollmentDateTime(NOW.minusDays(5))
-        enrollmentRepository.save(enrollment)
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], "Motivation needed >= 10 chars", NOW.minusDays(5))
 
         activity.setStartingDate(NOW.minusDays(3))
         activity.setEndingDate(NOW.minusDays(1))

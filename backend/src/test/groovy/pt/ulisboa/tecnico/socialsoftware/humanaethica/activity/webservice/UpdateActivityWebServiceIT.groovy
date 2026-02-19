@@ -26,24 +26,22 @@ class UpdateActivityWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def user = demoMemberLogin()
-
+        and:
         def theme = createTheme(THEME_NAME_1, Theme.State.APPROVED,null)
         def themesDto = new ArrayList<>()
         themesDto.add(new ThemeDto(theme,false,false,false))
-
+        and:
         activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,themesDto)
-
         def activity = activityService.registerActivity(user.id, activityDto)
-
         activityId = activity.id
-
+        and:
         activityDto = createActivityDto(ACTIVITY_NAME_2,ACTIVITY_REGION_2,4,ACTIVITY_DESCRIPTION_2,
                 NOW,IN_ONE_DAY,IN_TWO_DAYS,new ArrayList<>())
     }

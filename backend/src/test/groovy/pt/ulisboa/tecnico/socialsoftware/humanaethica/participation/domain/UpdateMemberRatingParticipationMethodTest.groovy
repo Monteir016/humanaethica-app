@@ -35,9 +35,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
         shift.getActivity() >> activity
-        participationDto = new ParticipationDto()
-        participationDto.memberRating = 4
-        participationDto.memberReview = VOLUNTEER_REVIEW
+        participationDto = createParticipationDto(4, VOLUNTEER_REVIEW, null, null)
         
         def enrollment = Mock(Enrollment)
         enrollment.getActivity() >> activity
@@ -45,7 +43,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         enrollment.getShifts() >> [shift]
         
         participation = new Participation(enrollment, shift, participationDto)
-        participationDtoUpdated = new ParticipationDto()
+        participationDtoUpdated = createParticipationDto(null, null, null, null)
     }
 
     def "member updates a participation"() {

@@ -33,12 +33,9 @@ class DeleteParticipationServiceTest extends SpockTest {
         and:
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
-        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift])
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto = new ParticipationDto()
-        participationDto.volunteerRating = 5
-        participationDto.volunteerReview = VOLUNTEER_REVIEW
-        participationDto.volunteerId = volunteer.id
+        def participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
         participation = createParticipation(enrollment, shift, participationDto)
     }
 
@@ -57,10 +54,8 @@ class DeleteParticipationServiceTest extends SpockTest {
     def 'two participations exist and one is deleted: participationId=#participationId | deletedRating=#deletedRating | remainingRating=#remainingRating '() {
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift])
-        def participationDto2 = new ParticipationDto()
-        participationDto2.volunteerRating = 2
-        participationDto2.volunteerReview = VOLUNTEER_REVIEW
+        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
+        def participationDto2 = createParticipationDto(null, null, 2, VOLUNTEER_REVIEW)
         participationDto2.volunteerId = volunteer2.id
         createParticipation(enrollment2, shift, participationDto2)
         firstParticipation = participationRepository.findAll().get(0)
@@ -92,10 +87,8 @@ class DeleteParticipationServiceTest extends SpockTest {
     def 'two participation exist and are both deleted'() {
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift])
-        def participationDto2 = new ParticipationDto()
-        participationDto2.volunteerRating = 2
-        participationDto2.volunteerReview = VOLUNTEER_REVIEW
+        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
+        def participationDto2 = createParticipationDto(null, null, 2, VOLUNTEER_REVIEW)
         participationDto2.volunteerId = volunteer2.id
         createParticipation(enrollment2, shift, participationDto2)
         firstParticipation = participationRepository.findAll().get(0)

@@ -32,21 +32,15 @@ class UpdateVolunteerRatingParticipationServiceTest extends SpockTest {
         def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         volunteer = userRepository.findById(volunteer.getId()).get()
-        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift])
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto = new ParticipationDto()
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
-        participationDto.volunteerId = volunteer.getId()
-        participationDto.shiftId = activity.getShifts().get(0).getId()
+        def participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         participation = participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
     }
 
     def 'volunteer updates a participation' () {
         given:
-        def updatedParticipationDto = new ParticipationDto()
-        updatedParticipationDto.volunteerReview = VOLUNTEER_REVIEW
-        updatedParticipationDto.volunteerRating = 3
+        def updatedParticipationDto = createParticipationDto(null, null, 3, VOLUNTEER_REVIEW)
         updatedParticipationDto.volunteerId = volunteer.getId()
 
         when:
@@ -69,9 +63,7 @@ class UpdateVolunteerRatingParticipationServiceTest extends SpockTest {
     @Unroll
     def 'invalid arguments: rating=#rating | review=#review |participationId=#participationId'() {
         given:
-        def updatedParticipationDto = new ParticipationDto()
-        updatedParticipationDto.volunteerRating = rating
-        updatedParticipationDto.volunteerReview = review
+        def updatedParticipationDto = createParticipationDto(null, null, rating, review)
 
         when:
         participationService.volunteerRating(getParticipationId(participationId), updatedParticipationDto)

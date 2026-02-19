@@ -22,25 +22,24 @@ class UpdateEnrollmentWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
+        and:
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
-
+        and:
         shift = createShift(activity, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
-
+        and:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.volunteerId = volunteer.id
         enrollmentDto.shiftIds = [shift.id]
-
         enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
-    
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         enrollmentId = storedEnrollment.id
     }
@@ -48,7 +47,7 @@ class UpdateEnrollmentWebServiceIT extends SpockTest {
     def 'login as a volunteer and edit an enrollment'() {
         given: 'a volunteer'
         demoVolunteerLogin()
-
+        and:
         def enrollmentDtoEdit = new EnrollmentDto()
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 

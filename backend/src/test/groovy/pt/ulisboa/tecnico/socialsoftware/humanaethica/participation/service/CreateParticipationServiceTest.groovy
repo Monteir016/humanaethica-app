@@ -40,12 +40,7 @@ class CreateParticipationServiceTest extends SpockTest {
 
         and: 'create enrollment bypassing constructor invariants'
         volunteer = userRepository.findById(volunteer.getId()).get()
-        enrollment = new Enrollment()
-        enrollment.setMotivation(ENROLLMENT_MOTIVATION_1)
-        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
-        enrollment.setVolunteer(volunteer)
-        enrollment.addShift(shift)
-        enrollmentRepository.save(enrollment)
+        enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
 
         entityManager.flush()
         entityManager.clear()
@@ -57,9 +52,7 @@ class CreateParticipationServiceTest extends SpockTest {
 
     def 'create participation as member' () {
         given:
-        def participationDto = new ParticipationDto()
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
+        def participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = activity.getShifts().get(0).getId()
 
@@ -82,9 +75,7 @@ class CreateParticipationServiceTest extends SpockTest {
     @Unroll
     def 'invalid arguments: enrollmentId=#enrollmentId | shiftId=#shiftId'() {
         given:
-        def participationDto = new ParticipationDto()
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
+        def participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = activity.getShifts().get(0).getId()
 
@@ -109,9 +100,7 @@ class CreateParticipationServiceTest extends SpockTest {
     @Unroll
     def 'invalid arguments: rating=#rating | review=#review'() {
         given:
-        def participationDto = new ParticipationDto()
-        participationDto.volunteerReview = review
-        participationDto.volunteerRating = rating
+        def participationDto = createParticipationDto(null, null, rating, review)
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = activity.getShifts().get(0).getId()
 

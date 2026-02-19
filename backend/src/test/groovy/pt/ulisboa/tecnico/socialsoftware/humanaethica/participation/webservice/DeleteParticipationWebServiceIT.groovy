@@ -32,14 +32,13 @@ class DeleteParticipationWebServiceIT extends SpockTest {
         headers.setContentType(MediaType.APPLICATION_JSON)
         and:
         def institution = institutionService.getDemoInstitution()
-        volunteer = authUserService.loginDemoVolunteerAuth().getUser()
+        volunteer = createVolunteer(USER_1_NAME, "volunteer_custom_delete", USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        volunteer.getAuthUser().setPassword(passwordEncoder.encode(USER_1_PASSWORD))
+        userRepository.save(volunteer)
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
-
         and:
-        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
-        def shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        def shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         and:
         activity.setStartingDate(TWO_DAYS_AGO)
         activity.setEndingDate(ONE_DAY_AGO)
@@ -51,16 +50,9 @@ class DeleteParticipationWebServiceIT extends SpockTest {
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
         shiftRepository.save(shift)
         and:
-        def enrollment = new Enrollment()
-        enrollment.setMotivation(ENROLLMENT_MOTIVATION_1)
-        enrollment.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
-        enrollment.@volunteer = userRepository.findById(volunteer.id).get()
-        enrollment.addShift(shift)
-        enrollmentRepository.save(enrollment)
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto= new ParticipationDto()
-        participationDto.volunteerRating = 5
-        participationDto.volunteerReview = VOLUNTEER_REVIEW
+        def participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = shift.id
         participationService.createParticipation(shift.id, enrollment.id, participationDto)
@@ -138,7 +130,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
 
     def 'login as volunteer and delete a participation'() {
         given: 'a volunteer'
-        demoVolunteerLogin()
+        normalUserLogin("volunteer_custom_delete", USER_1_PASSWORD)
 
         when: 'the volunteer tries to delete the participation'
         webClient.delete()

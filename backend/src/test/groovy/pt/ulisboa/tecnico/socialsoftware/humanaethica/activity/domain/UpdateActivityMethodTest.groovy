@@ -32,14 +32,7 @@ class UpdateActivityMethodTest extends SpockTest {
         def themes = [themeOne]
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         and:
-        activityDtoTwo = new ActivityDto()
-        activityDtoTwo.name = ACTIVITY_NAME_2
-        activityDtoTwo.region = ACTIVITY_REGION_2
-        activityDtoTwo.participantsNumberLimit = 4
-        activityDtoTwo.description = ACTIVITY_DESCRIPTION_2
-        activityDtoTwo.startingDate = DateHandler.toISOString(IN_ONE_DAY)
-        activityDtoTwo.endingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDtoTwo.applicationDeadline = DateHandler.toISOString(NOW)
+        activityDtoTwo = createActivityDto(ACTIVITY_NAME_2, ACTIVITY_REGION_2, 4, ACTIVITY_DESCRIPTION_2, NOW, IN_ONE_DAY, IN_TWO_DAYS)
     }
 
     def "update activity"() {
@@ -69,14 +62,7 @@ class UpdateActivityMethodTest extends SpockTest {
         themeTwo.getState() >> themeStatus
         def themes = [themeTwo]
         and: "an activity dto"
-        activityDtoTwo = new ActivityDto()
-        activityDtoTwo.setName(name)
-        activityDtoTwo.setRegion(region)
-        activityDtoTwo.setParticipantsNumberLimit(participants)
-        activityDtoTwo.setDescription(description)
-        activityDtoTwo.setApplicationDeadline(deadline instanceof LocalDateTime ? DateHandler.toISOString(deadline) : deadline as String)
-        activityDtoTwo.setStartingDate(start instanceof LocalDateTime ? DateHandler.toISOString(start) : start as String)
-        activityDtoTwo.setEndingDate(end instanceof LocalDateTime ? DateHandler.toISOString(end) : end as String)
+        activityDtoTwo = createActivityDto(name, region, participants, description, deadline, start, end)
 
         when:
         activity.update(activityDtoTwo, themes)

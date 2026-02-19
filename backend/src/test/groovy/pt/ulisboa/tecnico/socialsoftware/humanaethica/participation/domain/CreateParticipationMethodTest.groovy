@@ -28,7 +28,7 @@ class CreateParticipationMethodTest extends SpockTest {
     
     def setup() {
         given:
-        participationDto = new ParticipationDto()
+        participationDto = createParticipationDto(null, null, null, null)
         shift.getActivity() >> activity
         activity.getShifts() >> [shift]
         def initialEnrollment = Mock(Enrollment)
@@ -45,8 +45,7 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "member creates a participation"() {
         given:
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
+        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
@@ -72,7 +71,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
         and:
-        participationDto.memberRating = null
+        participationDto = createParticipationDto(null, null, null, null)
 
         when:
         new Participation(enrollment, shift, participationDto)
@@ -84,8 +83,7 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participation and violate rating before end invariant"() {
         given:
-        participationDto.memberReview = MEMBER_REVIEW
-        participationDto.memberRating = 5
+        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> IN_TWO_DAYS
         activity.getParticipantsNumberLimit() >> 3
@@ -151,7 +149,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        participationDto.memberRating = rating
+        participationDto = createParticipationDto(rating, null, null, null)
 
         when:
         new Participation(enrollment, shift, participationDto)
@@ -170,7 +168,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        participationDto.volunteerRating = rating
+        participationDto = createParticipationDto(null, null, rating, null)
 
         when:
         new Participation(enrollment, shift, participationDto)
@@ -189,7 +187,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        participationDto.volunteerReview = review
+        participationDto = createParticipationDto(null, null, null, review)
 
         when:
         new Participation(enrollment, shift, participationDto)
@@ -208,7 +206,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
-        participationDto.memberReview = review
+        participationDto = createParticipationDto(null, review, null, null)
 
         when:
         new Participation(enrollment, shift, participationDto)

@@ -33,7 +33,6 @@ class CreateParticipationWebServiceIT extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
-
         and:
         def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         shift = new Shift(activity, shiftDto)
@@ -42,9 +41,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         and:
         def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentDto.activityId = activity.id
         enrollmentDto.shiftIds = [shift.id]
         enrollment = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
         and:
@@ -52,23 +49,14 @@ class CreateParticipationWebServiceIT extends SpockTest {
         activity.setEndingDate(NOW.minusDays(3))
         activity.setApplicationDeadline(NOW.minusDays(5))
         activityRepository.save(activity)
-
         and:
         shift.setStartTime(NOW.minusDays(4).plusHours(1))
         shift.setEndTime(NOW.minusDays(4).plusHours(3))
         shiftRepository.save(shift)
         and:
-        participationDtoMember = new ParticipationDto()
-        participationDtoMember.memberRating = 5
-        participationDtoMember.memberReview = MEMBER_REVIEW
-        participationDtoMember.volunteerId = volunteer.id
-        participationDtoMember.shiftId = shift.id
+        participationDtoMember = createParticipationDto(5, MEMBER_REVIEW, null, null)
         and:
-        participationDtoVolunteer = new ParticipationDto()
-        participationDtoVolunteer.volunteerRating = 5
-        participationDtoVolunteer.volunteerReview = VOLUNTEER_REVIEW
-        participationDtoVolunteer.volunteerId = volunteer.id
-        participationDtoVolunteer.shiftId = shift.id
+        participationDtoVolunteer = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
     }
 
     def 'member create participation'() {

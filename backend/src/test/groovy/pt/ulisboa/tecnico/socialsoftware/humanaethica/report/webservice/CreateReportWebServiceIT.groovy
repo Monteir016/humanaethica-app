@@ -20,15 +20,15 @@ class CreateReportWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
-
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
-
+        and:
         reportDto = new ReportDto()
         reportDto.justification = REPORT_JUSTIFICATION_1
     }

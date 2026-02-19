@@ -33,17 +33,13 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
-
         and:
-        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
-        shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         and:
         activity.setStartingDate(TWO_DAYS_AGO)
         activity.setEndingDate(ONE_DAY_AGO)
         activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
         activityRepository.save(activity)
-
         and:
         shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
@@ -52,25 +48,11 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and:
-        def enrollment1 = new Enrollment()
-        enrollment1.setMotivation(ENROLLMENT_MOTIVATION_1)
-        enrollment1.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
-        enrollment1.@volunteer = volunteerOne
-        enrollment1.addShift(shift)
-        enrollmentRepository.save(enrollment1)
-        def enrollment2 = new Enrollment()
-        enrollment2.setMotivation(ENROLLMENT_MOTIVATION_1)
-        enrollment2.setEnrollmentDateTime(THREE_DAYS_AGO.minusDays(1))
-        enrollment2.@volunteer = volunteerTwo
-        enrollment2.addShift(shift)
-        enrollmentRepository.save(enrollment2)
+        def enrollment1 = createEnrollmentBypassInvariantsValidation(volunteerOne, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
+        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteerTwo, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto1 = new ParticipationDto()
-        participationDto1.memberRating = 1
-        participationDto1.memberReview = MEMBER_REVIEW
-        def participationDto2 = new ParticipationDto()
-        participationDto2.memberRating = 2
-        participationDto2.memberReview = MEMBER_REVIEW
+        def participationDto1 = createParticipationDto(1, MEMBER_REVIEW, null, null)
+        def participationDto2 = createParticipationDto(2, MEMBER_REVIEW, null, null)
         and:
         createParticipation(enrollment1, shift, participationDto1)
         createParticipation(enrollment2, shift, participationDto2)

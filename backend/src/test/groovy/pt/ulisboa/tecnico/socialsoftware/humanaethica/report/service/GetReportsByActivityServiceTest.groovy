@@ -66,8 +66,6 @@ class GetReportsByActivityServiceTest extends SpockTest {
         222        || ErrorMessage.ACTIVITY_NOT_FOUND
     }
 
-
-
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }

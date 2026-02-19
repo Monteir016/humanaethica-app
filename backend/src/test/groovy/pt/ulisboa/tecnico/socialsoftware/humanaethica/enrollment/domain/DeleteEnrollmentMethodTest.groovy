@@ -38,7 +38,6 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         enrollmentOne = new Enrollment(volunteer, List.of(shift), enrollmentDto)
     }
 
-
     def "delete enrollment"() {
         when: "enrollment is deleted"
         enrollmentOne.delete()
@@ -70,8 +69,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_AFTER_DEADLINE
     }
-   
-    
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }

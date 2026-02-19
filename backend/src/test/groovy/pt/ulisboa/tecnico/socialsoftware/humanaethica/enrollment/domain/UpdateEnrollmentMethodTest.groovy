@@ -24,11 +24,9 @@ class UpdateEnrollmentMethodTest extends SpockTest {
     def enrollment
     def enrollmentDtoOne
     def enrollmentDtoEdit
-
     def activity2
     def enrollmentTwo
     def volunteer
-
 
     def setup() {
         given:
@@ -36,10 +34,8 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         enrollmentDtoOne.motivation = ENROLLMENT_MOTIVATION_1
         activity.getApplicationDeadline() >> IN_TWO_DAYS
         activity.getId() >> 1
-
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
@@ -49,20 +45,16 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
-
     def "update enrollment"() {
         given:
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
-
         when:
         enrollment.update(enrollmentDtoEdit)
-
         then: "checks results"
         enrollment.getMotivation() == ENROLLMENT_MOTIVATION_2
         enrollment.enrollmentDateTime.isBefore(LocalDateTime.now())
         enrollment.getActivity() == activity
         enrollment.volunteer == volunteer
-        
     }
 
     @Unroll
@@ -91,7 +83,6 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         activity2 = Mock(Activity)
         activity2.getId() >> 2
         activity2.getApplicationDeadline() >> { deadline }
-        
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
@@ -108,7 +99,6 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_AFTER_DEADLINE
     }
-
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}

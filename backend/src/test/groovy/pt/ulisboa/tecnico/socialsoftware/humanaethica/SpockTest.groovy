@@ -25,6 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institu
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
@@ -238,15 +239,15 @@ class SpockTest extends Specification {
     @Autowired
     ActivityService activityService
 
-    def createActivityDto(name, region, number, description, deadline, start, end, themesDto) {
+    def createActivityDto(name, region, number, description, deadline, start, end, themesDto = []) {
         def activityDto = new ActivityDto()
         activityDto.setName(name)
         activityDto.setRegion(region)
         activityDto.setParticipantsNumberLimit(number)
         activityDto.setDescription(description)
-        activityDto.setStartingDate(DateHandler.toISOString(start))
-        activityDto.setEndingDate(DateHandler.toISOString(end))
-        activityDto.setApplicationDeadline(DateHandler.toISOString(deadline))
+        activityDto.setStartingDate(start instanceof LocalDateTime ? DateHandler.toISOString(start) : start as String)
+        activityDto.setEndingDate(end instanceof LocalDateTime ? DateHandler.toISOString(end) : end as String)
+        activityDto.setApplicationDeadline(deadline instanceof LocalDateTime ? DateHandler.toISOString(deadline) : deadline as String)
         activityDto.setThemes(themesDto)
         activityDto
     }
@@ -269,7 +270,7 @@ class SpockTest extends Specification {
     @Autowired
     EnrollmentRepository enrollmentRepository
 
-    def createEnrollment(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1) {
+    def createEnrollment(volunteer, shifts, motivation) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
         def enrollment = new Enrollment(volunteer, shifts, enrollmentDto)
@@ -277,7 +278,7 @@ class SpockTest extends Specification {
         return enrollment
     }
 
-    def createEnrollmentBypassInvariantsValidation(volunteer, shifts, motivation = ENROLLMENT_MOTIVATION_1, enrollmentDateTime = THREE_DAYS_AGO.minusDays(1)) {
+    def createEnrollmentBypassInvariantsValidation(volunteer, shifts, motivation, enrollmentDateTime) {
         def enrollment = new Enrollment()
         enrollment.setMotivation(motivation)
         enrollment.setEnrollmentDateTime(enrollmentDateTime)
@@ -293,11 +294,21 @@ class SpockTest extends Specification {
     public static final String MEMBER_REVIEW = "The volunteer did an excellent job."
     public static final String VOLUNTEER_REVIEW = "The activity was fun."
 
+    def createParticipationDto(memberRating, memberReview, volunteerRating, volunteerReview) {
+        def participationDto = new ParticipationDto()
+        participationDto.setMemberRating(memberRating)
+        participationDto.setMemberReview(memberReview)
+        participationDto.setVolunteerRating(volunteerRating)
+        participationDto.setVolunteerReview(volunteerReview)
+        return participationDto
+    }
+
     def createParticipation(enrollment, shift, participationDto) {
         def participation = new Participation(enrollment, shift, participationDto)
         participationRepository.save(participation)
         return participation
     }
+
     @Autowired
     ParticipationService participationService
     @Autowired

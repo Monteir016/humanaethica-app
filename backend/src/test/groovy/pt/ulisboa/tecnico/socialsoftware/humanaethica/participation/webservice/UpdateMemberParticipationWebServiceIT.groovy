@@ -38,18 +38,13 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         def institution = institutionService.getDemoInstitution()
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
-
         and:
-        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
-        def shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        def shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         and:
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         and:
         def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentDto.activityId = activity.id
         enrollmentDto.shiftIds = [shift.id]
         def enrollment = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
         and:
@@ -63,11 +58,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         shift.setEndTime(NOW.minusDays(4).plusHours(3))
         shiftRepository.save(shift)
         and:
-        def participationDto = new ParticipationDto()
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
-        participationDto.volunteerRating = 5
-        participationDto.volunteerReview = VOLUNTEER_REVIEW
+        def participationDto = createParticipationDto(5, MEMBER_REVIEW, 5, VOLUNTEER_REVIEW)
         participationDto.volunteerId = volunteer.id
         participationDto.shiftId = shift.id
         participationService.createParticipation(shift.id, enrollment.id, participationDto)
@@ -77,9 +68,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
     def 'login as a member and update a participation'() {
         given: 'a member'
         demoMemberLogin()
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = 1
-        participationDtoUpdate.memberReview = "NEW REVIEW"
+        def participationDtoUpdate = createParticipationDto(1, "NEW REVIEW", null, null)
         participationDtoUpdate.volunteerId = volunteer.getId()
 
         when: 'the member edits the participation'
@@ -107,9 +96,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
     def 'update with a rating of 10 abort and no changes'() {
         given: 'a member'
         demoMemberLogin()
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = 10
-        participationDtoUpdate.memberReview = MEMBER_REVIEW
+        def participationDtoUpdate = createParticipationDto(10, MEMBER_REVIEW, null, null)
 
         when: 'the member edits the participation'
         def response = webClient.put()
@@ -138,9 +125,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         institutionRepository.save(otherInstitution)
         def otherMember = createMember(USER_1_NAME,USER_1_USERNAME,USER_1_PASSWORD,USER_1_EMAIL, AuthUser.Type.NORMAL, otherInstitution, User.State.APPROVED)
         normalUserLogin(USER_1_USERNAME, USER_1_PASSWORD)
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = 3
-        participationDtoUpdate.memberReview = "ANOTHER_REVIEW"
+        def participationDtoUpdate = createParticipationDto(3, "ANOTHER_REVIEW", null, null)
         participationDtoUpdate.volunteerId = volunteer.id
 
         when: 'the member tries to edit the participation'
@@ -166,9 +151,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
     def 'login as a member and try to rate a participation with negative rating'() {
         given: 'a member'
         demoMemberLogin()
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = -1
-        participationDtoUpdate.memberReview = "NEW REVIEW"
+        def participationDtoUpdate = createParticipationDto(-1, "NEW REVIEW", null, null)
         participationDtoUpdate.volunteerId = volunteer.getId()
 
         when: 'the member tries to rate the participation before the activity has ended'
@@ -197,9 +180,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
     def 'login as a admin and try to edit a participation'() {
         given: 'a demo'
         demoAdminLogin()
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = 1
-        participationDtoUpdate.memberReview = "ANOTHER_REVIEW"
+        def participationDtoUpdate = createParticipationDto(1, "ANOTHER_REVIEW", null, null)
         participationDtoUpdate.volunteerId = volunteer.id
 
         when: 'the admin edits the participation'
@@ -226,9 +207,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
     def 'login as a volunteer and try to update a member rating'() {
         given: 'a demo'
         demoVolunteerLogin()
-        def participationDtoUpdate = new ParticipationDto()
-        participationDtoUpdate.memberRating = 1
-        participationDtoUpdate.memberReview = "ANOTHER_REVIEW"
+        def participationDtoUpdate = createParticipationDto(1, "ANOTHER_REVIEW", null, null)
         participationDtoUpdate.volunteerId = volunteer.id
 
         when: 'the admin edits the participation'

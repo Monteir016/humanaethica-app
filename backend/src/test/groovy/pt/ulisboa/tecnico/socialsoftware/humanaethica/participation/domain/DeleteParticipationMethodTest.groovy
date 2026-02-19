@@ -35,23 +35,15 @@ class DeleteParticipationMethodTest extends SpockTest {
         def deadline = NOW.plusHours(1)
         def start = NOW.plusDays(1)
         def end = NOW.plusDays(3)
-        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
+        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, NOW.minusHours(1), start, end, themes)
+        and:
         shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        
         and: "an enrollment"
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.setMotivation("Motivation necessary for enrollment")
-        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
-        enrollment.setEnrollmentDateTime(NOW.minusHours(2))
-        enrollmentRepository.save(enrollment)
-        
+        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], "Motivation necessary for enrollment", NOW.minusHours(2))
         and: "a participation"
-        activity.setApplicationDeadline(NOW.minusHours(1))
-        activityRepository.save(activity)
-        
-        participationDto = new ParticipationDto()
+        participationDto = createParticipationDto(null, null, null, null)
         participation = new Participation(enrollment, shift, participationDto)
     }
 
@@ -67,18 +59,9 @@ class DeleteParticipationMethodTest extends SpockTest {
     def "delete one of multiple participations in activity"() {
         given: "another participation for the same activity"
         def otherVolunteer = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        activity.setApplicationDeadline(NOW.plusHours(1))
-        activityRepository.save(activity)
-        
-        def otherEnrollmentDto = new EnrollmentDto()
-        otherEnrollmentDto.setMotivation("Another valid motivation")
-        def otherEnrollment = new Enrollment(otherVolunteer, [shift], otherEnrollmentDto)
-        otherEnrollment.setEnrollmentDateTime(NOW.minusHours(2))
-        enrollmentRepository.save(otherEnrollment)
-        
-        activity.setApplicationDeadline(NOW.minusHours(1))
-        activityRepository.save(activity)
-        
+        and:
+        def otherEnrollment = createEnrollmentBypassInvariantsValidation(otherVolunteer, [shift], "Another valid motivation", NOW.minusHours(2))
+        and:
         otherParticipation = new Participation(otherEnrollment, shift, participationDto)
 
         when: "one participation is deleted"
@@ -95,18 +78,11 @@ class DeleteParticipationMethodTest extends SpockTest {
         def deadline = NOW.plusHours(1)
         def start = NOW.plusDays(1)
         def end = NOW.plusDays(3)
-        def otherActivity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
+        def otherActivity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, NOW.minusHours(1), start, end, themes)
         def otherShift = createShift(otherActivity, start.plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
-        participationDto = new ParticipationDto()
-        
-        def otherEnrollmentDto = new EnrollmentDto()
-        otherEnrollmentDto.setMotivation("Motivation again")
-        def otherEnrollment = new Enrollment(volunteer, [otherShift], otherEnrollmentDto)
-        otherEnrollment.setEnrollmentDateTime(NOW.minusHours(2))
-        enrollmentRepository.save(otherEnrollment)
-        
-        otherActivity.setApplicationDeadline(NOW.minusHours(1)) // Ensure deadline strictness for participation
-        activityRepository.save(otherActivity)
+        participationDto = createParticipationDto(null, null, null, null)
+        and:
+        def otherEnrollment = createEnrollmentBypassInvariantsValidation(volunteer, [otherShift], "Motivation again", NOW.minusHours(2))
 
         otherParticipation = new Participation(otherEnrollment, otherShift, participationDto)
 

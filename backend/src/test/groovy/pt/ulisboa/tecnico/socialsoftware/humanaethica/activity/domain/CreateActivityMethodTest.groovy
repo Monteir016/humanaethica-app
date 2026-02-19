@@ -23,14 +23,7 @@ class CreateActivityMethodTest extends SpockTest {
 
     def setup() {
         given: "activity info"
-        activityDto = new ActivityDto()
-        activityDto.name = ACTIVITY_NAME_1
-        activityDto.region = ACTIVITY_REGION_1
-        activityDto.participantsNumberLimit = 2
-        activityDto.description = ACTIVITY_DESCRIPTION_1
-        activityDto.startingDate = DateHandler.toISOString(IN_TWO_DAYS)
-        activityDto.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
-        activityDto.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
+        activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
     }
 
     def "create activity with theme and institution has another activity"() {
@@ -67,14 +60,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(name)
-        activityDto.setRegion(region)
-        activityDto.setParticipantsNumberLimit(1)
-        activityDto.setDescription(description)
-        activityDto.setApplicationDeadline(DateHandler.toISOString(IN_ONE_DAY))
-        activityDto.setStartingDate(DateHandler.toISOString(IN_TWO_DAYS))
-        activityDto.setEndingDate(DateHandler.toISOString(IN_THREE_DAYS))
+        activityDto = createActivityDto(name, region, 1, description, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
 
         when:
         new Activity(activityDto, institution, themes)
@@ -101,14 +87,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(ACTIVITY_NAME_1)
-        activityDto.setRegion(ACTIVITY_REGION_1)
-        activityDto.setParticipantsNumberLimit(participants)
-        activityDto.setDescription(ACTIVITY_DESCRIPTION_1)
-        activityDto.setApplicationDeadline(DateHandler.toISOString(IN_ONE_DAY))
-        activityDto.setStartingDate(DateHandler.toISOString(IN_TWO_DAYS))
-        activityDto.setEndingDate(DateHandler.toISOString(IN_THREE_DAYS))
+        activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, participants, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
 
         when:
         new Activity(activityDto, institution, themes)
@@ -129,14 +108,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(ACTIVITY_NAME_1)
-        activityDto.setRegion(ACTIVITY_REGION_1)
-        activityDto.setParticipantsNumberLimit(1)
-        activityDto.setDescription(ACTIVITY_DESCRIPTION_1)
-        activityDto.setApplicationDeadline(deadline instanceof LocalDateTime ? DateHandler.toISOString(deadline) : deadline as String)
-        activityDto.setStartingDate(start instanceof LocalDateTime ? DateHandler.toISOString(start) : start as String)
-        activityDto.setEndingDate(end instanceof LocalDateTime ? DateHandler.toISOString(end) : end as String)
+        activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, deadline, start, end)
 
         when:
         new Activity(activityDto, institution, themes)
@@ -166,14 +138,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(ACTIVITY_NAME_1)
-        activityDto.setRegion(ACTIVITY_REGION_1)
-        activityDto.setParticipantsNumberLimit(1)
-        activityDto.setDescription(ACTIVITY_DESCRIPTION_1)
-        activityDto.setApplicationDeadline(deadline instanceof LocalDateTime ? DateHandler.toISOString(deadline) : deadline as String)
-        activityDto.setStartingDate(start instanceof LocalDateTime ? DateHandler.toISOString(start) : start as String)
-        activityDto.setEndingDate(end instanceof LocalDateTime ? DateHandler.toISOString(end) : end as String)
+        activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, deadline, start, end)
 
         when:
         new Activity(activityDto, institution, themes)
@@ -198,14 +163,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> themeStatus
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(ACTIVITY_NAME_1)
-        activityDto.setRegion(ACTIVITY_REGION_1)
-        activityDto.setParticipantsNumberLimit(1)
-        activityDto.setDescription(ACTIVITY_DESCRIPTION_1)
-        activityDto.setApplicationDeadline(DateHandler.toISOString(IN_ONE_DAY))
-        activityDto.setStartingDate(DateHandler.toISOString(IN_TWO_DAYS))
-        activityDto.setEndingDate(DateHandler.toISOString(IN_THREE_DAYS))
+        activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
 
         when:
         new Activity(activityDto, institution, themes)
@@ -228,14 +186,7 @@ class CreateActivityMethodTest extends SpockTest {
         theme.getState() >> Theme.State.APPROVED
         def themes = [theme]
         and: "an activity dto"
-        activityDto = new ActivityDto()
-        activityDto.setName(ACTIVITY_NAME_2)
-        activityDto.setRegion(ACTIVITY_REGION_1)
-        activityDto.setParticipantsNumberLimit(1)
-        activityDto.setDescription(ACTIVITY_DESCRIPTION_1)
-        activityDto.setApplicationDeadline(DateHandler.toISOString(IN_ONE_DAY))
-        activityDto.setStartingDate(DateHandler.toISOString(IN_TWO_DAYS))
-        activityDto.setEndingDate(DateHandler.toISOString(IN_THREE_DAYS))
+        activityDto = createActivityDto(ACTIVITY_NAME_2, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
 
         when:
         new Activity(activityDto, institution, themes)
