@@ -10,5 +10,6 @@ RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &&
     /etc/init.d/postgresql start && \
     sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';" && \
     sudo -u postgres psql -c "CREATE DATABASE hedb;" && \
+    /etc/init.d/postgresql stop && \
     wget -O /bin/cover2cover.py https://raw.githubusercontent.com/rix0rrr/cover2cover/master/cover2cover.py && \
     apt autoremove -y && apt-get autoclean && apt clean
