@@ -15,9 +15,12 @@ class GetShiftsByActivityServiceTest extends SpockTest {
     def otherActivity
 
     def setup() {
+        given:
         def institution = institutionService.getDemoInstitution()
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 THREE_DAYS_AGO, TWO_DAYS_AGO, ONE_DAY_AGO)
+        and:
         otherActivity = createActivity(institution, ACTIVITY_NAME_2, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
                 THREE_DAYS_AGO, TWO_DAYS_AGO, ONE_DAY_AGO)
     }

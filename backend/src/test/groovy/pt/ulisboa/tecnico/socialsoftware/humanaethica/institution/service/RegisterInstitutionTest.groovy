@@ -23,7 +23,6 @@ class RegisterInstitutionTest extends SpockTest {
     Mailer mailerMock
 
     def setup() {
-
     }
 
     def "create new institution"() {

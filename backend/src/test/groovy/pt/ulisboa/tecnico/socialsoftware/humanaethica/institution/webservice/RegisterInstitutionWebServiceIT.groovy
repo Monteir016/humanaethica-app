@@ -20,11 +20,11 @@ class RegisterInstitutionWebserviceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         registerInstitutionDto = new RegisterInstitutionDto()
         registerInstitutionDto.setInstitutionEmail(INSTITUTION_1_EMAIL)
         registerInstitutionDto.setInstitutionName(INSTITUTION_1_NAME)

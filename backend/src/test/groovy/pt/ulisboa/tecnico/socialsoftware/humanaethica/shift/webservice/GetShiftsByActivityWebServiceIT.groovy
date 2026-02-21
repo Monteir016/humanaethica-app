@@ -26,6 +26,7 @@ class GetShiftsByActivityWebServiceIT extends SpockTest {
         headers.setContentType(MediaType.APPLICATION_JSON)
         and:
         def institution = institutionService.getDemoInstitution()
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1,
                 THREE_DAYS_AGO, TWO_DAYS_AGO, ONE_DAY_AGO)
     }

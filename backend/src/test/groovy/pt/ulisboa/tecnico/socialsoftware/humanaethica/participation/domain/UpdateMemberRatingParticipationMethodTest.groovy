@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
@@ -20,7 +19,8 @@ import java.time.LocalDateTime
 class UpdateMemberRatingParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
     Shift shift = Mock()
-    Volunteer volunteer = Mock()
+    Enrollment enrollment = Mock()
+
     def participation
     def participationDto
     def participationDtoUpdated
@@ -28,21 +28,22 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
     def setup() {
         given:
         activity.getShifts() >> [shift]
-        shift.getParticipations() >> []
-        shift.getEnrollments() >> []
         activity.getNumberOfParticipatingVolunteers() >> 2
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         activity.getParticipantsNumberLimit() >> 3
+        and:
+        shift.getParticipations() >> []
+        shift.getEnrollments() >> [enrollment]
+        shift.getParticipantsLimit() >> 2
         shift.getActivity() >> activity
-        participationDto = createParticipationDto(4, VOLUNTEER_REVIEW, null, null)
-        
-        def enrollment = Mock(Enrollment)
+        and:
         enrollment.getActivity() >> activity
-        enrollment.getVolunteer() >> volunteer
         enrollment.getShifts() >> [shift]
-        
+        and:
+        participationDto = createParticipationDto(4, VOLUNTEER_REVIEW, null, null)
         participation = new Participation(enrollment, shift, participationDto)
+        and:
         participationDtoUpdated = createParticipationDto(null, null, null, null)
     }
 
@@ -59,7 +60,6 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         participation.memberReview == MEMBER_REVIEW
         participation.acceptanceDate.isBefore(LocalDateTime.now())
         participation.activity == activity
-        participation.volunteer == volunteer
     }
 
     @Unroll

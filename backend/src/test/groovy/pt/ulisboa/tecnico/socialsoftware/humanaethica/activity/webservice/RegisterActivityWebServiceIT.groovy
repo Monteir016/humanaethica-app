@@ -23,15 +23,15 @@ class RegisterActivityWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def theme = createTheme(THEME_NAME_1, Theme.State.APPROVED,null)
         def themesDto = new ArrayList<ThemeDto>()
         themesDto.add(new ThemeDto(theme,false, false, false))
-
+        and:
         activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,2,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,themesDto)
     }

@@ -47,10 +47,8 @@ public class Activity {
     private Institution institution;
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
-
     @OneToMany(mappedBy = "activity")
     private List<Report> reports = new ArrayList<>();
-
     @OneToMany(mappedBy = "activity")
     private List<Shift> shifts = new ArrayList<>();
 
@@ -185,6 +183,13 @@ public class Activity {
         return this.shifts.stream()
                 .mapToInt(Shift::getCurrentParticipants)
                 .sum();
+    }
+
+    public int getNumberOfEnrollments() {
+        return (int) shifts.stream()
+                .flatMap(shift -> shift.getEnrollments().stream())
+                .distinct()
+                .count();
     }
 
     private void activityCannotBeSuspended() {

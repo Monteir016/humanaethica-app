@@ -21,20 +21,20 @@ class GetAssessmentsByInstitutionWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         institution = institutionService.getDemoInstitution()
-
+        and:
         def activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), TWO_DAYS_AGO)
-
+        and:
         institution.addActivity(activity)
-
+        and:
         def volunteerOne = createVolunteer(USER_1_NAME, USER_1_USERNAME, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def volunteerTwo = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-
+        and:
         createAssessment(institution, volunteerOne, ASSESSMENT_REVIEW_1)
         createAssessment(institution, volunteerTwo, ASSESSMENT_REVIEW_2)
     }

@@ -9,10 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -21,10 +19,13 @@ class DeleteParticipationWebServiceIT extends SpockTest {
     private int port
 
     def activity
+    def shift
     def volunteer
-    def participationId
+
+    def participationDto
 
     def setup() {
+        given:
         deleteAll()
         and:
         webClient = WebClient.create("http://localhost:" + port)
@@ -32,32 +33,27 @@ class DeleteParticipationWebServiceIT extends SpockTest {
         headers.setContentType(MediaType.APPLICATION_JSON)
         and:
         def institution = institutionService.getDemoInstitution()
+        and:
         volunteer = createVolunteer(USER_1_NAME, "volunteer_custom_delete", USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         volunteer.getAuthUser().setPassword(passwordEncoder.encode(USER_1_PASSWORD))
         userRepository.save(volunteer)
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
         and:
-        def shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
+        shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         and:
         activity.setStartingDate(TWO_DAYS_AGO)
         activity.setEndingDate(ONE_DAY_AGO)
         activity.setApplicationDeadline(TWO_DAYS_AGO.minusDays(1))
         activityRepository.save(activity)
-
         and:
         shift.setStartTime(TWO_DAYS_AGO.plusHours(1))
         shift.setEndTime(TWO_DAYS_AGO.plusHours(3))
-        shiftRepository.save(shift)
         and:
         def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
-        def participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
-        participationDto.volunteerId = volunteer.id
-        participationDto.shiftId = shift.id
-        participationService.createParticipation(shift.id, enrollment.id, participationDto)
-        def storedParticipation = participationRepository.findAll().get(0)
-        participationId = storedParticipation.id
+        participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
+        participationDto = participationService.createParticipation(shift.id, enrollment.id, participationDto)
     }
 
     def 'login as a member and delete a participation'() {
@@ -66,7 +62,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
 
         when: 'the member deletes the participation'
         def response = webClient.delete()
-                .uri("/participations/" + participationId)
+                .uri("/participations/" + participationDto.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .retrieve()
                 .bodyToMono(ParticipationDto.class)
@@ -112,7 +108,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
 
         when: 'the member deletes the participation'
         webClient.delete()
-                .uri("/participations/" + participationId)
+                .uri("/participations/" + participationDto.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .retrieve()
                 .bodyToMono(ParticipationDto.class)
@@ -134,7 +130,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
 
         when: 'the volunteer tries to delete the participation'
         webClient.delete()
-                .uri("/participations/" + participationId)
+                .uri("/participations/" + participationDto.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .retrieve()
                 .bodyToMono(ParticipationDto.class)
@@ -156,7 +152,7 @@ class DeleteParticipationWebServiceIT extends SpockTest {
 
         when: 'the admin tries to delete the participation'
         webClient.delete()
-                .uri("/participations/" + participationId)
+                .uri("/participations/" + participationDto.id)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .retrieve()
                 .bodyToMono(ParticipationDto.class)

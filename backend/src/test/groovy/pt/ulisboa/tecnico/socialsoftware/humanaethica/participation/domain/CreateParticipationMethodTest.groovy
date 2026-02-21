@@ -8,9 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
@@ -18,37 +16,23 @@ import java.time.LocalDateTime
 @DataJpaTest
 class CreateParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
-    Volunteer volunteer = Mock()
     Enrollment enrollment = Mock()
-    Volunteer otherVolunteer = Mock()
-    Enrollment otherEnrollment = Mock()
-    Participation otherParticipation = Mock()
     Shift shift = Mock()
     def participationDto
-    
+
     def setup() {
-        given:
-        participationDto = createParticipationDto(null, null, null, null)
-        shift.getActivity() >> activity
-        activity.getShifts() >> [shift]
-        def initialEnrollment = Mock(Enrollment)
-        initialEnrollment.getParticipation() >> otherParticipation
-        shift.getEnrollments() >> [initialEnrollment]
-        activity.getNumberOfParticipatingVolunteers() >> 2
-        enrollment.getVolunteer() >> volunteer
-        enrollment.getActivity() >> activity
-        enrollment.getShifts() >> [shift]
-        enrollment.getParticipation() >> Mock(Participation)
-        otherEnrollment.getVolunteer() >> otherVolunteer
-        otherParticipation.getEnrollment() >> otherEnrollment
     }
 
     def "member creates a participation"() {
         given:
-        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
+        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
 
         when:
         def result = new Participation(enrollment, shift, participationDto)
@@ -58,8 +42,6 @@ class CreateParticipationMethodTest extends SpockTest {
         result.memberReview ==  MEMBER_REVIEW
         result.acceptanceDate.isBefore(LocalDateTime.now())
         result.shift == shift
-        result.activity == activity
-        result.volunteer == volunteer
         and: "check that it is added"
         1 * shift.addParticipation(_)
         1 * enrollment.setParticipation(_)
@@ -67,9 +49,12 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participation and violate acceptance after deadline invariant"() {
         given:
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> IN_ONE_DAY
         activity.getEndingDate() >> IN_TWO_DAYS
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
         and:
         participationDto = createParticipationDto(null, null, null, null)
 
@@ -83,10 +68,14 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participation and violate rating before end invariant"() {
         given:
-        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> IN_TWO_DAYS
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
+        participationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
 
         when:
         new Participation(enrollment, shift, participationDto)
@@ -98,16 +87,17 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participant and violate shift participants less or equal limit invariant"() {
         given:
-        def specificShift = Mock(Shift)
-        specificShift.getActivity() >> activity
-        specificShift.getParticipantsLimit() >> 1
-        specificShift.getParticipations() >> [Mock(Participation), Mock(Participation)]
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        shift.getParticipations() >> [Mock(Participation), Mock(Participation), Mock(Participation)]
+        shift.getParticipantsLimit() >> 2
         and:
-        def localEnrollment = Mock(Enrollment)
-        localEnrollment.getShifts() >> [specificShift]
+        participationDto = createParticipationDto(null, null, null, null)
 
         when:
-        new Participation(localEnrollment, specificShift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -117,21 +107,22 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participant with success (limit boundary): existing=#existing, limit=#limit"() {
         given:
-        def specificShift = Mock(Shift)
-        specificShift.getActivity() >> activity
-        specificShift.getParticipantsLimit() >> limit
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        shift.getParticipantsLimit() >> limit
         def participationList = new ArrayList()
         for (int i = 0; i < existing; i++) {
             def p = Mock(Participation)
             participationList.add(p)
         }
-        specificShift.getParticipations() >> participationList
+        shift.getParticipations() >> participationList
         and:
-        def localEnrollment = Mock(Enrollment)
-        localEnrollment.getShifts() >> [specificShift]
+        participationDto = createParticipationDto(null, null, null, null)
 
         when:
-        new Participation(localEnrollment, specificShift, participationDto)
+        new Participation(enrollment, shift, participationDto)
 
         then:
         noExceptionThrown()
@@ -146,9 +137,13 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate member rating in range 1..5: rating=#rating"() {
         given:
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
         participationDto = createParticipationDto(rating, null, null, null)
 
         when:
@@ -165,9 +160,13 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate volunteer rating in range 1..5: rating=#rating"() {
         given:
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
         participationDto = createParticipationDto(null, null, rating, null)
 
         when:
@@ -184,9 +183,13 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate volunteer review length: review=#review"() {
         given:
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
         participationDto = createParticipationDto(null, null, null, review)
 
         when:
@@ -203,9 +206,13 @@ class CreateParticipationMethodTest extends SpockTest {
     @Unroll
     def "create participation and violate member review length: review=#review"() {
         given:
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
+        and:
         participationDto = createParticipationDto(null, review, null, null)
 
         when:
@@ -221,17 +228,20 @@ class CreateParticipationMethodTest extends SpockTest {
 
     def "create participation and violate shift belongs to enrollment invariant"() {
         given:
-        def otherShift = Mock(Shift)
-        otherShift.getActivity() >> activity
-        otherShift.getParticipantsLimit() >> 10
-        otherShift.getParticipations() >> []
+        enrollment.getShifts() >> [shift]
+        enrollment.getActivity() >> activity
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        shift.getParticipations() >> []
+        shift.getParticipantsLimit() >> 2
         and:
         def localEnrollment = Mock(Enrollment)
-        localEnrollment.getShifts() >> [shift]
-        localEnrollment.getActivity() >> activity
+        localEnrollment.getShifts() >> []
+        and:
+        participationDto = createParticipationDto(null, null, null, null)
 
         when:
-        new Participation(localEnrollment, otherShift, participationDto)
+        new Participation(localEnrollment, shift, participationDto)
 
         then:
         def error = thrown(HEException)

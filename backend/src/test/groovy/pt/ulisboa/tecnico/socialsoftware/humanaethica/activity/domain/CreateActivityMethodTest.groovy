@@ -149,8 +149,8 @@ class CreateActivityMethodTest extends SpockTest {
 
         where:
         deadline   | start       | end           || errorMessage
-        IN_ONE_DAY | NOW         | IN_THREE_DAYS || ErrorMessage.ACTIVITY_APPLICATION_DEADLINE_AFTER_START
         IN_ONE_DAY | IN_ONE_DAY  | IN_THREE_DAYS || ErrorMessage.ACTIVITY_APPLICATION_DEADLINE_AFTER_START
+        IN_ONE_DAY | NOW         | IN_THREE_DAYS || ErrorMessage.ACTIVITY_APPLICATION_DEADLINE_AFTER_START
         IN_ONE_DAY | IN_TWO_DAYS | NOW           || ErrorMessage.ACTIVITY_START_AFTER_END
         IN_ONE_DAY | IN_TWO_DAYS | IN_TWO_DAYS   || ErrorMessage.ACTIVITY_START_AFTER_END
      }

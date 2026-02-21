@@ -24,13 +24,10 @@ public class Shift {
     private LocalDateTime endTime;
     private Integer participantsLimit;
     private String location;
-
     @ManyToOne
     private Activity activity;
-
     @ManyToMany(mappedBy = "shifts")
     private List<Enrollment> enrollments = new ArrayList<>();
-
     @OneToMany(mappedBy = "shift")
     private List<Participation> participations = new ArrayList<>();
 
@@ -140,21 +137,19 @@ public class Shift {
     }
 
     private void checkActivityIsApproved() {
-        if (this.activity != null && this.activity.getState() != Activity.State.APPROVED) {
+        if (this.activity.getState() != Activity.State.APPROVED) {
             throw new HEException(SHIFT_ON_NON_APPROVED_ACTIVITY);
         }
     }
 
     private void checkTotalParticipantsLimit() {
-        if (this.activity != null && this.participantsLimit != null) {
-            int totalParticipants = this.activity.getShifts().stream()
-                    .filter(shift -> shift != this)
-                    .mapToInt(Shift::getParticipantsLimit)
-                    .sum();
+        int totalParticipants = this.activity.getShifts().stream()
+                .filter(shift -> shift != this)
+                .mapToInt(Shift::getParticipantsLimit)
+                .sum();
 
-            if (totalParticipants + this.participantsLimit > this.activity.getParticipantsNumberLimit()) {
-                throw new HEException(TOTAL_PARTICIPANTS_EXCEEDS_ACTIVITY_LIMIT);
-            }
+        if (totalParticipants + this.participantsLimit > this.activity.getParticipantsNumberLimit()) {
+            throw new HEException(TOTAL_PARTICIPANTS_EXCEEDS_ACTIVITY_LIMIT);
         }
     }
 
@@ -171,26 +166,22 @@ public class Shift {
     }
 
     private void startTimeBeforeEndTime() {
-        if (this.startTime != null && this.endTime != null) {
-            if (!this.startTime.isBefore(this.endTime)) {
+        if (!this.startTime.isBefore(this.endTime)) {
                 throw new HEException(SHIFT_START_TIME_BEFORE_END_TIME);
-            }
         }
     }
 
     private void shiftDatesWithinActivity() {
-        if (this.activity != null && this.startTime != null && this.endTime != null) {
-            LocalDateTime activityStart = this.activity.getStartingDate();
-            LocalDateTime activityEnd = this.activity.getEndingDate();
+        LocalDateTime activityStart = this.activity.getStartingDate();
+        LocalDateTime activityEnd = this.activity.getEndingDate();
 
-            if (activityStart != null && activityEnd != null) {
-                boolean startWithinRange = !this.startTime.isBefore(activityStart)
-                        && !this.startTime.isAfter(activityEnd);
-                boolean endWithinRange = !this.endTime.isBefore(activityStart) && !this.endTime.isAfter(activityEnd);
+        if (activityStart != null && activityEnd != null) {
+            boolean startWithinRange = !this.startTime.isBefore(activityStart)
+                    && !this.startTime.isAfter(activityEnd);
+            boolean endWithinRange = !this.endTime.isBefore(activityStart) && !this.endTime.isAfter(activityEnd);
 
-                if (!startWithinRange || !endWithinRange) {
-                    throw new HEException(SHIFT_DATES_WITHIN_ACTIVITY);
-                }
+            if (!startWithinRange || !endWithinRange) {
+                throw new HEException(SHIFT_DATES_WITHIN_ACTIVITY);
             }
         }
     }
@@ -208,19 +199,15 @@ public class Shift {
     }
 
     private void locationLengthIsValid() {
-        if (this.location != null) {
-            int length = this.location.trim().length();
-            if (length < 20 || length > 200) {
-                throw new HEException(SHIFT_LOCATION_INVALID);
-            }
+        int length = this.location.trim().length();
+        if (length < 20 || length > 200) {
+            throw new HEException(SHIFT_LOCATION_INVALID);
         }
     }
 
     private void currentParticipantsWithinLimit() {
-        if (this.participantsLimit != null) {
-            if (getCurrentParticipants() > this.participantsLimit) {
-                throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
-            }
+        if (getCurrentParticipants() > this.participantsLimit) {
+            throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
         }
     }
 }

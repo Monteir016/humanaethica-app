@@ -23,14 +23,17 @@ class CreateShiftWebServiceIT extends SpockTest {
     def shiftDto
 
     def setup() {
+        given:
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
+        and:
         shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1),IN_THREE_DAYS.minusHours(1),1, SHIFT_LOCATION)
     }
 

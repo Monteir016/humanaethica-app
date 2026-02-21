@@ -5,8 +5,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 
-import java.util.List;
-
 @Repository
 @Transactional
 public interface ActivityRepository extends JpaRepository<Activity, Integer> { }

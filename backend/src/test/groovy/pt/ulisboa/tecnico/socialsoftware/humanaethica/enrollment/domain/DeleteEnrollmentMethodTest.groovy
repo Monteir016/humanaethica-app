@@ -32,10 +32,10 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        and:
+        shift.getActivity() >> activity
         and: "enrollment"
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentOne = new Enrollment(volunteer, List.of(shift), enrollmentDto)
+        enrollmentOne = createEnrollment(volunteer, List.of(shift), ENROLLMENT_MOTIVATION_1)
     }
 
     def "delete enrollment"() {

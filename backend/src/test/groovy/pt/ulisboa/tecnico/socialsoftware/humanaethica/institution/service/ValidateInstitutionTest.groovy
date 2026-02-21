@@ -25,20 +25,19 @@ class ValidateInstitutionTest extends SpockTest {
     Mailer mailerMock
 
     def setup() {
+        given:
         institutionDto = new InstitutionDto()
         institutionDto.setName(INSTITUTION_1_NAME)
         institutionDto.setEmail(INSTITUTION_1_EMAIL)
         institutionDto.setNif(INSTITUTION_1_NIF)
-
         institution = institutionService.registerInstitution(institutionDto)
-
+        and:
         memberDto = new RegisterUserDto()
         memberDto.setEmail(USER_1_EMAIL)
         memberDto.setUsername(USER_1_EMAIL)
         memberDto.setConfirmationToken(USER_1_TOKEN)
         memberDto.setRole(User.Role.MEMBER)
         memberDto.setInstitutionId(institution.getId())
-
         member = userService.registerUser(memberDto, null);
     }
 

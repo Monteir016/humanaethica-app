@@ -18,16 +18,16 @@ class CreateShiftMethodTest extends SpockTest {
     def shiftDto
 
     def setup() {
-        given: "shift info"
+        given:
+        activity.getState() >> Activity.State.APPROVED
+        activity.getShifts() >> []
+        activity.getParticipantsNumberLimit() >> 10
+        and:
         shiftDto = new ShiftDto()
         shiftDto.startTime = DateHandler.toISOString(IN_ONE_DAY)
         shiftDto.endTime = DateHandler.toISOString(IN_TWO_DAYS)
         shiftDto.participantsLimit = 5
         shiftDto.location = "This is a valid location with more than twenty characters"
-
-        activity.getState() >> Activity.State.APPROVED
-        activity.getShifts() >> []
-        activity.getParticipantsNumberLimit() >> 10
     }
 
     def "create shift with valid data"() {
@@ -223,9 +223,6 @@ class CreateShiftMethodTest extends SpockTest {
         1 * activity.addShift(_)
     }
 
-
-
-
     @Unroll
     def "create shift with dates within activity range: #description"() {
         given:
@@ -246,7 +243,6 @@ class CreateShiftMethodTest extends SpockTest {
         IN_ONE_DAY                     | IN_TWO_DAYS                    | "start at activity start"
         IN_TWO_DAYS                    | IN_THREE_DAYS                  | "end at activity end"
     }
-
 
     @Unroll
     def "create shift with dates outside activity range: #description"() {

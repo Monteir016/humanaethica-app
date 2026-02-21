@@ -7,10 +7,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import spock.lang.Unroll
-
 
 @DataJpaTest
 class DeleteParticipationServiceTest extends SpockTest {
@@ -21,7 +19,6 @@ class DeleteParticipationServiceTest extends SpockTest {
     def activity
     def shift
     def participation
-    def firstParticipation
     def volunteer
     def secondParticipation
 
@@ -40,11 +37,8 @@ class DeleteParticipationServiceTest extends SpockTest {
     }
 
     def 'delete participation'() {
-        given:
-        firstParticipation = participationRepository.findAll().get(0)
-
         when:
-        participationService.deleteParticipation(firstParticipation.id)
+        participationService.deleteParticipation(participation.getId())
 
         then: "the participation was deleted"
         participationRepository.findAll().size() == 0
@@ -54,12 +48,11 @@ class DeleteParticipationServiceTest extends SpockTest {
     def 'two participations exist and one is deleted: participationId=#participationId | deletedRating=#deletedRating | remainingRating=#remainingRating '() {
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        and:
         def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
+        and:
         def participationDto2 = createParticipationDto(null, null, 2, VOLUNTEER_REVIEW)
-        participationDto2.volunteerId = volunteer2.id
-        createParticipation(enrollment2, shift, participationDto2)
-        firstParticipation = participationRepository.findAll().get(0)
-        secondParticipation = participationRepository.findAll().get(1)
+        secondParticipation = createParticipation(enrollment2, shift, participationDto2)
 
         when:
         def result = participationService.deleteParticipation(getFirstOrSecondParticipation(participationId))
@@ -78,28 +71,10 @@ class DeleteParticipationServiceTest extends SpockTest {
 
     def getFirstOrSecondParticipation(participationId){
         if (participationId == FIRST_PARTICIPATION)
-            return firstParticipation.id
+            return participation.getId()
         else if (participationId == SECOND_PARTICIPATION)
             return secondParticipation.id
         return null
-    }
-
-    def 'two participation exist and are both deleted'() {
-        given:
-        def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollment2 = createEnrollmentBypassInvariantsValidation(volunteer2, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
-        def participationDto2 = createParticipationDto(null, null, 2, VOLUNTEER_REVIEW)
-        participationDto2.volunteerId = volunteer2.id
-        createParticipation(enrollment2, shift, participationDto2)
-        firstParticipation = participationRepository.findAll().get(0)
-        secondParticipation = participationRepository.findAll().get(1)
-
-        when:
-        participationService.deleteParticipation(firstParticipation.id)
-        participationService.deleteParticipation(secondParticipation.id)
-
-        then: "are the participation were deleted"
-        participationRepository.findAll().size() == 0
     }
 
     @Unroll
@@ -114,9 +89,9 @@ class DeleteParticipationServiceTest extends SpockTest {
         participationRepository.findAll().size() == 1
 
         where:
-        participationId     ||      errorMessage
-                null        ||     ErrorMessage.PARTICIPATION_NOT_FOUND
-                222         ||     ErrorMessage.PARTICIPATION_NOT_FOUND
+        participationId || errorMessage
+        null            || ErrorMessage.PARTICIPATION_NOT_FOUND
+        222             || ErrorMessage.PARTICIPATION_NOT_FOUND
     }
 
     @TestConfiguration

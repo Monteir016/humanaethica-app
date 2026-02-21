@@ -24,22 +24,21 @@ class UpdateAssessmentWebServiceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def institution = institutionService.getDemoInstitution()
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
-
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), TWO_DAYS_AGO)
-
+        and:
         def assessmentDto = new AssessmentDto()
         assessmentDto.review = ASSESSMENT_REVIEW_1
         assessmentDto.volunteerId = volunteer.id
-
         assessmentService.createAssessment(volunteer.id ,institution.id, assessmentDto)
-
+        and:
         def storedAssessment = assessmentRepository.findAll().get(0)
         assessmentId = storedAssessment.id
     }

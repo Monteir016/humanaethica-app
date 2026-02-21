@@ -27,7 +27,7 @@ class UpdateActivityMethodTest extends SpockTest {
         given:
         otherActivity.getName() >> ACTIVITY_NAME_3
         institution.getActivities() >> [otherActivity]
-        institution.getActivities() >> []
+        and:
         themeOne.getState() >> Theme.State.APPROVED
         def themes = [themeOne]
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)

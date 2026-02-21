@@ -15,7 +15,6 @@ public class Report {
     private static final int JUSTIFICAITON_MAX_SIZE = 256;
     private static final int JUSTIFICAITON_MIN_SIZE = 10;
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id", nullable = false)

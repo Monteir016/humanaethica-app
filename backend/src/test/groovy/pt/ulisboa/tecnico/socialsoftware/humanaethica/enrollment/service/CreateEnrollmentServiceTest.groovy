@@ -17,8 +17,11 @@ class CreateEnrollmentServiceTest extends SpockTest {
     def activity
 
     def setup() {
+        given:
         def institution = institutionService.getDemoInstitution()
+        and:
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
+        and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
     }
 
@@ -26,6 +29,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         given:
         def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 1, SHIFT_LOCATION)
         def shift = shiftService.createShift(activity.id, shiftDto)
+        and:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.shiftIds = [shift.id]
@@ -48,6 +52,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         given:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        and:
         def shiftDto = createShiftDto(IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 1, SHIFT_LOCATION)
         def shift = shiftService.createShift(activity.id, shiftDto)
 

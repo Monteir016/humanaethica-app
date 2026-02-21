@@ -36,10 +36,7 @@ class DeleteAssessmentMethodTest extends SpockTest {
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "an assessment"
-        def assessmentDto
-        assessmentDto = new AssessmentDto();
-        assessmentDto.review = ASSESSMENT_REVIEW_1
-        assessment = new Assessment(institution, volunteer, assessmentDto);
+        assessment = createAssessment(institution, volunteer, ASSESSMENT_REVIEW_1)
     }
 
     def "delete assessment"() {

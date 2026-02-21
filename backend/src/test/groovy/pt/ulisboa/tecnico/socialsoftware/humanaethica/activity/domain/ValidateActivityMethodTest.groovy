@@ -17,14 +17,15 @@ class ValidateActivityMethodTest extends SpockTest {
     Activity activity
 
     def setup() {
-        given: "activityDto"
     }
 
     @Unroll
     def "validate activity with: state:#state"() {
         given: "activity"
         institution.getActivities() >> []
+        and:
         theme.getState() >> Theme.State.APPROVED
+        and:
         def themes = [theme]
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         activity.setState(state)
@@ -45,7 +46,9 @@ class ValidateActivityMethodTest extends SpockTest {
     def "violate validate precondition: activityState=#activityState | themeState=#themeState || message=#message"() {
         given:
         institution.getActivities() >> []
+        and:
         theme.getState() >> themeState
+        and:
         def themes = []
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
         activity.setState(activityState)

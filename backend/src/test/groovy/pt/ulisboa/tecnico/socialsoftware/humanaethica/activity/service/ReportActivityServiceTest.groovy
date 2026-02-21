@@ -15,11 +15,11 @@ class ReportActivityServiceTest extends SpockTest {
     def activity
 
     def setup() {
+        given:
         def institution = institutionService.getDemoInstitution()
-        given: "activity info"
+        and: "an activity"
         def themes = new ArrayList<>()
         themes.add(createTheme(THEME_NAME_1,Theme.State.APPROVED,null))
-        and: "an activity"
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, themes)
     }
 

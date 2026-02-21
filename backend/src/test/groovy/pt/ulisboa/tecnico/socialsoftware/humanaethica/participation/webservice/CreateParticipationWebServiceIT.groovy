@@ -34,9 +34,7 @@ class CreateParticipationWebServiceIT extends SpockTest {
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, NOW.plusDays(1), NOW.plusDays(2), NOW.plusDays(3))
         and:
-        def shiftDto = createShiftDto(NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
-        shift = new Shift(activity, shiftDto)
-        shiftRepository.save(shift)
+        shift = createShift(activity, NOW.plusDays(2).plusHours(1), NOW.plusDays(2).plusHours(3), 5, SHIFT_LOCATION)
         and:
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
         and:
@@ -52,7 +50,6 @@ class CreateParticipationWebServiceIT extends SpockTest {
         and:
         shift.setStartTime(NOW.minusDays(4).plusHours(1))
         shift.setEndTime(NOW.minusDays(4).plusHours(3))
-        shiftRepository.save(shift)
         and:
         participationDtoMember = createParticipationDto(5, MEMBER_REVIEW, null, null)
         and:

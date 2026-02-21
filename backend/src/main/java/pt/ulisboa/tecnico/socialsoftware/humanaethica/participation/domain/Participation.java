@@ -57,9 +57,7 @@ public class Participation {
     }
 
     public void delete() {
-        if (enrollment != null) {
-            enrollment.setParticipation(null);
-        }
+        enrollment.setParticipation(null);
         shift.removeParticipation(this);
     }
 
@@ -149,14 +147,13 @@ public class Participation {
     }
 
     private void numberOfParticipantsLessOrEqualLimit() {
-        if (shift.getParticipantsLimit() != null && shift.getParticipations().size() > shift.getParticipantsLimit()) {
+        if (shift.getParticipations().size() > shift.getParticipantsLimit()) {
             throw new HEException(SHIFT_CURRENT_PARTICIPANTS_EXCEEDS_LIMIT);
         }
     }
 
     private void acceptanceAfterDeadline() {
-        if (this.enrollment.getActivity() != null &&
-                this.acceptanceDate.isBefore(this.enrollment.getActivity().getApplicationDeadline())) {
+        if (this.acceptanceDate.isBefore(this.enrollment.getActivity().getApplicationDeadline())) {
             throw new HEException(PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE);
         }
     }
@@ -189,8 +186,7 @@ public class Participation {
     }
 
     private void shiftBelongsToEnrollment() {
-        if (this.enrollment != null && this.shift != null
-                && !this.enrollment.getShifts().contains(this.shift)) {
+        if (!this.enrollment.getShifts().contains(this.shift)) {
             throw new HEException(PARTICIPATION_SHIFT_NOT_IN_ENROLLMENT);
         }
     }

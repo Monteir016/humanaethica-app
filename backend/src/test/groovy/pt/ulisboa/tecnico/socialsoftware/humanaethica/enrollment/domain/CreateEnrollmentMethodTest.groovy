@@ -177,12 +177,12 @@ class CreateEnrollmentMethodTest extends SpockTest {
         error.getErrorMessage() == ENROLLMENT_SHIFTS_HAVE_OVERLAPPING_TIME
 
         where:
-        description           | s2Start | s2End
-        "Overlap start"       | 9       | 11
-        "Inside"              | 10      | 11
-        "Exact match"         | 10      | 12
-        "Encloses"            | 9       | 13
-        "Overlap end"         | 11      | 13
+        s2Start | s2End || description
+        9       | 11    || "Overlap start"
+        10      | 11    || "Inside"
+        10      | 12    || "Exact match"
+        9       | 13    || "Encloses"
+        11      | 13    || "Overlap end"
     }
 
     def "create enrollment and violate at least one shift invariant"() {

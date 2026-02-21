@@ -52,8 +52,5 @@ public class ReportController {
         int userId = ((AuthUser) ((Authentication) principal).getPrincipal()).getUser().getId();
         return reportService.getVolunteerReportsAsVolunteer(userId);
     }
-
-
-    
 }
  

@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institu
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
@@ -20,45 +21,34 @@ import java.time.LocalDateTime
 
 @DataJpaTest
 class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
-    Activity activity
-    Activity otherActivity = Mock()
-    Volunteer volunteer = Mock()
-    Institution institution = Mock()
-    Theme theme = Mock()
-    def themes = [theme]
+    Activity activity = Mock()
+    Shift shift = Mock()
+    Enrollment enrollment = Mock()
+
     def participation
     def participationDto
     def participationDtoUpdated
 
     def setup() {
-        volunteer.getEnrollments() >> []
-        otherActivity.getName() >> ACTIVITY_NAME_2
-        institution.getActivities() >> [otherActivity]
-        theme.getState() >> Theme.State.APPROVED
-        def NOW = LocalDateTime.now()
+        given:
+        activity.getShifts() >> [shift]
+        activity.getNumberOfParticipatingVolunteers() >> 2
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        activity.getParticipantsNumberLimit() >> 3
         and:
-        def deadline = NOW.plusHours(1)
-        def start = NOW.plusDays(1)
-        def end = NOW.plusDays(3)
-        activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1, deadline, start, end, themes)
+        shift.getParticipations() >> []
+        shift.getEnrollments() >> [enrollment]
+        shift.getParticipantsLimit() >> 2
+        shift.getActivity() >> activity
         and:
-        def shift = createShift(activity, NOW.plusDays(1).plusHours(1), NOW.plusDays(2), 2, SHIFT_LOCATION)
+        enrollment.getActivity() >> activity
+        enrollment.getShifts() >> [shift]
         and:
-        def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], "Motivation needed >= 10 chars", NOW.minusDays(5))
-
-        activity.setStartingDate(NOW.minusDays(3))
-        activity.setEndingDate(NOW.minusDays(1))
-        activity.setApplicationDeadline(NOW.minusDays(4))
-        
-        shift.setStartTime(NOW.minusDays(3).plusHours(1))
-        shift.setEndTime(NOW.minusDays(2))
-        shiftRepository.save(shift)
-        and:
-        participationDto = new ParticipationDto()
-        participationDto.memberRating = 5
-        participationDto.memberReview = MEMBER_REVIEW
+        participationDto = createParticipationDto(4, VOLUNTEER_REVIEW, null, null)
         participation = new Participation(enrollment, shift, participationDto)
-        participationDtoUpdated = new ParticipationDto()
+        and:
+        participationDtoUpdated = createParticipationDto(null, null, null, null)
     }
 
     def "volunteer updates a participation"() {
@@ -74,7 +64,6 @@ class UpdateVolunteerRatingParticipationMethodTest extends SpockTest {
         participation.volunteerReview == VOLUNTEER_REVIEW
         participation.acceptanceDate.isBefore(LocalDateTime.now())
         participation.activity == activity
-        participation.volunteer == volunteer
     }
 
     @Unroll

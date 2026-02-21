@@ -63,6 +63,7 @@ class GetEnrollmentsByActivityWebServiceIT extends SpockTest {
         given:
         def otherInstitution = new Institution(INSTITUTION_1_NAME, INSTITUTION_1_EMAIL, INSTITUTION_1_NIF)
         institutionRepository.save(otherInstitution)
+        and:
         createMember(USER_3_NAME,USER_3_USERNAME,USER_3_PASSWORD,USER_3_EMAIL, AuthUser.Type.NORMAL, otherInstitution, User.State.APPROVED)
         normalUserLogin(USER_3_USERNAME, USER_3_PASSWORD)
 

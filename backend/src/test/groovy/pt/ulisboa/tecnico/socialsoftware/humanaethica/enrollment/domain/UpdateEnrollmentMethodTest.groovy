@@ -30,18 +30,16 @@ class UpdateEnrollmentMethodTest extends SpockTest {
 
     def setup() {
         given:
-        enrollmentDtoOne = new EnrollmentDto()
-        enrollmentDtoOne.motivation = ENROLLMENT_MOTIVATION_1
         activity.getApplicationDeadline() >> IN_TWO_DAYS
         activity.getId() >> 1
-        and: "volunteer"
+        and:
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        and: "enrollment"
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        and:
         def shift = Mock(Shift)
         shift.getActivity() >> activity
-        enrollment = new Enrollment(volunteer, List.of(shift), enrollmentDto)
+        and:
+        enrollment = createEnrollment(volunteer, List.of(shift), ENROLLMENT_MOTIVATION_1)
+        and:
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
@@ -83,12 +81,12 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         activity2 = Mock(Activity)
         activity2.getId() >> 2
         activity2.getApplicationDeadline() >> { deadline }
-        and: "enrollment"
-        def enrollmentDtoTwo = new EnrollmentDto()
-        enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
+        and:
         def shift2 = Mock(Shift)
         shift2.getActivity() >> activity2
-        enrollmentTwo = new Enrollment(volunteer, List.of(shift2), enrollmentDtoTwo)
+        and:
+        enrollmentTwo = createEnrollment(volunteer, List.of(shift2), ENROLLMENT_MOTIVATION_1)
+        and:
         deadline = ONE_DAY_AGO
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 

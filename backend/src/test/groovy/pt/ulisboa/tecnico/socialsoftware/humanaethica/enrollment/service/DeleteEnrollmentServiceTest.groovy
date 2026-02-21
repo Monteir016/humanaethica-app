@@ -25,7 +25,7 @@ class DeleteEnrollmentServiceTest extends SpockTest {
 
     def setup() {
         def institution = institutionService.getDemoInstitution()
-        given: "activity info"
+        given: "an activity"
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 5, ACTIVITY_DESCRIPTION_1, IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS)
         and: "a shift"
         shift = createShift(activity, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3), 5, SHIFT_LOCATION)
@@ -48,8 +48,9 @@ class DeleteEnrollmentServiceTest extends SpockTest {
     def 'two enrollments exist and one is removed'() {
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollment2 = createEnrollment(volunteer2, List.of(shift), ENROLLMENT_MOTIVATION_2)
-        enrollmentRepository.save(enrollment2)
+        and:
+        createEnrollment(volunteer2, List.of(shift), ENROLLMENT_MOTIVATION_2)
+        and:
         firstEnrollment = enrollmentRepository.findAll().get(0)
         secondEnrollment = enrollmentRepository.findAll().get(1)
 
@@ -72,8 +73,8 @@ class DeleteEnrollmentServiceTest extends SpockTest {
     def 'two enrollments exist and are both deleted'() {
         given:
         def volunteer2 = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        def enrollment2 = createEnrollment(volunteer2, List.of(shift), ENROLLMENT_MOTIVATION_2)
-        enrollmentRepository.save(enrollment2)
+        createEnrollment(volunteer2, List.of(shift), ENROLLMENT_MOTIVATION_2)
+        and:
         firstEnrollment = enrollmentRepository.findAll().get(0)
         secondEnrollment = enrollmentRepository.findAll().get(1)
 

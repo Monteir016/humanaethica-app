@@ -18,15 +18,14 @@ class ValidateInstitutionWebserviceIT extends SpockTest {
 
     def setup() {
         deleteAll()
-
+        and:
         webClient = WebClient.create("http://localhost:" + port)
         headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
-
+        and:
         def admin = new Admin(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.DEMO, User.State.SUBMITTED)
         admin.authUser.setPassword(passwordEncoder.encode(USER_2_PASSWORD))
         userRepository.save(admin)
-
         normalUserLogin(USER_2_USERNAME, USER_2_PASSWORD)
     }
 

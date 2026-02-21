@@ -15,8 +15,6 @@ class ReportActivityMethodTest extends SpockTest {
     Activity activity
 
     def setup() {
-        given: "activityDto"
-
     }
 
     @Unroll

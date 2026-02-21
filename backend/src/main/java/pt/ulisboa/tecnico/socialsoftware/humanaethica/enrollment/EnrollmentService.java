@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
@@ -33,9 +34,10 @@ public class EnrollmentService {
     public List<EnrollmentDto> getEnrollmentsByActivity(Integer activityId) {
         if (activityId == null)
             throw new HEException(ACTIVITY_NOT_FOUND);
-        activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
+        Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
-        return enrollmentRepository.getEnrollmentsByActivityId(activityId).stream()
+        return activity.getShifts().stream()
+                .flatMap(shift -> shift.getEnrollments().stream())
                 .sorted(Comparator.comparing(Enrollment::getEnrollmentDateTime))
                 .map(EnrollmentDto::new)
                 .toList();

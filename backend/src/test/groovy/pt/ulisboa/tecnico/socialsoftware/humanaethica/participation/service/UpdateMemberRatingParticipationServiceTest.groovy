@@ -4,7 +4,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import spock.lang.Unroll
@@ -16,31 +15,33 @@ class UpdateMemberRatingParticipationServiceTest extends SpockTest {
     public static final String EXIST = 'exist'
     public static final String NO_EXIST = 'noExist'
     def activity
+    def shift
     def participation
     def volunteer
     def member
 
     def setup() {
+        given:
         def institution = institutionService.getDemoInstitution()
+        and:
         volunteer = authUserService.loginDemoVolunteerAuth().getUser()
+        and:
         member = authUserService.loginDemoMemberAuth().getUser()
         and:
         activity = createActivity(institution, ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1, TWO_DAYS_AGO.minusDays(2), TWO_DAYS_AGO.minusDays(1), NOW)
-
         and:
-        def shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
+        shift = createShift(activity, TWO_DAYS_AGO, ONE_DAY_AGO, 3, SHIFT_LOCATION)
         and:
         volunteer = userRepository.findById(volunteer.getId()).get()
         def enrollment = createEnrollmentBypassInvariantsValidation(volunteer, [shift], ENROLLMENT_MOTIVATION_1, THREE_DAYS_AGO.minusDays(1))
         and:
         def participationDto = createParticipationDto(null, null, 5, VOLUNTEER_REVIEW)
-        participation = participationService.createParticipation(activity.getShifts().get(0).getId(), enrollment.getId(), participationDto)
+        participation = participationService.createParticipation(shift.getId(), enrollment.getId(), participationDto)
     }
 
     def 'member updates a participation' () {
         given:
         def updatedParticipationDto = createParticipationDto(5, MEMBER_REVIEW, null, null)
-        updatedParticipationDto.volunteerId = volunteer.getId()
 
         when:
         def result = participationService.memberRating(participation.id, updatedParticipationDto)

@@ -115,8 +115,8 @@ public class Enrollment {
 
     private void verifyInvariants() {
         motivationIsRequired();
-        enrollBeforeDeadline();
         atLeastOneShift();
+        enrollBeforeDeadline();
         enrollOnce();
         shiftsActivityConsistency();
         shiftsHaveOverlappingTime();
@@ -140,7 +140,7 @@ public class Enrollment {
     }
 
     private void enrollBeforeDeadline() {
-        if (getActivity() != null && this.enrollmentDateTime.isAfter(getActivity().getApplicationDeadline())) {
+        if (this.enrollmentDateTime.isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }
@@ -173,7 +173,7 @@ public class Enrollment {
     }
 
     private void editOrDeleteEnrollmentBeforeDeadline() {
-        if (getActivity() != null && LocalDateTime.now().isAfter(getActivity().getApplicationDeadline())) {
+        if (LocalDateTime.now().isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }

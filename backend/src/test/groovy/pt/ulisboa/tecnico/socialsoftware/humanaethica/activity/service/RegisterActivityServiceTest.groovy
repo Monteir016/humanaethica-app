@@ -22,9 +22,11 @@ class RegisterActivityServiceTest extends SpockTest {
     def theme
 
     def setup() {
+        given:
         member = authUserService.loginDemoMemberAuth().getUser()
+        and:
         institution = institutionService.getDemoInstitution()
-
+        and:
         theme = new Theme(THEME_NAME_1, Theme.State.APPROVED,null)
         themeRepository.save(theme)
     }
@@ -33,7 +35,6 @@ class RegisterActivityServiceTest extends SpockTest {
         given: "an activity dto"
         def themesDto = new ArrayList<>()
         themesDto.add(new ThemeDto(theme,false,false,false))
-
         def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,themesDto)
 
@@ -70,7 +71,7 @@ class RegisterActivityServiceTest extends SpockTest {
         given: "an activity dto"
         def themesDto = new ArrayList<>()
         themesDto.add(getThemeDto(themeId))
-
+        and:
         def activityDto = createActivityDto(name,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY,IN_TWO_DAYS,IN_THREE_DAYS,themesDto)
 

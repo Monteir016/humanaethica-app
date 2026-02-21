@@ -45,7 +45,6 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
                         .path('/enrollments')
-                        .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
@@ -56,8 +55,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         then:
         response.motivation == ENROLLMENT_MOTIVATION_1
         and:
-        enrollmentRepository.getEnrollmentsByActivityId(activity.id).size() == 1
-        def storedEnrollment = enrollmentRepository.getEnrollmentsByActivityId(activity.id).get(0)
+        def storedEnrollment = enrollmentRepository.findById(response.id).get()
         storedEnrollment.motivation == ENROLLMENT_MOTIVATION_1
 
         cleanup:
@@ -74,7 +72,6 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
                         .path('/enrollments')
-                        .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
@@ -99,7 +96,6 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
                         .path('/enrollments')
-                        .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
@@ -124,7 +120,6 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         def response = webClient.post()
                 .uri{uriBuilder -> uriBuilder
                         .path('/enrollments')
-                        .queryParam("shiftIds", shift.id)
                         .build()}
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)

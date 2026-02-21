@@ -36,10 +36,7 @@ public class ActivityDto {
         setName(activity.getName());
         setRegion(activity.getRegion());
         setParticipantsNumberLimit(activity.getParticipantsNumberLimit());
-        setNumberOfEnrollments((int) activity.getShifts().stream()
-                .flatMap(shift -> shift.getEnrollments().stream())
-                .distinct()
-                .count());
+        setNumberOfEnrollments(activity.getNumberOfEnrollments());
         setNumberOfParticipations(activity.getNumberOfParticipatingVolunteers());
         setDescription(activity.getDescription());
 
