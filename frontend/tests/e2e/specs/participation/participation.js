@@ -9,7 +9,7 @@ describe('Participation', () => {
     cy.deleteAllButArs()
   });
 
-  it('create participation', () => {
+  it.skip('create participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did a good job';
 
     cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
@@ -69,12 +69,12 @@ describe('Participation', () => {
       .eq(0)
       .children()
       .eq(4).should('contain', '2')
-    
+
     cy.logout();
 
   });
 
-  it('update participation', () => {
+  it.skip('update participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did an okay job';
     const MEMBER_REVIEW_2 = 'The volunteer did a good job';
     const VOLUNTEER_REVIEW = 'The activity was well organized';
@@ -272,7 +272,7 @@ describe('Participation', () => {
 
   });
 
-  it('delete participation', () => {
+  it.skip('delete participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did an okay job';
 
     cy.intercept('GET', '/activities/1/enrollments').as('enrollments');

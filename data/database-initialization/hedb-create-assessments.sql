@@ -65,14 +65,40 @@ COPY public.activity (id, application_deadline, creation_date, description, endi
 
 
 --
+-- Data for Name: shift; Type: TABLE DATA; Schema: public; Owner: ars
+--
+
+COPY public.shift (id, end_time, location, participants_limit, start_time, activity_id) FROM stdin;
+1	2024-02-08 10:58:21.402146	Lisbon	1	2024-02-07 17:58:21.402146	1
+2	2024-02-08 10:58:21.402146	Lisbon	1	2024-02-07 17:58:21.402146	2
+3	2024-02-08 10:58:21.402146	Lisbon	2	2024-02-07 17:58:21.402146	3
+4	2024-02-08 10:58:21.402146	Lisbon	2	2024-02-07 17:58:21.402146	4
+5	2024-08-08 10:58:21.402146	Lisbon	2	2024-02-07 17:58:21.402146	5
+6	2024-02-08 10:58:21.402146	Lisbon	3	2024-02-07 17:58:21.402146	6
+\.
+
+
+--
 -- Data for Name: enrollment; Type: TABLE DATA; Schema: public; Owner: ars
 --
 
-COPY public.enrollment (id, enrollment_date_time, motivation, activity_id, volunteer_id) FROM stdin;
-1	2024-02-06 18:51:37.595713	sql-inserted-motivation	1	3
-2	2024-02-06 18:51:37.595713	sql-inserted-motivation	2	3
-3	2024-02-06 18:51:37.595713	sql-inserted-motivation	3	3
-4	2024-02-06 18:51:37.595713	sql-inserted-motivation	6	3
+COPY public.enrollment (id, enrollment_date_time, motivation, volunteer_id) FROM stdin;
+1	2024-02-06 18:51:37.595713	sql-inserted-motivation	3
+2	2024-02-06 18:51:37.595713	sql-inserted-motivation	3
+3	2024-02-06 18:51:37.595713	sql-inserted-motivation	3
+4	2024-02-06 18:51:37.595713	sql-inserted-motivation	3
+\.
+
+
+--
+-- Data for Name: enrollment_shifts; Type: TABLE DATA; Schema: public; Owner: ars
+--
+
+COPY public.enrollment_shifts (enrollments_id, shifts_id) FROM stdin;
+1	1
+2	2
+3	3
+4	6
 \.
 
 
@@ -80,10 +106,10 @@ COPY public.enrollment (id, enrollment_date_time, motivation, activity_id, volun
 -- Data for Name: participation; Type: TABLE DATA; Schema: public; Owner: ars
 --
 
-COPY public.participation (id, acceptance_date, rating, activity_id, volunteer_id) FROM stdin;
-1	2024-02-06 18:51:37.595713	5	1	3
-2	2024-02-06 18:51:37.595713	5	2	3
-3	2024-02-06 18:51:37.595713	5	6	3
+COPY public.participation (id, acceptance_date, member_rating, enrollment_id, shift_id) FROM stdin;
+1	2024-02-06 18:51:37.595713	5	1	1
+2	2024-02-06 18:51:37.595713	5	2	2
+3	2024-02-06 18:51:37.595713	5	4	6
 \.
 
 --

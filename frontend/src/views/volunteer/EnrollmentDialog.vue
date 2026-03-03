@@ -98,7 +98,6 @@ export default class EnrollmentDialog extends Vue {
     ) {
       try {
         const result = await RemoteServices.createEnrollment(
-          this.editEnrollment.activityId,
           this.editEnrollment,
         );
         this.$emit('save-enrollment', result);

@@ -64,14 +64,36 @@ COPY public.activity (id, application_deadline, creation_date, description, endi
 
 
 --
+-- Data for Name: shift; Type: TABLE DATA; Schema: public; Owner: ars
+--
+
+COPY public.shift (id, end_time, location, participants_limit, start_time, activity_id) FROM stdin;
+1	2024-02-08 17:58:21.402146	Lisbon	2	2024-02-07 17:58:21.402146	1
+2	2024-02-08 17:58:21.402146	Lisbon	1	2024-02-07 17:58:21.402146	2
+\.
+
+
+--
 -- Data for Name: enrollment; Type: TABLE DATA; Schema: public; Owner: ars
 --
 
-COPY public.enrollment (id, enrollment_date_time, motivation, activity_id, volunteer_id) FROM stdin;
-1	2024-02-06 18:51:37.595713	Has vacancies and do not participate	1	3
-2	2024-02-06 19:51:37.595713	Has vacancies and participate	1	4
-3	2024-02-06 18:51:37.595713	Has no vacancies and participate	2	3
-4	2024-02-06 20:51:37.595713	Has no vacancies and do not participate	2	5
+COPY public.enrollment (id, enrollment_date_time, motivation, volunteer_id) FROM stdin;
+1	2024-02-06 18:51:37.595713	Has vacancies and do not participate	3
+2	2024-02-06 19:51:37.595713	Has vacancies and participate	4
+3	2024-02-06 18:51:37.595713	Has no vacancies and participate	3
+4	2024-02-06 20:51:37.595713	Has no vacancies and do not participate	5
+\.
+
+
+--
+-- Data for Name: enrollment_shifts; Type: TABLE DATA; Schema: public; Owner: ars
+--
+
+COPY public.enrollment_shifts (enrollments_id, shifts_id) FROM stdin;
+1	1
+2	1
+3	2
+4	2
 \.
 
 
@@ -79,9 +101,9 @@ COPY public.enrollment (id, enrollment_date_time, motivation, activity_id, volun
 -- Data for Name: participation; Type: TABLE DATA; Schema: public; Owner: ars
 --
 
-COPY public.participation (id, acceptance_date, member_rating, member_review, activity_id, volunteer_id) FROM stdin;
-5	2024-02-06 18:51:37.595713	5	A-member-review	1	4
-6	2024-02-06 18:51:37.595713	5	Another-member-review	2	3
+COPY public.participation (id, acceptance_date, member_rating, member_review, enrollment_id, shift_id) FROM stdin;
+5	2024-02-06 18:51:37.595713	5	A-member-review	2	1
+6	2024-02-06 18:51:37.595713	5	Another-member-review	3	2
 \.
 
 --
