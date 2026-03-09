@@ -1,14 +1,16 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain;
 
-import jakarta.persistence.*;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
-
 import java.time.LocalDateTime;
 
-import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
 
 @Entity
 @Table(name = "shift")
