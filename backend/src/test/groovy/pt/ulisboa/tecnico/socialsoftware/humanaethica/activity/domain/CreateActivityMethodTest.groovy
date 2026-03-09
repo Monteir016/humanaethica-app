@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import spock.lang.Unroll
@@ -243,6 +244,36 @@ class CreateActivityMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ACTIVITY_ALREADY_EXISTS
+    }
+
+    def "add shift to activity"() {
+        given:
+        def activity = new Activity()
+        def shift = Mock(Shift)
+
+        when:
+        activity.addShift(shift)
+
+        then:
+        activity.getShifts().size() == 1
+        activity.getShifts().contains(shift)
+    }
+
+    def "remove shift from activity"() {
+        given:
+        def activity = new Activity()
+        def shift1 = Mock(Shift)
+        def shift2 = Mock(Shift)
+        activity.addShift(shift1)
+        activity.addShift(shift2)
+
+        when:
+        activity.removeShift(shift1)
+
+        then:
+        activity.getShifts().size() == 1
+        !activity.getShifts().contains(shift1)
+        activity.getShifts().contains(shift2)
     }
 
     @TestConfiguration

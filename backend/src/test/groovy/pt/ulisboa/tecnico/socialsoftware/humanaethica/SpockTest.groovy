@@ -29,6 +29,8 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.dto.ReportDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.UserApplicationalService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.UserService
@@ -247,6 +249,24 @@ class SpockTest extends Specification {
         activityDto
     }
 
+    // shift
+
+    public static final String SHIFT_DESCRIPTION_1 = "This is a valid shift description for testing purposes"
+    public static final String SHIFT_DESCRIPTION_2 = "Another valid shift description with minimum twenty chars"
+    public static final Integer SHIFT_PARTICIPANTS_LIMIT_1 = 10
+    public static final Integer SHIFT_PARTICIPANTS_LIMIT_2 = 5
+
+    @Autowired
+    ShiftRepository shiftRepository
+
+    def createShiftDto(description, participantsLimit, startingDate, endingDate) {
+        def shiftDto = new ShiftDto()
+        shiftDto.setDescription(description)
+        shiftDto.setParticipantsLimit(participantsLimit)
+        shiftDto.setStartingDate(DateHandler.toISOString(startingDate))
+        shiftDto.setEndingDate(DateHandler.toISOString(endingDate))
+        shiftDto
+    }
 
     // enrollment
 
@@ -327,6 +347,7 @@ class SpockTest extends Specification {
         participationRepository.deleteAll()
         enrollmentRepository.deleteAll()
         reportRepository.deleteAll()
+        shiftRepository.deleteAll()
         activityRepository.deleteAllActivityTheme()
         activityRepository.deleteAll()
         authUserRepository.deleteAll()
