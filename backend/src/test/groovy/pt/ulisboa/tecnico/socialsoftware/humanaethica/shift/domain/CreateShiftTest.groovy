@@ -14,10 +14,12 @@ import spock.lang.Unroll
 @DataJpaTest
 class CreateShiftTest extends SpockTest {
     Activity activity = Mock()
+    Activity.State activityState = Activity.State.APPROVED
 
     def setup() {
         activity.getStartingDate() >> IN_TWO_DAYS
         activity.getEndingDate() >> IN_THREE_DAYS
+        activity.getState() >> { activityState }
     }
 
     def "create Shift with valid attributes"() {
@@ -299,6 +301,48 @@ class CreateShiftTest extends SpockTest {
         IN_TWO_DAYS.minusHours(1) | IN_TWO_DAYS.plusHours(1)     // start before activity start
         IN_TWO_DAYS.plusHours(1)  | IN_THREE_DAYS.plusHours(1)   // end after activity end
         IN_TWO_DAYS.minusHours(1) | IN_THREE_DAYS.plusHours(1)   // both outside
+    }
+
+    def "create Shift with approved activity state"() {
+        given:
+        activity.getParticipantsNumberLimit() >> 100
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        def shift = new Shift(activity, shiftDto)
+
+        then:
+        shift.getActivity() == activity
+        1 * activity.addShift(_ as Shift) >> { Shift s -> activity.getShifts() >> [s] }
+    }
+
+    @Unroll
+    def "create Shift and violate approved activity invariant: state=#state"() {
+        given:
+        activityState = state
+        activity.getParticipantsNumberLimit() >> 100
+        activity.addShift(_ as Shift) >> { Shift s -> activity.getShifts() >> [s] }
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_ACTIVITY_NOT_APPROVED
+
+        where:
+        state << [Activity.State.SUSPENDED, Activity.State.REPORTED]
     }
 
     @Unroll
