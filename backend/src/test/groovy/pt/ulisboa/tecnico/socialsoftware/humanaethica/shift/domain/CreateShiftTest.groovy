@@ -238,6 +238,48 @@ class CreateShiftTest extends SpockTest {
         2           | null       // null end
     }
 
+    @Unroll
+    def "create Shift with valid participantsLimit: limit=#limit"() {
+        given:
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                limit,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        def result = new Shift(activity, shiftDto)
+
+        then:
+        result.getParticipantsLimit() == limit
+        1 * activity.addShift(_ as Shift)
+
+        where:
+        limit << [1, 100]
+    }
+
+    @Unroll
+    def "create Shift and violate participantsLimit > 0 invariant: limit=#limit"() {
+        given:
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                limit,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_PARTICIPANTS_LIMIT_INVALID
+
+        where:
+        limit << [0, -1, null]
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }

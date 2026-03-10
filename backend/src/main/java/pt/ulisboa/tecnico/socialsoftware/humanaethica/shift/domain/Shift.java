@@ -50,6 +50,7 @@ public class Shift {
     private void verifyInvariants() {
         stringAttributesAreValid();
         startBeforeEnd();
+        participantsLimitAboveZero();
     }
 
     private void stringAttributesAreValid() {
@@ -61,6 +62,12 @@ public class Shift {
     private void startBeforeEnd() {
         if (this.startingDate == null || this.endingDate == null || !this.startingDate.isBefore(this.endingDate)) {
             throw new HEException(SHIFT_START_AFTER_END);
+        }
+    }
+
+    private void participantsLimitAboveZero() {
+        if (this.participantsLimit == null || this.participantsLimit < MIN_PARTICIPANTS_LIMIT) {
+            throw new HEException(SHIFT_PARTICIPANTS_LIMIT_INVALID);
         }
     }
 
