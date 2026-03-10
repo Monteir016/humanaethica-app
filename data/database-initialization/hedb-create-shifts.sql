@@ -26,7 +26,7 @@ SET default_table_access_method = heap;
 --
 
 COPY public.institutions (id, active, confirmation_token, creation_date, email, name, nif, token_generation_date) FROM stdin;
-1	t	abca428c09862e89	2026-02-06 17:58:21.402146	demo_institution@mail.com	DEMO INSTITUTION	000000000	2026-02-06 17:58:21.402134
+1	t	abca428c09862e89	2024-02-06 17:58:21.402146	demo_institution@mail.com	DEMO INSTITUTION	000000000	2024-02-06 17:58:21.402134
 \.
 
 
@@ -35,8 +35,8 @@ COPY public.institutions (id, active, confirmation_token, creation_date, email, 
 --
 
 COPY public.users (user_type, id, creation_date, name, role, state, institution_id) FROM stdin;
-MEMBER	2	2026-02-06 17:58:21.419878	DEMO-MEMBER	MEMBER	ACTIVE	1
-VOLUNTEER	3	2026-02-06 17:58:23.732513	DEMO-VOLUNTEER	VOLUNTEER	ACTIVE	\N
+MEMBER	2	2024-02-06 17:58:21.419878	DEMO-MEMBER	MEMBER	ACTIVE	1
+VOLUNTEER	3	2024-02-06 17:58:23.732513	DEMO-VOLUNTEER	VOLUNTEER	ACTIVE	\N
 \.
 
 
@@ -54,20 +54,8 @@ DEMO	3	t	demo_volunteer@mail.com	\N	\N	demo-volunteer	\N	\N	3
 --
 
 COPY public.activity (id, application_deadline, creation_date, description, ending_date, name, participants_number_limit, region, starting_date, state, institution_id) FROM stdin;
-1	2026-08-06 17:58:21.402146	2026-08-06 17:58:21.402146	Enrollment is open	2026-08-12 17:58:21.402146	A1	5	Lisbon	2026-08-07 17:58:21.402146	APPROVED	1
-2	2026-08-06 17:58:21.402146	2026-08-06 17:58:21.402146	Enrollment is open	2026-08-12 17:58:21.402146	A1	5	Lisbon	2026-08-07 17:58:21.402146	SUSPENDED	1
-\.
-
-
---
--- Data for Name: shift; Type: TABLE DATA; Schema: public; Owner: ars
---
-
-COPY public.shift (id, end_time, location, participants_limit, start_time, activity_id) FROM stdin;
-1	2026-08-08 17:58:21.402146	Lisbon	1	2026-08-07 17:58:21.402146	1
-2	2026-08-09 17:58:21.402146	Lisbon	1	2026-08-07 17:58:21.402146	1
-3	2026-08-10 17:58:21.402146	Lisbon	2	2026-08-08 18:58:21.402146	1
-4	2026-08-08 17:58:21.402146	Lisbon	1	2026-08-07 17:58:21.402146	2
+1	2026-02-06 17:58:21.402146	2026-02-06 17:58:21.402146	Activity for shift testing	2026-05-14 17:58:21.402146	A1	10	Lisbon	2026-03-16 17:58:21.402146	APPROVED	1
+2	2026-02-06 17:58:21.402146	2026-08-06 17:58:21.402146	Not approved activity for shift testing	2026-05-14 17:58:21.402146	A2	10	Lisbon	2026-03-16 17:58:21.402146	SUSPENDED	1
 \.
 
 
