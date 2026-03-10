@@ -48,7 +48,14 @@ public class Shift {
     }
 
     private void verifyInvariants() {
+        stringAttributesAreValid();
         startBeforeEnd();
+    }
+
+    private void stringAttributesAreValid() {
+        if (this.description == null || this.description.length() < MIN_DESCRIPTION_SIZE || this.description.length() > MAX_DESCRIPTION_SIZE) {
+            throw new HEException(SHIFT_DESCRIPTION_INVALID);
+        }
     }
 
     private void startBeforeEnd() {

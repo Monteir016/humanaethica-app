@@ -172,6 +172,48 @@ class CreateShiftTest extends SpockTest {
     }
 
     @Unroll
+    def "create Shift with valid description length: size=#size"() {
+        given:
+        def description = "a" * size
+        def shiftDto = createShiftDto(
+                description,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        def shift = new Shift(activity, shiftDto)
+
+        then:
+        shift.getDescription() == description
+
+        where:
+        size << [20, 200]
+    }
+
+    @Unroll
+    def "create Shift and violate description length invariant: description=#description"() {
+        given:
+        def shiftDto = createShiftDto(
+                description,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                IN_TWO_DAYS.plusHours(1),
+                IN_TWO_DAYS.plusHours(2)
+        )
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_DESCRIPTION_INVALID
+
+        where:
+        description << [null, "", "a" * 19, "a" * 201]
+    }
+
+    @Unroll
     def "create Shift and violate start before end invariant: startOffset=#startOffset | endOffset=#endOffset"() {
         given:
         def shiftDto = createShiftDto(
