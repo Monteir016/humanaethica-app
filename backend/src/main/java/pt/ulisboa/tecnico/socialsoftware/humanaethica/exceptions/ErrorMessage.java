@@ -73,6 +73,7 @@ public enum ErrorMessage {
     SHIFT_DATES_OUTSIDE_ACTIVITY_PERIOD("Shift dates must be within activity period"),
     SHIFT_PARTICIPANTS_LIMIT_INVALID("Shift participants limit must be greater than 0"),
     SHIFT_ACTIVITY_NOT_APPROVED("Shifts can only be added to approved activities"),
+    SHIFT_REQUIRES_INFORMATION("Information about shift is required"),
     SHIFT_SUM_LIMITS_EXCEEDED("Sum of shift participants limits exceeds activity participants number limit"),
     ;
 
