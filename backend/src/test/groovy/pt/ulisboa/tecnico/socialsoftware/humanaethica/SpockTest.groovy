@@ -29,6 +29,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.dto.ReportDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.ShiftService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
@@ -258,6 +259,8 @@ class SpockTest extends Specification {
 
     @Autowired
     ShiftRepository shiftRepository
+    @Autowired
+    ShiftService shiftService
 
     def createShiftDto(description, participantsLimit, startingDate, endingDate) {
         def shiftDto = new ShiftDto()
