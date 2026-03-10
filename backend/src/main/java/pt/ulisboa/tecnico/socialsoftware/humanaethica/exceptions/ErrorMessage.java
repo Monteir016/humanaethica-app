@@ -68,6 +68,7 @@ public enum ErrorMessage {
     REPORT_NOT_FOUND("Report not found with id %d"),
 
     // Shift
+    SHIFT_DESCRIPTION_INVALID("Shift description must have between 20 and 200 characters"),
     SHIFT_START_AFTER_END("Shift start is after end"),
     ;
 
