@@ -5,8 +5,11 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
+import spock.lang.Unroll
 
 @DataJpaTest
 class CreateShiftTest extends SpockTest {
@@ -166,6 +169,31 @@ class CreateShiftTest extends SpockTest {
         resultDto.getActivityId() == null
         resultDto.getStartingDate() != null
         resultDto.getEndingDate() != null
+    }
+
+    @Unroll
+    def "create Shift and violate start before end invariant: startOffset=#startOffset | endOffset=#endOffset"() {
+        given:
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                startOffset != null ? IN_TWO_DAYS.plusHours(startOffset) : null,
+                endOffset != null ? IN_TWO_DAYS.plusHours(endOffset) : null
+        )
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_START_AFTER_END
+
+        where:
+        startOffset | endOffset
+        2           | 2          // start == end
+        3           | 1          // start after end
+        null        | 2          // null start
+        2           | null       // null end
     }
 
     @TestConfiguration
