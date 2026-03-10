@@ -9,8 +9,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
+
+import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
 
 @Entity
 @Table(name = "shift")
@@ -45,7 +48,13 @@ public class Shift {
     }
 
     private void verifyInvariants() {
-        // Será implementado nas fases F2a-F2f
+        startBeforeEnd();
+    }
+
+    private void startBeforeEnd() {
+        if (this.startingDate == null || this.endingDate == null || !this.startingDate.isBefore(this.endingDate)) {
+            throw new HEException(SHIFT_START_AFTER_END);
+        }
     }
 
     public Integer getId() {
