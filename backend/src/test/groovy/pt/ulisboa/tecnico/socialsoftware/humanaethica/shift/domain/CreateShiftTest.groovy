@@ -15,6 +15,11 @@ import spock.lang.Unroll
 class CreateShiftTest extends SpockTest {
     Activity activity = Mock()
 
+    def setup() {
+        activity.getStartingDate() >> IN_TWO_DAYS
+        activity.getEndingDate() >> IN_THREE_DAYS
+    }
+
     def "create Shift with valid attributes"() {
         given:
         activity.getParticipantsNumberLimit() >> 100
@@ -244,6 +249,56 @@ class CreateShiftTest extends SpockTest {
         3           | 1          // start after end
         null        | 2          // null start
         2           | null       // null end
+    }
+
+    @Unroll
+    def "create Shift with dates within activity period: shiftStart=#shiftStart | shiftEnd=#shiftEnd"() {
+        given:
+        activity.getParticipantsNumberLimit() >> 100
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                shiftStart,
+                shiftEnd
+        )
+
+        when:
+        def shift = new Shift(activity, shiftDto)
+
+        then:
+        shift.getStartingDate() == shiftStart
+        shift.getEndingDate() == shiftEnd
+        1 * activity.addShift(_ as Shift) >> { Shift s -> activity.getShifts() >> [s] }
+
+        where:
+        shiftStart              | shiftEnd
+        IN_TWO_DAYS.plusHours(1) | IN_TWO_DAYS.plusHours(2)   // fully inside
+        IN_TWO_DAYS              | IN_TWO_DAYS.plusHours(1)   // starts at activity start
+        IN_THREE_DAYS.minusHours(1) | IN_THREE_DAYS           // ends at activity end
+    }
+
+    @Unroll
+    def "create Shift and violate activity period invariant: shiftStart=#shiftStart | shiftEnd=#shiftEnd"() {
+        given:
+        def shiftDto = createShiftDto(
+                SHIFT_DESCRIPTION_1,
+                SHIFT_PARTICIPANTS_LIMIT_1,
+                shiftStart,
+                shiftEnd
+        )
+
+        when:
+        new Shift(activity, shiftDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_DATES_OUTSIDE_ACTIVITY_PERIOD
+
+        where:
+        shiftStart                | shiftEnd
+        IN_TWO_DAYS.minusHours(1) | IN_TWO_DAYS.plusHours(1)     // start before activity start
+        IN_TWO_DAYS.plusHours(1)  | IN_THREE_DAYS.plusHours(1)   // end after activity end
+        IN_TWO_DAYS.minusHours(1) | IN_THREE_DAYS.plusHours(1)   // both outside
     }
 
     @Unroll

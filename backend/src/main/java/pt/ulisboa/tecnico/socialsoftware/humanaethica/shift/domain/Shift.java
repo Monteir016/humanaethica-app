@@ -50,6 +50,7 @@ public class Shift {
     private void verifyInvariants() {
         stringAttributesAreValid();
         startBeforeEnd();
+        datesWithinActivityPeriod();
         participantsLimitAboveZero();
         sumOfShiftLimitsDoesNotExceedActivityLimit();
     }
@@ -69,6 +70,12 @@ public class Shift {
     private void participantsLimitAboveZero() {
         if (this.participantsLimit == null || this.participantsLimit < MIN_PARTICIPANTS_LIMIT) {
             throw new HEException(SHIFT_PARTICIPANTS_LIMIT_INVALID);
+        }
+    }
+
+    private void datesWithinActivityPeriod() {
+        if (this.startingDate.isBefore(this.activity.getStartingDate()) || this.endingDate.isAfter(this.activity.getEndingDate())) {
+            throw new HEException(SHIFT_DATES_OUTSIDE_ACTIVITY_PERIOD);
         }
     }
 
