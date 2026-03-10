@@ -51,6 +51,7 @@ public class Shift {
         stringAttributesAreValid();
         startBeforeEnd();
         participantsLimitAboveZero();
+        sumOfShiftLimitsDoesNotExceedActivityLimit();
     }
 
     private void stringAttributesAreValid() {
@@ -68,6 +69,15 @@ public class Shift {
     private void participantsLimitAboveZero() {
         if (this.participantsLimit == null || this.participantsLimit < MIN_PARTICIPANTS_LIMIT) {
             throw new HEException(SHIFT_PARTICIPANTS_LIMIT_INVALID);
+        }
+    }
+
+    private void sumOfShiftLimitsDoesNotExceedActivityLimit() {
+        int sum = this.activity.getShifts().stream()
+                .mapToInt(Shift::getParticipantsLimit)
+                .sum();
+        if (sum > this.activity.getParticipantsNumberLimit()) {
+            throw new HEException(SHIFT_SUM_LIMITS_EXCEEDED);
         }
     }
 
