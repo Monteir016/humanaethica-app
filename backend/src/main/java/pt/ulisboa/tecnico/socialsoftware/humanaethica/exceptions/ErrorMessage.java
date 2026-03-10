@@ -70,6 +70,7 @@ public enum ErrorMessage {
     // Shift
     SHIFT_DESCRIPTION_INVALID("Shift description must have between 20 and 200 characters"),
     SHIFT_START_AFTER_END("Shift start is after end"),
+    SHIFT_PARTICIPANTS_LIMIT_INVALID("Shift participants limit must be greater than 0"),
     ;
 
     public final String label;
