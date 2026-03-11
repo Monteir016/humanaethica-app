@@ -3,8 +3,10 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.webservice
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
@@ -107,6 +109,53 @@ class GetShiftsByActivityWebServiceTest extends SpockTest {
 
         then: "check response is empty"
         response.size() == 0
+
+        cleanup:
+        deleteAll()
+    }
+
+    def 'login as volunteer, and get shifts'() {
+        given:
+        demoVolunteerLogin()
+        and:
+        def shiftDto1 = createShiftDto(SHIFT_DESCRIPTION_1, 2, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(2))
+        shiftService.createShift(activity.id, shiftDto1)
+
+        when:
+        def response = webClient.get()
+                .uri('/activities/' + activity.id + '/shifts')
+                .headers(httpHeaders -> httpHeaders.putAll(headers))
+                .retrieve()
+                .bodyToFlux(ShiftDto.class)
+                .collectList()
+                .block()
+
+        then:
+        response.size() == 1
+        response.get(0).description == SHIFT_DESCRIPTION_1
+        response.get(0).participantsLimit == 2
+        response.get(0).activityId == activity.id
+
+        cleanup:
+        deleteAll()
+    }
+
+    def 'get shifts with invalid activity id'() {
+        given:
+        demoMemberLogin()
+
+        when:
+        webClient.get()
+                .uri('/activities/999999/shifts')
+                .headers(httpHeaders -> httpHeaders.putAll(headers))
+                .retrieve()
+                .bodyToFlux(ShiftDto.class)
+                .collectList()
+                .block()
+
+        then:
+        def error = thrown(WebClientResponseException)
+        error.statusCode == HttpStatus.BAD_REQUEST
 
         cleanup:
         deleteAll()
