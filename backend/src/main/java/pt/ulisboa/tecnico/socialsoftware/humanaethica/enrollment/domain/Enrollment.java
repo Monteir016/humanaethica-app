@@ -112,6 +112,7 @@ public class Enrollment {
         motivationIsRequired();
         enrollOnce();
         enrollBeforeDeadline();
+        shiftsBelongToSameActivity();
     }
 
     private void motivationIsRequired() {
@@ -130,6 +131,15 @@ public class Enrollment {
     private void enrollBeforeDeadline() {
         if (this.enrollmentDateTime.isAfter(this.activity.getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
+        }
+    }
+
+    private void shiftsBelongToSameActivity() {
+        if (this.shifts.size() > 1) {
+            Activity expected = this.shifts.get(0).getActivity();
+            if (this.shifts.stream().anyMatch(s -> s.getActivity() != expected)) {
+                throw new HEException(ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES);
+            }
         }
     }
 
