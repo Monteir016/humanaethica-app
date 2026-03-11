@@ -44,6 +44,7 @@ public enum ErrorMessage {
     ACTIVITY_ALREADY_REPORTED("Activity is already reported with name %s"),
     ENROLLMENT_NOT_FOUND("Enrollment not found with id %d"),
     ENROLLMENT_REQUIRES_MOTIVATION("To apply to an activity you have to write a motivation longer than 10 characters"),
+    ENROLLMENT_REQUIRES_SHIFTS("To apply to an activity you must select at least one shift"),
     ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED("The volunteer is already enrolled"),
     ENROLLMENT_AFTER_DEADLINE("The enrollment period is already closed"),
     ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES("All shifts in an enrollment must belong to the same activity"),

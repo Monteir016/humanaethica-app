@@ -16,7 +16,6 @@ class CreateEnrollmentServiceTest extends SpockTest {
     public static final String EXIST = 'exist'
     public static final String NO_EXIST = 'noExist'
     def volunteer
-    def activity
 
     def setup() {
         def institution = institutionService.getDemoInstitution()
@@ -25,12 +24,13 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def activityDto = createActivityDto(ACTIVITY_NAME_1,ACTIVITY_REGION_1,1,ACTIVITY_DESCRIPTION_1,
                 IN_ONE_DAY, IN_TWO_DAYS,IN_THREE_DAYS,null)
 
-        activity = new Activity(activityDto, institution, new ArrayList<>())
+        def activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
     }
 
     def 'create enrollment' () {
         given:
+        def activity = activityRepository.findAll().get(0)
         def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
         and:
         def enrollmentDto = new EnrollmentDto()
@@ -38,7 +38,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentDto.shiftIds = [shift.id]
 
         when:
-        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
+        def result = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
 
         then:
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -51,13 +51,16 @@ class CreateEnrollmentServiceTest extends SpockTest {
     }
 
     @Unroll
-    def 'invalid arguments: volunteerId=#volunteerId | activityId=#activityId'() {
+    def 'invalid arguments: volunteerId=#volunteerId'() {
         given:
+        def activity = activityRepository.findAll().get(0)
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shift.id]
 
         when:
-        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getActivityId(activityId), getEnrollmentDto(enrollmentValue,enrollmentDto))
+        enrollmentService.createEnrollment(getVolunteerId(volunteerId), getEnrollmentDto(enrollmentValue, enrollmentDto))
 
         then:
         def error = thrown(HEException)
@@ -66,27 +69,16 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 0
 
         where:
-        volunteerId | activityId | enrollmentValue || errorMessage
-        null        | EXIST      | EXIST           || ErrorMessage.USER_NOT_FOUND
-        NO_EXIST    | EXIST      | EXIST           || ErrorMessage.USER_NOT_FOUND
-        EXIST       | null       | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | NO_EXIST   | EXIST           || ErrorMessage.ACTIVITY_NOT_FOUND
-        EXIST       | EXIST      | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
+        volunteerId | enrollmentValue || errorMessage
+        null        | EXIST           || ErrorMessage.USER_NOT_FOUND
+        NO_EXIST    | EXIST           || ErrorMessage.USER_NOT_FOUND
+        EXIST       | null            || ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
     }
 
     def getVolunteerId(volunteerId) {
         if (volunteerId == EXIST)
             return volunteer.id
         else if (volunteerId == NO_EXIST)
-            return 222
-        else
-            return null
-    }
-
-    def getActivityId(activityId) {
-        if (activityId == EXIST)
-            return activity.id
-        else if (activityId == NO_EXIST)
             return 222
         else
             return null
@@ -101,6 +93,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
 
     def 'create enrollment with shifts' () {
         given:
+        def activity = activityRepository.findAll().get(0)
         def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
         and:
         def enrollmentDto = new EnrollmentDto()
@@ -108,7 +101,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentDto.shiftIds = [shift.id]
 
         when:
-        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
+        def result = enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
 
         then:
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -119,6 +112,51 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         storedEnrollment.shifts.size() == 1
         storedEnrollment.shifts.get(0).id == shift.id
+    }
+
+    def 'create enrollment and fail with missing shifts'() {
+        given:
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = []
+
+        when:
+        enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_REQUIRES_SHIFTS
+        enrollmentRepository.findAll().size() == 0
+    }
+
+    def 'create enrollment and fail with null shifts'() {
+        given:
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = null
+
+        when:
+        enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_REQUIRES_SHIFTS
+        enrollmentRepository.findAll().size() == 0
+    }
+
+    def 'create enrollment and fail when shift does not exist'() {
+        given:
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [222]
+
+        when:
+        enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.SHIFT_NOT_FOUND
+        enrollmentRepository.findAll().size() == 0
     }
 
     @TestConfiguration

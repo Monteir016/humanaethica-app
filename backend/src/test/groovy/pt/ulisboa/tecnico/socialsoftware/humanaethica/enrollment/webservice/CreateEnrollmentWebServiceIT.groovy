@@ -49,7 +49,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/enrollments')
+                .uri('/enrollments')
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
                 .retrieve()
@@ -75,7 +75,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/enrollments')
+                .uri('/enrollments')
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
                 .retrieve()
@@ -97,7 +97,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/enrollments')
+                .uri('/enrollments')
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
                 .retrieve()
@@ -119,7 +119,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/enrollments')
+                .uri('/enrollments')
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
                 .retrieve()
@@ -141,7 +141,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
         when:
         def response = webClient.post()
-                .uri('/activities/' + activity.id + '/enrollments')
+                .uri('/enrollments')
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .bodyValue(enrollmentDto)
                 .retrieve()
