@@ -47,8 +47,6 @@ public class Activity {
     private Institution institution;
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
-    @OneToMany(mappedBy = "activity")
-    private List<Enrollment> enrollments = new ArrayList<>();
 
     @OneToMany(mappedBy = "activity")
     private List<Participation> participations = new ArrayList<>();
@@ -93,11 +91,6 @@ public class Activity {
 
         verifyInvariants();
     }
-
-    public void removeEnrollment(Enrollment enrollment) {
-        enrollments.remove(enrollment);
-    }
-
 
     public Integer getId() {
         return id;
@@ -168,15 +161,10 @@ public class Activity {
     }
 
     public List<Enrollment> getEnrollments() {
-        return enrollments;
-    }
-
-    public void setEnrollments(List<Enrollment> enrollments) {
-        this.enrollments = enrollments;
-    }
-
-    public void addEnrollment(Enrollment enrollment) {
-        this.enrollments.add(enrollment);
+        return shifts.stream()
+                .flatMap(shift -> shift.getEnrollments().stream())
+                .distinct()
+                .toList();
     }
 
     public void suspend(Integer userId, String justification) {

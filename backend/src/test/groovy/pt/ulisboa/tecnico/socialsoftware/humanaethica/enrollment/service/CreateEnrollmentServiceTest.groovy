@@ -31,8 +31,11 @@ class CreateEnrollmentServiceTest extends SpockTest {
 
     def 'create enrollment' () {
         given:
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
+        and:
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shift.id]
 
         when:
         def result = enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
@@ -43,7 +46,7 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 1
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         storedEnrollment.motivation == ENROLLMENT_MOTIVATION_1
-        storedEnrollment.activity.id == activity.id
+        storedEnrollment.getActivity().id == activity.id
         storedEnrollment.volunteer.id == volunteer.id
     }
 
@@ -116,24 +119,6 @@ class CreateEnrollmentServiceTest extends SpockTest {
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         storedEnrollment.shifts.size() == 1
         storedEnrollment.shifts.get(0).id == shift.id
-    }
-
-    def 'create enrollment with empty shifts' () {
-        given:
-        def enrollmentDto = new EnrollmentDto()
-        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentDto.shiftIds = []
-
-        when:
-        def result = enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
-
-        then:
-        result.motivation == ENROLLMENT_MOTIVATION_1
-        result.shiftIds.size() == 0
-        and:
-        enrollmentRepository.findAll().size() == 1
-        def storedEnrollment = enrollmentRepository.findAll().get(0)
-        storedEnrollment.shifts.size() == 0
     }
 
     @TestConfiguration

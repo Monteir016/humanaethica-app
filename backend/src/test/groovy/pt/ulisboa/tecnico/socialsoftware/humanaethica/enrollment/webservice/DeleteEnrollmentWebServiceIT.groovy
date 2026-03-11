@@ -41,9 +41,12 @@ class DeleteEnrollmentWebServiceIT extends SpockTest {
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 2, IN_TWO_DAYS, IN_THREE_DAYS)
+
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.volunteerId = volunteer.id
+        enrollmentDto.shiftIds = [shift.id]
 
         enrollmentService.createEnrollment(volunteer.id ,activity.id, enrollmentDto)
 

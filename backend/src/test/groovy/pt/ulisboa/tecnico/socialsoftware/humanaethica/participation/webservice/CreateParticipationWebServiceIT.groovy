@@ -39,12 +39,15 @@ class CreateParticipationWebServiceIT extends SpockTest {
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 3, NOW.plusDays(2), NOW.plusDays(3))
+
         def volunteer = authUserService.loginDemoVolunteerAuth().getUser()
 
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.volunteerId = volunteer.getId()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
         enrollmentDto.activityId = activity.id
+        enrollmentDto.shiftIds = [shift.id]
 
         enrollmentService.createEnrollment(volunteer.id, activity.id, enrollmentDto)
 

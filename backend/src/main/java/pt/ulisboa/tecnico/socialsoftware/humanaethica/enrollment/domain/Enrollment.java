@@ -22,16 +22,13 @@ public class Enrollment {
     private String motivation;
     private LocalDateTime enrollmentDateTime;
     @ManyToOne
-    private Activity activity;
-    @ManyToOne
     private Volunteer volunteer;
     @ManyToMany
     private List<Shift> shifts = new ArrayList<>();
 
     public Enrollment() {}
 
-    public Enrollment(Activity activity, Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
-        setActivity(activity);
+    public Enrollment(Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
         setVolunteer(volunteer);
         setShifts(shifts);
         setMotivation(enrollmentDto.getMotivation());
@@ -49,7 +46,9 @@ public class Enrollment {
 
     public void delete(){
         volunteer.removeEnrollment(this);
-        activity.removeEnrollment(this);
+        for (Shift shift : this.shifts) {
+            shift.getEnrollments().remove(this);
+        }
 
         editOrDeleteEnrollmentBeforeDeadline();
         verifyInvariants();
@@ -80,12 +79,10 @@ public class Enrollment {
     }
 
     public Activity getActivity() {
-        return activity;
-    }
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-        this.activity.addEnrollment(this);
+        if (this.shifts == null || this.shifts.isEmpty()) {
+            return null;
+        }
+        return this.shifts.get(0).getActivity();
     }
 
     public Volunteer getVolunteer() {
@@ -122,14 +119,14 @@ public class Enrollment {
     }
 
     private void enrollOnce() {
-        if (this.activity.getEnrollments().stream()
+        if (getActivity().getEnrollments().stream()
                 .anyMatch(enrollment -> enrollment != this && enrollment.getVolunteer() == this.volunteer)) {
             throw new HEException(ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED);
         }
     }
 
     private void enrollBeforeDeadline() {
-        if (this.enrollmentDateTime.isAfter(this.activity.getApplicationDeadline())) {
+        if (this.enrollmentDateTime.isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }
@@ -144,7 +141,7 @@ public class Enrollment {
     }
 
     private void editOrDeleteEnrollmentBeforeDeadline() {
-        if (LocalDateTime.now().isAfter(this.activity.getApplicationDeadline())) {
+        if (LocalDateTime.now().isAfter(getActivity().getApplicationDeadline())) {
             throw new HEException(ENROLLMENT_AFTER_DEADLINE);
         }
     }

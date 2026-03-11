@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
@@ -49,10 +50,13 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
 
+        and: "a shift for the activity"
+        def shift = new Shift(activity, createShiftDto(SHIFT_DESCRIPTION_1, 2, IN_TWO_DAYS, IN_THREE_DAYS))
+
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentOne = new Enrollment(activity, volunteer, [], enrollmentDto)
+        enrollmentOne = new Enrollment(volunteer, [shift], enrollmentDto)
     }
 
 
@@ -80,11 +84,14 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         activityDtoTwo.endingDate = DateHandler.toISOString(IN_THREE_DAYS)
         activityDtoTwo.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
         activity2 = new Activity(activityDtoTwo, institution, themes)
+
+        and: "a shift for activity2"
+        def shift2 = new Shift(activity2, createShiftDto(SHIFT_DESCRIPTION_1, 2, IN_TWO_DAYS, IN_THREE_DAYS))
         
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, [], enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(volunteer, [shift2], enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
 
         when:

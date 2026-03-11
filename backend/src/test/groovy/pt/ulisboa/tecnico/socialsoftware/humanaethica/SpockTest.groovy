@@ -291,17 +291,23 @@ class SpockTest extends Specification {
     EnrollmentRepository enrollmentRepository
 
     def createEnrollment(activity, volunteer, motivation) {
+        def shift
+        if (activity.getShifts().isEmpty()) {
+            shift = createShift(activity, SHIFT_DESCRIPTION_1, activity.getParticipantsNumberLimit(), activity.getStartingDate(), activity.getEndingDate())
+        } else {
+            shift = activity.getShifts().get(0)
+        }
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(activity, volunteer, new ArrayList<>(), enrollmentDto)
+        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
         enrollmentRepository.save(enrollment)
         return enrollment
     }
 
-    def createEnrollmentWithShifts(activity, volunteer, motivation, shifts) {
+    def createEnrollmentWithShifts(volunteer, motivation, shifts) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto)
+        def enrollment = new Enrollment(volunteer, shifts, enrollmentDto)
         enrollmentRepository.save(enrollment)
         return enrollment
     }
