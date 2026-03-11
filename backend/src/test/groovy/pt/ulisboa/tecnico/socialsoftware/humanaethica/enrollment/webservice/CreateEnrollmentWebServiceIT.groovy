@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CreateEnrollmentWebServiceIT extends SpockTest {
@@ -125,6 +126,33 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         def error = thrown(WebClientResponseException)
         error.statusCode == HttpStatus.FORBIDDEN
         enrollmentRepository.count() == 0
+
+        cleanup:
+        deleteAll()
+    }
+
+    def 'volunteer create enrollment with shifts'() {
+        given:
+        demoVolunteerLogin()
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
+        and:
+        enrollmentDto.shiftIds = [shift.id]
+
+        when:
+        def response = webClient.post()
+                .uri('/activities/' + activity.id + '/enrollments')
+                .headers(httpHeaders -> httpHeaders.putAll(headers))
+                .bodyValue(enrollmentDto)
+                .retrieve()
+                .bodyToMono(EnrollmentDto.class)
+                .block()
+
+        then:
+        response.motivation == ENROLLMENT_MOTIVATION_1
+        response.shiftIds.size() == 1
+        response.shiftIds.get(0) == shift.id
+        and:
+        enrollmentRepository.getEnrollmentsByActivityId(activity.id).size() == 1
 
         cleanup:
         deleteAll()

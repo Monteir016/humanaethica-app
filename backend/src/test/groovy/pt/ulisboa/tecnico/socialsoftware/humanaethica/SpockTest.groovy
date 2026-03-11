@@ -30,6 +30,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.ReportService
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.dto.ReportDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.ShiftService
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
@@ -49,6 +50,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.Mailer
 import spock.lang.Specification
 
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class SpockTest extends Specification {
     // remote requests
@@ -66,13 +68,13 @@ class SpockTest extends Specification {
 
     // dates
 
-    public static final LocalDateTime THREE_DAYS_AGO = DateHandler.now().minusDays(3)
-    public static final LocalDateTime TWO_DAYS_AGO = DateHandler.now().minusDays(2)
-    public static final LocalDateTime ONE_DAY_AGO = DateHandler.now().minusDays(1)
-    public static final LocalDateTime NOW = DateHandler.now()
-    public static final LocalDateTime IN_ONE_DAY = DateHandler.now().plusDays(1)
-    public static final LocalDateTime IN_TWO_DAYS = DateHandler.now().plusDays(2)
-    public static final LocalDateTime IN_THREE_DAYS = DateHandler.now().plusDays(3)
+    public static final LocalDateTime THREE_DAYS_AGO = DateHandler.now().minusDays(3).truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime TWO_DAYS_AGO = DateHandler.now().minusDays(2).truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime ONE_DAY_AGO = DateHandler.now().minusDays(1).truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime NOW = DateHandler.now().truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime IN_ONE_DAY = DateHandler.now().plusDays(1).truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime IN_TWO_DAYS = DateHandler.now().plusDays(2).truncatedTo(ChronoUnit.MICROS)
+    public static final LocalDateTime IN_THREE_DAYS = DateHandler.now().plusDays(3).truncatedTo(ChronoUnit.MICROS)
 
     // institution
 
@@ -271,6 +273,13 @@ class SpockTest extends Specification {
         shiftDto
     }
 
+    def createShift(activity, description, participantsLimit, startingDate, endingDate) {
+        def shiftDto = createShiftDto(description, participantsLimit, startingDate, endingDate)
+        def shift = new Shift(activity, shiftDto)
+        shiftRepository.save(shift)
+        return shift
+    }
+
     // enrollment
 
     public static final String ENROLLMENT_MOTIVATION_1 = "enrollment motivation 1"
@@ -284,7 +293,15 @@ class SpockTest extends Specification {
     def createEnrollment(activity, volunteer, motivation) {
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(activity, volunteer, enrollmentDto)
+        def enrollment = new Enrollment(activity, volunteer, new ArrayList<>(), enrollmentDto)
+        enrollmentRepository.save(enrollment)
+        return enrollment
+    }
+
+    def createEnrollmentWithShifts(activity, volunteer, motivation, shifts) {
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.setMotivation(motivation)
+        def enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto)
         enrollmentRepository.save(enrollment)
         return enrollment
     }

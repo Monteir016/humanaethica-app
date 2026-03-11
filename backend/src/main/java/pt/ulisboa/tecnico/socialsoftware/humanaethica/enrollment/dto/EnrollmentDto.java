@@ -1,7 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto;
 
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnrollmentDto {
     private Integer id;
@@ -11,6 +15,7 @@ public class EnrollmentDto {
     private String motivation;
     private String enrollmentDateTime;
     private boolean isParticipating;
+    private List<Integer> shiftIds = new ArrayList<>();
 
 
     public EnrollmentDto() {}
@@ -24,6 +29,9 @@ public class EnrollmentDto {
         this.enrollmentDateTime = DateHandler.toISOString(enrollment.getEnrollmentDateTime());
         this.isParticipating = enrollment.getActivity().getParticipations().stream()
                 .anyMatch(participation -> participation.getVolunteer().getId().equals(enrollment.getVolunteer().getId()));
+        this.shiftIds = enrollment.getShifts().stream()
+                .map(Shift::getId)
+                .toList();
     }
 
     public Integer getId() {
@@ -80,5 +88,13 @@ public class EnrollmentDto {
 
     public void setParticipating(boolean participating) {
         isParticipating = participating;
+    }
+
+    public List<Integer> getShiftIds() {
+        return shiftIds;
+    }
+
+    public void setShiftIds(List<Integer> shiftIds) {
+        this.shiftIds = shiftIds;
     }
 }

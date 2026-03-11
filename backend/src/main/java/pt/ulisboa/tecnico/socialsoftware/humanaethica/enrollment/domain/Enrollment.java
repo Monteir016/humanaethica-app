@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
 
@@ -22,12 +25,15 @@ public class Enrollment {
     private Activity activity;
     @ManyToOne
     private Volunteer volunteer;
+    @ManyToMany
+    private List<Shift> shifts = new ArrayList<>();
 
     public Enrollment() {}
 
-    public Enrollment(Activity activity, Volunteer volunteer, EnrollmentDto enrollmentDto) {
+    public Enrollment(Activity activity, Volunteer volunteer, List<Shift> shifts, EnrollmentDto enrollmentDto) {
         setActivity(activity);
         setVolunteer(volunteer);
+        setShifts(shifts);
         setMotivation(enrollmentDto.getMotivation());
         setEnrollmentDateTime(LocalDateTime.now());
 
@@ -89,6 +95,17 @@ public class Enrollment {
     public void setVolunteer(Volunteer volunteer) {
         this.volunteer = volunteer;
         this.volunteer.addEnrollment(this);
+    }
+
+    public List<Shift> getShifts() {
+        return shifts;
+    }
+
+    public void setShifts(List<Shift> shifts) {
+        this.shifts = shifts;
+        for (Shift shift : shifts) {
+            shift.addEnrollment(this);
+        }
     }
 
     private void verifyInvariants() {

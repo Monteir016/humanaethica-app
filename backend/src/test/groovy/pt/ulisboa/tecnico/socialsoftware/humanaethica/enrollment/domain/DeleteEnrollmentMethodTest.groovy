@@ -52,7 +52,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentOne = new Enrollment(activity, volunteer, enrollmentDto)
+        enrollmentOne = new Enrollment(activity, volunteer, [], enrollmentDto)
     }
 
 
@@ -84,7 +84,7 @@ class DeleteEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(activity2, volunteer, [], enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
 
         when:

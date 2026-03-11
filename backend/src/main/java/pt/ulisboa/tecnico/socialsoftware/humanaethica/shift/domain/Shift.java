@@ -1,14 +1,18 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.dto.ShiftDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
@@ -33,6 +37,9 @@ public class Shift {
 
     @ManyToOne
     private Activity activity;
+
+    @ManyToMany(mappedBy = "shifts")
+    private List<Enrollment> enrollments = new ArrayList<>();
 
     public Shift() {
     }
@@ -138,5 +145,13 @@ public class Shift {
     public void setActivity(Activity activity) {
         this.activity = activity;
         this.activity.addShift(this);
+    }
+
+    public List<Enrollment> getEnrollments() {
+        return enrollments;
+    }
+
+    public void addEnrollment(Enrollment enrollment) {
+        this.enrollments.add(enrollment);
     }
 }

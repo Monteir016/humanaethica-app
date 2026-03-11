@@ -46,7 +46,7 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
 
         and: "enrollment"
-        enrollment = new Enrollment(activity, volunteer, EnrollmentDtoOne)
+        enrollment = new Enrollment(activity, volunteer, [], EnrollmentDtoOne)
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
@@ -107,7 +107,7 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(activity2, volunteer, [], enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 

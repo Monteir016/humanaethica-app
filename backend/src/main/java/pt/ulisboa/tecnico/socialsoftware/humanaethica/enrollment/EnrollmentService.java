@@ -9,9 +9,12 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.Activi
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.repository.ShiftRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,6 +28,8 @@ public class EnrollmentService {
     private ActivityRepository activityRepository;
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+    @Autowired
+    private ShiftRepository shiftRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<EnrollmentDto> getEnrollmentsByActivity(Integer activityId) {
@@ -57,7 +62,14 @@ public class EnrollmentService {
         if (activityId == null) throw  new HEException(ACTIVITY_NOT_FOUND);
         Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
-        Enrollment enrollment = new Enrollment(activity, volunteer, enrollmentDto);
+        List<Shift> shifts = new ArrayList<>();
+        if (enrollmentDto.getShiftIds() != null) {
+            for (Integer shiftId : enrollmentDto.getShiftIds()) {
+                shifts.add(shiftRepository.findById(shiftId).orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId)));
+            }
+        }
+
+        Enrollment enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto);
         enrollmentRepository.save(enrollment);
 
         return new EnrollmentDto(enrollment);
