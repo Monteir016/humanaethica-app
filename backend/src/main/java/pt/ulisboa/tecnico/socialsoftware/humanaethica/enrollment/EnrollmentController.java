@@ -31,11 +31,11 @@ public class EnrollmentController {
         return enrollmentService.getVolunteerEnrollments(userId);
     }
 
-    @PostMapping("/activities/{activityId}/enrollments")
+    @PostMapping("/enrollments")
     @PreAuthorize("(hasRole('ROLE_VOLUNTEER'))")
-    public EnrollmentDto createEnrollment(Principal principal, @PathVariable Integer activityId, @Valid @RequestBody EnrollmentDto enrollmentDto) {
+    public EnrollmentDto createEnrollment(Principal principal, @Valid @RequestBody EnrollmentDto enrollmentDto) {
         int userId = ((AuthUser) ((Authentication) principal).getPrincipal()).getUser().getId();
-        return enrollmentService.createEnrollment(userId, activityId, enrollmentDto);
+        return enrollmentService.createEnrollment(userId, enrollmentDto);
     }
 
     @PutMapping("/enrollments/{enrollmentId}")

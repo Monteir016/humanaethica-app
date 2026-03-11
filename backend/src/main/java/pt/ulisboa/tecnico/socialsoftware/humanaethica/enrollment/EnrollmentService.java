@@ -52,20 +52,19 @@ public class EnrollmentService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public EnrollmentDto createEnrollment(Integer userId, Integer activityId, EnrollmentDto enrollmentDto) {
+    public EnrollmentDto createEnrollment(Integer userId, EnrollmentDto enrollmentDto) {
         if (enrollmentDto == null) throw  new HEException(ENROLLMENT_REQUIRES_MOTIVATION);
 
         if (userId == null) throw new HEException(USER_NOT_FOUND);
         Volunteer volunteer = (Volunteer) userRepository.findById(userId).orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
 
-        if (activityId == null) throw  new HEException(ACTIVITY_NOT_FOUND);
-        activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
+        if (enrollmentDto.getShiftIds() == null || enrollmentDto.getShiftIds().isEmpty()) {
+            throw new HEException(ENROLLMENT_REQUIRES_SHIFTS);
+        }
 
         List<Shift> shifts = new ArrayList<>();
-        if (enrollmentDto.getShiftIds() != null) {
-            for (Integer shiftId : enrollmentDto.getShiftIds()) {
-                shifts.add(shiftRepository.findById(shiftId).orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId)));
-            }
+        for (Integer shiftId : enrollmentDto.getShiftIds()) {
+            shifts.add(shiftRepository.findById(shiftId).orElseThrow(() -> new HEException(SHIFT_NOT_FOUND, shiftId)));
         }
 
         Enrollment enrollment = new Enrollment(volunteer, shifts, enrollmentDto);

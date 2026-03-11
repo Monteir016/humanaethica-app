@@ -92,6 +92,16 @@ class UpdateEnrollmentServiceTest extends SpockTest {
         return null
     }
 
+    def 'invalid argument: enrollment dto is null'() {
+        when:
+        enrollmentService.updateEnrollment(enrollment.id, null)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_REQUIRES_MOTIVATION
+        enrollmentRepository.findAll().size() == 1
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }

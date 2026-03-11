@@ -167,6 +167,34 @@ class CreateEnrollmentMethodTest extends SpockTest {
         result.shifts.contains(shift1)
     }
 
+    def "get activity returns null when enrollment has no shifts"() {
+        given:
+        def enrollment = new Enrollment()
+
+        expect:
+        enrollment.getActivity() == null
+    }
+
+    def "get activity returns null when shifts list is null"() {
+        given:
+        def enrollment = new Enrollment()
+        enrollment.@shifts = null
+
+        expect:
+        enrollment.getActivity() == null
+    }
+
+    def "set id sets enrollment id"() {
+        given:
+        def enrollment = new Enrollment()
+
+        when:
+        enrollment.setId(10)
+
+        then:
+        enrollment.getId() == 10
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }
