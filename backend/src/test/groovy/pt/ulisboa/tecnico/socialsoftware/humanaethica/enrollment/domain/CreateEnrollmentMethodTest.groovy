@@ -109,6 +109,8 @@ class CreateEnrollmentMethodTest extends SpockTest {
         otherEnrollment.getVolunteer() >> otherVolunteer
         def shift1 = Mock(Shift)
         def shift2 = Mock(Shift)
+        shift1.getActivity() >> activity
+        shift2.getActivity() >> activity
 
         when:
         def result = new Enrollment(activity, volunteer, [shift1, shift2], enrolmentDto)
@@ -126,6 +128,41 @@ class CreateEnrollmentMethodTest extends SpockTest {
         1 * volunteer.addEnrollment(_)
         1 * shift1.addEnrollment(_)
         1 * shift2.addEnrollment(_)
+    }
+
+    def "create enrollment with shifts from different activities violates invariant"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        def otherActivity = Mock(Activity)
+        def shift1 = Mock(Shift)
+        def shift2 = Mock(Shift)
+        shift1.getActivity() >> activity
+        shift2.getActivity() >> otherActivity
+
+        when:
+        new Enrollment(activity, volunteer, [shift1, shift2], enrolmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES
+    }
+
+    def "create enrollment with single shift is valid"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        def shift1 = Mock(Shift)
+        shift1.getActivity() >> activity
+
+        when:
+        def result = new Enrollment(activity, volunteer, [shift1], enrolmentDto)
+
+        then:
+        result.shifts.size() == 1
+        result.shifts.contains(shift1)
     }
 
     def "create enrollment with empty shifts"() {

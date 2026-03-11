@@ -46,6 +46,7 @@ public enum ErrorMessage {
     ENROLLMENT_REQUIRES_MOTIVATION("To apply to an activity you have to write a motivation longer than 10 characters"),
     ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED("The volunteer is already enrolled"),
     ENROLLMENT_AFTER_DEADLINE("The enrollment period is already closed"),
+    ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES("All shifts in an enrollment must belong to the same activity"),
     PARTICIPATION_IS_FULL("No vacancies"),
     PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE("The enrollment period is still open"),
     PARTICIPATION_NOT_FOUND("Participation not found with id %d"),
