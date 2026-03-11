@@ -19,6 +19,7 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
 
     def activity
     def enrollmentDto
+    def shift
 
     def setup() {
         deleteAll()
@@ -35,8 +36,11 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
+
         enrollmentDto = new EnrollmentDto()
         enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shift.id]
     }
 
     def 'volunteer create enrollment'() {
@@ -134,9 +138,6 @@ class CreateEnrollmentWebServiceIT extends SpockTest {
     def 'volunteer create enrollment with shifts'() {
         given:
         demoVolunteerLogin()
-        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
-        and:
-        enrollmentDto.shiftIds = [shift.id]
 
         when:
         def response = webClient.post()

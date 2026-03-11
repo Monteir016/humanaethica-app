@@ -57,7 +57,7 @@ class UpdateEnrollmentServiceTest extends SpockTest {
         def storedEnrollment = enrollmentRepository.findAll().get(0)
         storedEnrollment.motivation == ENROLLMENT_MOTIVATION_2
         storedEnrollment.enrollmentDateTime.isBefore(LocalDateTime.now())
-        storedEnrollment.activity.id == activity.id
+        storedEnrollment.getActivity().id == activity.id
         storedEnrollment.volunteer.id == volunteer.id
     }    
 

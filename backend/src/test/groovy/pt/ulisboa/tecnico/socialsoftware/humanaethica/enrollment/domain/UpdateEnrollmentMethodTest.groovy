@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -25,6 +26,7 @@ class UpdateEnrollmentMethodTest extends SpockTest {
     Activity activity = Mock()
     Enrollment otherEnrollment = Mock()
     Theme theme = Mock()
+    Shift shift = Mock()
 
     def enrollment
     def enrollmentDtoOne
@@ -41,12 +43,13 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         enrollmentDtoOne.motivation = ENROLLMENT_MOTIVATION_1
         activity.getEnrollments() >> [otherEnrollment]
         activity.getApplicationDeadline() >> IN_TWO_DAYS
+        shift.getActivity() >> activity
 
         and: "volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
 
         and: "enrollment"
-        enrollment = new Enrollment(activity, volunteer, [], EnrollmentDtoOne)
+        enrollment = new Enrollment(volunteer, [shift], enrollmentDtoOne)
         enrollmentDtoEdit = new EnrollmentDto()
     }
 
@@ -61,7 +64,7 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         then: "checks results"
         enrollment.getMotivation() == ENROLLMENT_MOTIVATION_2
         enrollment.enrollmentDateTime.isBefore(LocalDateTime.now())
-        enrollment.activity == activity
+        enrollment.getActivity() == activity
         enrollment.volunteer == volunteer
         
     }
@@ -103,11 +106,14 @@ class UpdateEnrollmentMethodTest extends SpockTest {
         activityDtoTwo.applicationDeadline = DateHandler.toISOString(IN_ONE_DAY)
         
         activity2 = new Activity(activityDtoTwo, institution, themes)
+
+        and: "a shift for activity2"
+        def shift2 = new Shift(activity2, createShiftDto(SHIFT_DESCRIPTION_1, 2, IN_TWO_DAYS, IN_THREE_DAYS))
         
         and: "enrollment"
         def enrollmentDtoTwo = new EnrollmentDto()
         enrollmentDtoTwo.motivation = ENROLLMENT_MOTIVATION_1
-        enrollmentTwo = new Enrollment(activity2, volunteer, [], enrollmentDtoTwo)
+        enrollmentTwo = new Enrollment(volunteer, [shift2], enrollmentDtoTwo)
         activity2.setApplicationDeadline(ONE_DAY_AGO)
         enrollmentDtoEdit.motivation = ENROLLMENT_MOTIVATION_2
 

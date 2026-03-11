@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto;
@@ -60,7 +59,7 @@ public class EnrollmentService {
         Volunteer volunteer = (Volunteer) userRepository.findById(userId).orElseThrow(() -> new HEException(USER_NOT_FOUND, userId));
 
         if (activityId == null) throw  new HEException(ACTIVITY_NOT_FOUND);
-        Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
+        activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
         List<Shift> shifts = new ArrayList<>();
         if (enrollmentDto.getShiftIds() != null) {
@@ -69,7 +68,7 @@ public class EnrollmentService {
             }
         }
 
-        Enrollment enrollment = new Enrollment(activity, volunteer, shifts, enrollmentDto);
+        Enrollment enrollment = new Enrollment(volunteer, shifts, enrollmentDto);
         enrollmentRepository.save(enrollment);
 
         return new EnrollmentDto(enrollment);

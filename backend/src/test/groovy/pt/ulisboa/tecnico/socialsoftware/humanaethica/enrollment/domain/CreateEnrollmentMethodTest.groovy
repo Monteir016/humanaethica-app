@@ -20,12 +20,15 @@ class CreateEnrollmentMethodTest extends SpockTest {
     Volunteer volunteer = Mock()
     Volunteer otherVolunteer = Mock()
     Enrollment otherEnrollment = Mock()
+    Shift shift = Mock()
     def enrolmentDto
 
     def setup() {
         given: "enrolment info"
         enrolmentDto = new EnrollmentDto()
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        and: "shift belongs to activity"
+        shift.getActivity() >> activity
     }
 
     def "create enrollment"() {
@@ -35,16 +38,16 @@ class CreateEnrollmentMethodTest extends SpockTest {
         otherEnrollment.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Enrollment(activity, volunteer, [], enrolmentDto)
+        def result = new Enrollment(volunteer, [shift], enrolmentDto)
 
         then: "checks results"
         result.motivation == ENROLLMENT_MOTIVATION_1
         result.enrollmentDateTime.isBefore(LocalDateTime.now())
-        result.activity == activity
+        result.getActivity() == activity
         result.volunteer == volunteer
         and: "check that it is added"
-        1 * activity.addEnrollment(_)
         1 * volunteer.addEnrollment(_)
+        1 * shift.addEnrollment(_)
     }
 
     @Unroll
@@ -57,7 +60,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = motivation
 
         when:
-        new Enrollment(activity, volunteer, [], enrolmentDto)
+        new Enrollment(volunteer, [shift], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -79,7 +82,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, [], enrolmentDto)
+        new Enrollment(volunteer, [shift], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -95,7 +98,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, [], enrolmentDto)
+        new Enrollment(volunteer, [shift], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -113,18 +116,17 @@ class CreateEnrollmentMethodTest extends SpockTest {
         shift2.getActivity() >> activity
 
         when:
-        def result = new Enrollment(activity, volunteer, [shift1, shift2], enrolmentDto)
+        def result = new Enrollment(volunteer, [shift1, shift2], enrolmentDto)
 
         then: "checks results"
         result.motivation == ENROLLMENT_MOTIVATION_1
         result.enrollmentDateTime.isBefore(LocalDateTime.now())
-        result.activity == activity
+        result.getActivity() == activity
         result.volunteer == volunteer
         result.shifts.size() == 2
         result.shifts.contains(shift1)
         result.shifts.contains(shift2)
         and: "check that it is added"
-        1 * activity.addEnrollment(_)
         1 * volunteer.addEnrollment(_)
         1 * shift1.addEnrollment(_)
         1 * shift2.addEnrollment(_)
@@ -142,7 +144,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         shift2.getActivity() >> otherActivity
 
         when:
-        new Enrollment(activity, volunteer, [shift1, shift2], enrolmentDto)
+        new Enrollment(volunteer, [shift1, shift2], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -158,28 +160,11 @@ class CreateEnrollmentMethodTest extends SpockTest {
         shift1.getActivity() >> activity
 
         when:
-        def result = new Enrollment(activity, volunteer, [shift1], enrolmentDto)
+        def result = new Enrollment(volunteer, [shift1], enrolmentDto)
 
         then:
         result.shifts.size() == 1
         result.shifts.contains(shift1)
-    }
-
-    def "create enrollment with empty shifts"() {
-        given:
-        activity.getEnrollments() >> [otherEnrollment]
-        activity.getApplicationDeadline() >> IN_ONE_DAY
-        otherEnrollment.getVolunteer() >> otherVolunteer
-
-        when:
-        def result = new Enrollment(activity, volunteer, [], enrolmentDto)
-
-        then: "checks results"
-        result.motivation == ENROLLMENT_MOTIVATION_1
-        result.shifts.size() == 0
-        and: "check that it is added"
-        1 * activity.addEnrollment(_)
-        1 * volunteer.addEnrollment(_)
     }
 
     @TestConfiguration
