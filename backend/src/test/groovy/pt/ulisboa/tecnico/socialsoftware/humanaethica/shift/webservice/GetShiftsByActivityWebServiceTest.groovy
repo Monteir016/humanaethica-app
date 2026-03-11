@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.webservice
 
-import java.time.temporal.ChronoUnit
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
@@ -56,13 +55,13 @@ class GetShiftsByActivityWebServiceTest extends SpockTest {
         response.size() == 2
         response.get(0).description == SHIFT_DESCRIPTION_1
         response.get(0).participantsLimit == 2
-        response.get(0).startingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(1).truncatedTo(ChronoUnit.MICROS))
-        response.get(0).endingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(2).truncatedTo(ChronoUnit.MICROS))
+        response.get(0).startingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(1))
+        response.get(0).endingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(2))
         response.get(0).activityId == activity.id
         response.get(1).description == SHIFT_DESCRIPTION_2
         response.get(1).participantsLimit == 2
-        response.get(1).startingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(3).truncatedTo(ChronoUnit.MICROS))
-        response.get(1).endingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(4).truncatedTo(ChronoUnit.MICROS))
+        response.get(1).startingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(3))
+        response.get(1).endingDate == DateHandler.toISOString(IN_TWO_DAYS.plusHours(4))
         response.get(1).activityId == activity.id
 
         cleanup:

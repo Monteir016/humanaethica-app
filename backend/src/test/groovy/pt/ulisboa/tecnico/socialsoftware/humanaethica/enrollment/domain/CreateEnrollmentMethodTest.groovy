@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
@@ -34,7 +35,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         otherEnrollment.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Enrollment(activity, volunteer, enrolmentDto)
+        def result = new Enrollment(activity, volunteer, [], enrolmentDto)
 
         then: "checks results"
         result.motivation == ENROLLMENT_MOTIVATION_1
@@ -56,7 +57,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = motivation
 
         when:
-        new Enrollment(activity, volunteer, enrolmentDto)
+        new Enrollment(activity, volunteer, [], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -78,7 +79,7 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, enrolmentDto)
+        new Enrollment(activity, volunteer, [], enrolmentDto)
 
         then:
         def error = thrown(HEException)
@@ -94,11 +95,54 @@ class CreateEnrollmentMethodTest extends SpockTest {
         enrolmentDto.motivation = ENROLLMENT_MOTIVATION_1
 
         when:
-        new Enrollment(activity, volunteer, enrolmentDto)
+        new Enrollment(activity, volunteer, [], enrolmentDto)
 
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED
+    }
+
+    def "create enrollment with shifts"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        def shift1 = Mock(Shift)
+        def shift2 = Mock(Shift)
+
+        when:
+        def result = new Enrollment(activity, volunteer, [shift1, shift2], enrolmentDto)
+
+        then: "checks results"
+        result.motivation == ENROLLMENT_MOTIVATION_1
+        result.enrollmentDateTime.isBefore(LocalDateTime.now())
+        result.activity == activity
+        result.volunteer == volunteer
+        result.shifts.size() == 2
+        result.shifts.contains(shift1)
+        result.shifts.contains(shift2)
+        and: "check that it is added"
+        1 * activity.addEnrollment(_)
+        1 * volunteer.addEnrollment(_)
+        1 * shift1.addEnrollment(_)
+        1 * shift2.addEnrollment(_)
+    }
+
+    def "create enrollment with empty shifts"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+
+        when:
+        def result = new Enrollment(activity, volunteer, [], enrolmentDto)
+
+        then: "checks results"
+        result.motivation == ENROLLMENT_MOTIVATION_1
+        result.shifts.size() == 0
+        and: "check that it is added"
+        1 * activity.addEnrollment(_)
+        1 * volunteer.addEnrollment(_)
     }
 
     @TestConfiguration
