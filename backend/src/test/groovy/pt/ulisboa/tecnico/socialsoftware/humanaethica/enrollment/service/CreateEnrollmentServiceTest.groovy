@@ -159,6 +159,32 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 0
     }
 
+    def 'create enrollment and fail when shifts belong to different activities'() {
+        given:
+        def institution = institutionService.getDemoInstitution()
+        def activityOne = activityRepository.findAll().get(0)
+
+        def activityDto = createActivityDto(ACTIVITY_NAME_2, ACTIVITY_REGION_1, 1, ACTIVITY_DESCRIPTION_1,
+                IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, null)
+        def activityTwo = new Activity(activityDto, institution, new ArrayList<>())
+        activityRepository.save(activityTwo)
+
+        def shiftOne = createShift(activityOne, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_THREE_DAYS)
+        def shiftTwo = createShift(activityTwo, SHIFT_DESCRIPTION_2, 1, IN_TWO_DAYS, IN_THREE_DAYS)
+
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shiftOne.id, shiftTwo.id]
+
+        when:
+        enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES
+        enrollmentRepository.findAll().size() == 0
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }
