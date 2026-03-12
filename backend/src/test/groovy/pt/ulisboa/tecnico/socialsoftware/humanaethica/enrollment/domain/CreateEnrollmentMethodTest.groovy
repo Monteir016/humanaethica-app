@@ -114,6 +114,10 @@ class CreateEnrollmentMethodTest extends SpockTest {
         def shift2 = Mock(Shift)
         shift1.getActivity() >> activity
         shift2.getActivity() >> activity
+        shift1.getStartingDate() >> IN_TWO_DAYS
+        shift1.getEndingDate() >> IN_TWO_DAYS.plusHours(1)
+        shift2.getStartingDate() >> IN_TWO_DAYS.plusHours(2)
+        shift2.getEndingDate() >> IN_TWO_DAYS.plusHours(3)
 
         when:
         def result = new Enrollment(volunteer, [shift1, shift2], enrolmentDto)
@@ -149,6 +153,51 @@ class CreateEnrollmentMethodTest extends SpockTest {
         then:
         def error = thrown(HEException)
         error.getErrorMessage() == ErrorMessage.ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES
+    }
+
+    def "create enrollment with contiguous shifts is valid"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        def shift1 = Mock(Shift)
+        def shift2 = Mock(Shift)
+        shift1.getActivity() >> activity
+        shift2.getActivity() >> activity
+        shift1.getStartingDate() >> IN_TWO_DAYS
+        shift1.getEndingDate() >> IN_TWO_DAYS.plusHours(1)
+        shift2.getStartingDate() >> IN_TWO_DAYS.plusHours(1)
+        shift2.getEndingDate() >> IN_TWO_DAYS.plusHours(2)
+
+        when:
+        def result = new Enrollment(volunteer, [shift1, shift2], enrolmentDto)
+
+        then:
+        result.shifts.size() == 2
+        1 * shift1.addEnrollment(_)
+        1 * shift2.addEnrollment(_)
+    }
+
+    def "create enrollment with overlapping shifts violates invariant"() {
+        given:
+        activity.getEnrollments() >> [otherEnrollment]
+        activity.getApplicationDeadline() >> IN_ONE_DAY
+        otherEnrollment.getVolunteer() >> otherVolunteer
+        def shift1 = Mock(Shift)
+        def shift2 = Mock(Shift)
+        shift1.getActivity() >> activity
+        shift2.getActivity() >> activity
+        shift1.getStartingDate() >> IN_TWO_DAYS
+        shift1.getEndingDate() >> IN_TWO_DAYS.plusHours(2)
+        shift2.getStartingDate() >> IN_TWO_DAYS.plusHours(1)
+        shift2.getEndingDate() >> IN_TWO_DAYS.plusHours(3)
+
+        when:
+        new Enrollment(volunteer, [shift1, shift2], enrolmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_OVERLAPPING_SHIFTS
     }
 
     def "create enrollment with single shift is valid"() {
@@ -193,6 +242,30 @@ class CreateEnrollmentMethodTest extends SpockTest {
 
         then:
         enrollment.getId() == 10
+    }
+
+    def "set shifts with null assigns empty list"() {
+        given:
+        def enrollment = new Enrollment()
+
+        when:
+        enrollment.setShifts(null)
+
+        then:
+        enrollment.getShifts() != null
+        enrollment.getShifts().isEmpty()
+    }
+
+    def "set shifts with empty list keeps enrollment without shifts"() {
+        given:
+        def enrollment = new Enrollment()
+
+        when:
+        enrollment.setShifts([])
+
+        then:
+        enrollment.getShifts() != null
+        enrollment.getShifts().isEmpty()
     }
 
     @TestConfiguration
