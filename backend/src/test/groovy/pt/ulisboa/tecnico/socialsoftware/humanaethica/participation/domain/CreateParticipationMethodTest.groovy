@@ -5,9 +5,11 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
@@ -214,6 +216,54 @@ class CreateParticipationMethodTest extends SpockTest {
 
         where:
         review << ["", "123456789","a".repeat(MAX_REVIEW_LENGTH + 1)]
+    }
+
+    def "create participation with enrollment containing the shift"() {
+        given:
+        def enrollment = Mock(Enrollment)
+        def shift = Mock(Shift)
+        enrollment.getShifts() >> [shift]
+        activity.getParticipations() >> [otherParticipation]
+        activity.getNumberOfParticipatingVolunteers() >> 2
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        activity.getParticipantsNumberLimit() >> 3
+        otherParticipation.getVolunteer() >> otherVolunteer
+
+        when:
+        def result = new Participation(activity, volunteer, enrollment, shift, participationDto)
+
+        then: "checks results"
+        result.enrollment == enrollment
+        result.shift == shift
+        result.activity == activity
+        result.volunteer == volunteer
+    }
+
+    @Unroll
+    def "create participation and violate enrollment must have shift invariant: #description"() {
+        given:
+        def enrollment = Mock(Enrollment)
+        def shift = Mock(Shift)
+        def otherShift = Mock(Shift)
+        enrollment.getShifts() >> enrollmentShifts
+        activity.getParticipations() >> [otherParticipation]
+        activity.getNumberOfParticipatingVolunteers() >> 2
+        activity.getApplicationDeadline() >> TWO_DAYS_AGO
+        activity.getEndingDate() >> ONE_DAY_AGO
+        activity.getParticipantsNumberLimit() >> 3
+        otherParticipation.getVolunteer() >> otherVolunteer
+
+        when:
+        new Participation(activity, volunteer, enrollment, shift, participationDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.PARTICIPATION_ENROLLMENT_DOES_NOT_CONTAIN_SHIFT
+
+        where:
+        description                    | enrollmentShifts
+        "enrollment has no shifts"     | []
     }
 
     @TestConfiguration

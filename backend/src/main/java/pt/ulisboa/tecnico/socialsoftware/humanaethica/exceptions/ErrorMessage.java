@@ -55,6 +55,7 @@ public enum ErrorMessage {
     PARTICIPATION_RATING_BETWEEN_ONE_AND_FIVE("Rating %d is not in the range 1 to 5"),
     PARTICIPATION_REVIEW_LENGTH_INVALID("Invalid review with length %d"),
     PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING("The volunteer is already participating"),
+    PARTICIPATION_ENROLLMENT_DOES_NOT_CONTAIN_SHIFT("The enrollment does not contain the participation's shift"),
     PARTICIPATION_REQUIRES_INFORMATION("Information about participation is required"),
     PARTICIPATION_MEMBER_REVIEW_NOT_ALLOWED("Members cannot create or edit a volunteer review"),
     PARTICIPATION_VOLUNTEER_REVIEW_NOT_ALLOWED("Volunteers cannot create or edit a member review"),
