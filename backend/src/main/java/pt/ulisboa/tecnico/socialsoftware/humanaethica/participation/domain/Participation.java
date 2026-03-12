@@ -2,9 +2,11 @@ package pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain;
 
 import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
@@ -29,6 +31,10 @@ public class Participation {
     private Activity activity;
     @ManyToOne
     private Volunteer volunteer;
+    @ManyToOne
+    private Shift shift;
+    @ManyToOne
+    private Enrollment enrollment;
 
     public Participation() {}
 
@@ -41,7 +47,19 @@ public class Participation {
         setVolunteerRating(participationDto.getVolunteerRating());
         setVolunteerReview(participationDto.getVolunteerReview());
 
+        verifyInvariants();
+    }
 
+    public Participation(Activity activity, Volunteer volunteer, Enrollment enrollment, Shift shift, ParticipationDto participationDto) {
+        setActivity(activity);
+        setVolunteer(volunteer);
+        setEnrollment(enrollment);
+        setShift(shift);
+        setAcceptanceDate(LocalDateTime.now());
+        setMemberRating(participationDto.getMemberRating());
+        setMemberReview(participationDto.getMemberReview());
+        setVolunteerRating(participationDto.getVolunteerRating());
+        setVolunteerReview(participationDto.getVolunteerReview());
 
         verifyInvariants();
     }
@@ -130,6 +148,22 @@ public class Participation {
         this.volunteer.addParticipation(this);
     }
 
+    public Shift getShift() {
+        return shift;
+    }
+
+    public void setShift(Shift shift) {
+        this.shift = shift;
+    }
+
+    public Enrollment getEnrollment() {
+        return enrollment;
+    }
+
+    public void setEnrollment(Enrollment enrollment) {
+        this.enrollment = enrollment;
+    }
+
     private void verifyInvariants() {
         participateOnce();
         numberOfParticipantsLessOrEqualLimit();
@@ -137,6 +171,7 @@ public class Participation {
         ratingAfterEnd();
         ratingBetweenOneAndFive();
         reviewSizeIsCorrect();
+        enrollmentContainsShift();
     }
 
     private void participateOnce() {
@@ -182,6 +217,13 @@ public class Participation {
 
         if (memberReview != null && (memberReview.length() < 10 || memberReview.length() > 100)) {
             throw new HEException(PARTICIPATION_REVIEW_LENGTH_INVALID, memberReview.length());
+        }
+    }
+
+    private void enrollmentContainsShift() {
+        if (this.enrollment != null && this.shift != null
+                && !this.enrollment.getShifts().contains(this.shift)) {
+            throw new HEException(PARTICIPATION_ENROLLMENT_DOES_NOT_CONTAIN_SHIFT);
         }
     }
 }
