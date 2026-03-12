@@ -27,8 +27,6 @@ public class Participation {
 
 
     @ManyToOne
-    private Activity activity;
-    @ManyToOne
     private Volunteer volunteer;
     @ManyToOne
     private Shift shift;
@@ -38,7 +36,8 @@ public class Participation {
     public Participation() {}
 
     public Participation(Activity activity, Volunteer volunteer, ParticipationDto participationDto) {
-        setActivity(activity);
+        Shift shift = activity.getShifts().stream().findFirst().orElse(null);
+        setShift(shift);
         setVolunteer(volunteer);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
@@ -50,10 +49,9 @@ public class Participation {
     }
 
     public Participation(Activity activity, Volunteer volunteer, Enrollment enrollment, Shift shift, ParticipationDto participationDto) {
-        setActivity(activity);
+        setShift(shift);
         setVolunteer(volunteer);
         setEnrollment(enrollment);
-        setShift(shift);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
         setMemberReview(participationDto.getMemberReview());
@@ -77,7 +75,9 @@ public class Participation {
 
     public void delete(){
         volunteer.deleteParticipation(this);
-        activity.deleteParticipation(this);
+        if (shift != null) {
+            shift.deleteParticipation(this);
+        }
         if (enrollment != null) {
             enrollment.deleteParticipation(this);
         }
@@ -133,12 +133,13 @@ public class Participation {
     }
 
     public Activity getActivity() {
-        return activity;
-    }
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-        this.activity.addParticipation(this);
+        if (this.shift != null) {
+            return this.shift.getActivity();
+        }
+        if (this.enrollment != null) {
+            return this.enrollment.getActivity();
+        }
+        return null;
     }
 
     public Volunteer getVolunteer() {
@@ -156,6 +157,9 @@ public class Participation {
 
     public void setShift(Shift shift) {
         this.shift = shift;
+        if (shift != null) {
+            shift.addParticipation(this);
+        }
     }
 
     public Enrollment getEnrollment() {
@@ -180,26 +184,26 @@ public class Participation {
     }
 
     private void participateOnce() {
-        if (this.activity.getParticipations().stream()
+        if (this.getActivity().getParticipations().stream()
                 .anyMatch(participation -> participation != this && participation.getVolunteer() == this.volunteer)) {
             throw new HEException(PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING);
         }
     }
 
     private void numberOfParticipantsLessOrEqualLimit() {
-        if (this.activity.getNumberOfParticipatingVolunteers() > this.activity.getParticipantsNumberLimit()) {
+        if (this.getShift().getParticipations().size() > this.getShift().getParticipantsLimit()) {
             throw new HEException(PARTICIPATION_IS_FULL);
         }
     }
 
     private void acceptanceAfterDeadline() {
-        if (this.acceptanceDate.isBefore(this.activity.getApplicationDeadline())) {
+        if (this.acceptanceDate.isBefore(this.getActivity().getApplicationDeadline())) {
             throw new HEException(PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE);
         }
     }
 
     private void ratingAfterEnd() {
-        if ((volunteerRating != null || memberRating != null) && LocalDateTime.now().isBefore(activity.getEndingDate())) {
+        if ((volunteerRating != null || memberRating != null) && LocalDateTime.now().isBefore(getActivity().getEndingDate())) {
             throw new HEException(PARTICIPATION_RATING_BEFORE_END);
         }
     }
@@ -232,5 +236,4 @@ public class Participation {
         }
     }
 }
-
 

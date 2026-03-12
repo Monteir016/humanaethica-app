@@ -36,6 +36,9 @@ class UpdateVolunteerRatingParticipationServiceTest extends SpockTest {
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
 
+        createShift(activity, SHIFT_DESCRIPTION_1, 3, ONE_DAY_AGO, NOW)
+        createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
+
         def participationDto = new ParticipationDto()
         participationDto.memberRating = 5
         participationDto.memberReview = MEMBER_REVIEW

@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import spock.lang.Unroll
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime
 @DataJpaTest
 class UpdateMemberRatingParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
+    Shift shift = Mock()
     Volunteer volunteer = Mock()
     Participation otherParticipation = Mock()
     def participation
@@ -27,10 +29,12 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         given:
 
         activity.getParticipations() >> [otherParticipation]
-        activity.getNumberOfParticipatingVolunteers() >> 2
+        activity.getShifts() >> [shift]
+        shift.getActivity() >> activity
+        shift.getParticipations() >> [otherParticipation]
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
-        activity.getParticipantsNumberLimit() >> 3
+        shift.getParticipantsLimit() >> 3
 
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
@@ -54,6 +58,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         participation.memberReview == MEMBER_REVIEW
         participation.acceptanceDate.isBefore(LocalDateTime.now())
         participation.activity == activity
+        participation.shift == shift
         participation.volunteer == volunteer
     }
 

@@ -51,6 +51,7 @@ import spock.lang.Specification
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.lang.reflect.Field
 
 class SpockTest extends Specification {
     // remote requests
@@ -291,16 +292,36 @@ class SpockTest extends Specification {
     EnrollmentRepository enrollmentRepository
 
     def createEnrollment(activity, volunteer, motivation) {
+        def domainVolunteer = resolveVolunteer(volunteer)
         def shift
         if (activity.getShifts().isEmpty()) {
             shift = createShift(activity, SHIFT_DESCRIPTION_1, activity.getParticipantsNumberLimit(), activity.getStartingDate(), activity.getEndingDate())
         } else {
             shift = activity.getShifts().get(0)
         }
+
+        def originalDeadline = activity.getApplicationDeadline()
+        def originalStart = activity.getStartingDate()
+        def originalEnd = activity.getEndingDate()
+        def adjustedDates = false
+        if (originalDeadline != null && originalDeadline.isBefore(LocalDateTime.now())) {
+            activity.setApplicationDeadline(LocalDateTime.now().plusDays(1))
+            activity.setStartingDate(LocalDateTime.now().plusDays(2))
+            activity.setEndingDate(LocalDateTime.now().plusDays(3))
+            adjustedDates = true
+        }
+
         def enrollmentDto = new EnrollmentDto()
         enrollmentDto.setMotivation(motivation)
-        def enrollment = new Enrollment(volunteer, [shift], enrollmentDto)
+        def enrollment = new Enrollment(domainVolunteer, [shift], enrollmentDto)
         enrollmentRepository.save(enrollment)
+
+        if (adjustedDates) {
+            activity.setApplicationDeadline(originalDeadline)
+            activity.setStartingDate(originalStart)
+            activity.setEndingDate(originalEnd)
+        }
+
         return enrollment
     }
 
@@ -319,10 +340,69 @@ class SpockTest extends Specification {
     public static final String VOLUNTEER_REVIEW = "The activity was fun."
 
     def createParticipation(activity, volunteer, participationDto ) {
-        participationDto.volunteerId = volunteer.getId()
-        def participation = new Participation(activity, volunteer, participationDto)
+        def domainVolunteer = resolveVolunteer(volunteer)
+        participationDto.volunteerId = domainVolunteer.getId()
+        def shift
+        if (activity.getShifts().isEmpty()) {
+            shift = createShift(activity, SHIFT_DESCRIPTION_1, activity.getParticipantsNumberLimit(), activity.getStartingDate(), activity.getEndingDate())
+        } else {
+            shift = activity.getShifts().get(0)
+        }
+        def enrollment = enrollmentRepository.getEnrollmentsByActivityId(activity.id).stream()
+                .filter(e -> e.getVolunteer().getId() == domainVolunteer.getId())
+                .findFirst()
+                .orElse(null)
+        if (enrollment == null) {
+            enrollment = createEnrollment(activity, domainVolunteer, ENROLLMENT_MOTIVATION_1)
+        }
+        normalizeEnrollment(enrollment, shift)
+
+        def participation = new Participation(activity, domainVolunteer, enrollment, shift, participationDto)
         participationRepository.save(participation)
         return participation
+    }
+
+    private Volunteer resolveVolunteer(def volunteer) {
+        Volunteer domainVolunteer
+        if (volunteer instanceof Volunteer) {
+            domainVolunteer = volunteer
+        } else {
+            def volunteerId = volunteer?.id
+            if (volunteerId == null) {
+                return null
+            }
+            domainVolunteer = (Volunteer) userRepository.findById(volunteerId).orElse(null)
+        }
+
+        if (domainVolunteer != null) {
+            // Avoid LazyInitialization in tests that build domain objects outside transactions.
+            domainVolunteer.setEnrollments(new ArrayList<>())
+            domainVolunteer.setParticipations(new ArrayList<>())
+        }
+
+        return domainVolunteer
+    }
+
+    private void normalizeEnrollment(Enrollment enrollment, Shift fallbackShift) {
+        if (enrollment == null) {
+            return
+        }
+
+        try {
+            Field participationsField = Enrollment.class.getDeclaredField("participations")
+            participationsField.setAccessible(true)
+            participationsField.set(enrollment, new ArrayList<>())
+
+            Field shiftsField = Enrollment.class.getDeclaredField("shifts")
+            shiftsField.setAccessible(true)
+            def shifts = new ArrayList<Shift>()
+            if (fallbackShift != null) {
+                shifts.add(fallbackShift)
+            }
+            shiftsField.set(enrollment, shifts)
+        } catch (Exception ignored) {
+            // Best-effort normalization for detached entities in test helpers.
+        }
     }
     @Autowired
     ParticipationService participationService

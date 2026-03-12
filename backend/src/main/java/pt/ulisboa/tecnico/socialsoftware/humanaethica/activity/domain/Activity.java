@@ -49,9 +49,6 @@ public class Activity {
     private LocalDateTime creationDate;
 
     @OneToMany(mappedBy = "activity")
-    private List<Participation> participations = new ArrayList<>();
-
-    @OneToMany(mappedBy = "activity")
     private List<Report> reports = new ArrayList<>();
 
     @OneToMany(mappedBy = "activity")
@@ -190,23 +187,17 @@ public class Activity {
     public Integer getSuspendedByUserId() {return this.suspendedByUserId;}
 
     public List<Participation> getParticipations() {
-        return participations;
-    }
-
-    public void addParticipation(Participation participation) {
-        this.participations.add(participation);
-    }
-
-    public void deleteParticipation(Participation participation) {
-        this.participations.remove(participation);
+        return getShifts().stream()
+                .flatMap(shift -> shift.getParticipations().stream())
+                .distinct()
+                .toList();
     }
 
     public int getNumberOfParticipatingVolunteers() {
-        return this.participations.size();
-    }
-
-    public void setParticipations(List<Participation> participations) {
-        this.participations = participations;
+        return (int) getParticipations().stream()
+                .map(Participation::getVolunteer)
+                .distinct()
+                .count();
     }
 
     private void activityCannotBeSuspended() {

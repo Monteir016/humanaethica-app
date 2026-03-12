@@ -68,7 +68,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
 
-        participationService.createParticipation(activity.id,participationDto)
+        createParticipation(activity, volunteer, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
 
     }
@@ -185,7 +185,7 @@ class UpdateMemberParticipationWebServiceIT extends SpockTest {
         participationDto.memberReview = null
         participationDto.volunteerId = volunteer.id
 
-        participationService.createParticipation(activity2.id, participationDto)
+        createParticipation(activity2, volunteer, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
 
 

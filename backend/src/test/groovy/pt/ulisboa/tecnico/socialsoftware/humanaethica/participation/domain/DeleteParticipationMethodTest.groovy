@@ -27,6 +27,7 @@ class DeleteParticipationMethodTest extends SpockTest {
     def participation
     def otherParticipation
     def participationDto
+    def shift
 
     def setup() {
         otherActivity.getName() >> ACTIVITY_NAME_2
@@ -44,6 +45,7 @@ class DeleteParticipationMethodTest extends SpockTest {
         activityDto.endingDate = DateHandler.toISOString(ONE_DAY_AGO)
         activityDto.applicationDeadline = DateHandler.toISOString(LocalDateTime.now().minusDays(3))
         activity = new Activity(activityDto, institution, themes)
+        shift = createShift(activity, SHIFT_DESCRIPTION_1, 2, TWO_DAYS_AGO, ONE_DAY_AGO)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         and: "a participation"
@@ -106,6 +108,7 @@ class DeleteParticipationMethodTest extends SpockTest {
         activityDto.endingDate = DateHandler.toISOString(ONE_DAY_AGO)
         activityDto.applicationDeadline = DateHandler.toISOString(LocalDateTime.now().minusDays(3))
         def otherActivity = new Activity(activityDto, institution, themes)
+        createShift(otherActivity, SHIFT_DESCRIPTION_2, 2, TWO_DAYS_AGO, ONE_DAY_AGO)
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
         participationDto.memberReview= MEMBER_REVIEW

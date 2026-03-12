@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 @Transactional
 public interface ParticipationRepository extends JpaRepository<Participation, Integer> {
-    @Query("SELECT p FROM Participation p WHERE p.activity.id = :activityId")
+    @Query("SELECT p FROM Participation p WHERE p.shift.activity.id = :activityId")
     List<Participation> getParticipationsByActivityId(Integer activityId);
 
     @Query("SELECT p FROM Participation p WHERE p.volunteer.id = :volunteerId")

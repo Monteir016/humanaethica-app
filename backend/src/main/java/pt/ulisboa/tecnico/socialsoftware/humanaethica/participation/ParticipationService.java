@@ -6,13 +6,12 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.EnrollmentRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Member;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.repository.UserRepository;
@@ -86,15 +85,17 @@ public class ParticipationService {
         Activity activity = activityRepository.findById(activityId).orElseThrow(() -> new HEException(ACTIVITY_NOT_FOUND, activityId));
 
 
-        Participation participation = new Participation(activity, volunteer, participationDto);
-
-        Enrollment enrollment = enrollmentRepository.getEnrollmentsByActivityId(activityId).stream()
-                .filter(e -> e.getVolunteer().getId().equals(volunteer.getId()))
+        Enrollment enrollment = enrollmentRepository.getEnrollmentsForVolunteerId(volunteer.getId()).stream()
+                .filter(e -> e.getShifts().isEmpty() || e.getActivity().getId().equals(activityId))
                 .findFirst()
                 .orElse(null);
-        if (enrollment != null) {
-            participation.setEnrollment(enrollment);
+
+        if (enrollment == null) {
+            throw new HEException(ENROLLMENT_NOT_FOUND);
         }
+
+        Shift shift = enrollment.getShifts().stream().findFirst().orElseThrow(() -> new HEException(ENROLLMENT_REQUIRES_SHIFTS));
+        Participation participation = new Participation(activity, volunteer, enrollment, shift, participationDto);
 
         participationRepository.save(participation);
 

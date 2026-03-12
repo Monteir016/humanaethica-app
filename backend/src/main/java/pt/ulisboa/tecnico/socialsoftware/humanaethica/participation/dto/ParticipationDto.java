@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler;
 
 public class ParticipationDto {
     private Integer id;
-    private Integer activityId;
+    private Integer shiftId;
     private Integer volunteerId;
     private Integer enrollmentId;
     private Integer memberRating;
@@ -21,7 +21,7 @@ public class ParticipationDto {
 
     public ParticipationDto(Participation participation,  User.Role userRole) {
         this.id = participation.getId();
-        this.activityId = participation.getActivity().getId();
+        this.shiftId = participation.getShift() != null ? participation.getShift().getId() : null;
         this.volunteerId = participation.getVolunteer().getId();
         this.enrollmentId = participation.getEnrollment() != null ? participation.getEnrollment().getId() : null;
         this.acceptanceDate = DateHandler.toISOString(participation.getAcceptanceDate());
@@ -52,12 +52,12 @@ public class ParticipationDto {
         this.id = id;
     }
 
-    public Integer getActivityId() {
-        return activityId;
+    public Integer getShiftId() {
+        return shiftId;
     }
 
-    public void setActivityId(Integer activityId) {
-        this.activityId = activityId;
+    public void setShiftId(Integer shiftId) {
+        this.shiftId = shiftId;
     }
 
     public Integer getVolunteerId() {
