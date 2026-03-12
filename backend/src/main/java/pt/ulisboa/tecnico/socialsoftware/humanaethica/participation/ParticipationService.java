@@ -95,7 +95,7 @@ public class ParticipationService {
         }
 
         Shift shift = enrollment.getShifts().stream().findFirst().orElseThrow(() -> new HEException(ENROLLMENT_REQUIRES_SHIFTS));
-        Participation participation = new Participation(activity, volunteer, enrollment, shift, participationDto);
+        Participation participation = new Participation(activity, enrollment, shift, participationDto);
 
         participationRepository.save(participation);
 

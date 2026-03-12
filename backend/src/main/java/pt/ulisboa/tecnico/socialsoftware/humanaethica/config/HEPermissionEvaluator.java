@@ -66,7 +66,8 @@ public class HEPermissionEvaluator implements PermissionEvaluator {
                 case "PARTICIPATION.VOLUNTEER":
                     Participation participation1 = participationRepository.findById(id).orElse(null);
                     if (participation1 == null) return false;
-                    return participation1.getVolunteer().getId().equals(((Volunteer)authUser.getUser()).getId());
+                    return participation1.getEnrollment() != null
+                            && participation1.getEnrollment().getVolunteer().getId().equals(((Volunteer)authUser.getUser()).getId());
                 default:
                     return false;
             }

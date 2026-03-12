@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.assessment.domain.Assessment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report;
 
 import java.util.ArrayList;
@@ -15,9 +14,6 @@ import java.util.List;
 public class Volunteer extends User {
     @OneToMany(mappedBy = "volunteer")
     private List<Enrollment> enrollments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "volunteer")
-    private List<Participation> participations = new ArrayList<>();
 
     @OneToMany(mappedBy = "volunteer")
     private List<Assessment> assessments = new ArrayList<>();
@@ -50,22 +46,6 @@ public class Volunteer extends User {
 
     public void removeEnrollment(Enrollment enrollment) {
         this.enrollments.remove(enrollment);
-    }
-
-    public List<Participation> getParticipations() {
-        return participations;
-    }
-
-    public void setParticipations(List<Participation> participations) {
-        this.participations = participations;
-    }
-
-    public void addParticipation(Participation participation) {
-        this.participations.add(participation);
-    }
-
-    public void deleteParticipation(Participation participation) {
-        this.participations.remove(participation);
     }
 
     public List<Assessment> getAssessments() {

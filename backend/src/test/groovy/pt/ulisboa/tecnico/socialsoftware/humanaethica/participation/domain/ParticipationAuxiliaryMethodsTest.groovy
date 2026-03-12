@@ -90,6 +90,32 @@ class ParticipationAuxiliaryMethodsTest extends SpockTest {
         participation.getEnrollment() == null
     }
 
+    def "getVolunteer returns enrollment volunteer"() {
+        given:
+        def institution = institutionService.getDemoInstitution()
+        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
+                TWO_DAYS_AGO, ONE_DAY_AGO, NOW, null)
+        def activity = new Activity(activityDto, institution, new ArrayList<>())
+        activityRepository.save(activity)
+        def volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        def enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
+        def participation = new Participation()
+
+        when:
+        participation.setEnrollment(enrollment)
+
+        then:
+        participation.getVolunteer() == volunteer
+    }
+
+    def "getVolunteer returns null when enrollment is null"() {
+        given:
+        def participation = new Participation()
+
+        expect:
+        participation.getVolunteer() == null
+    }
+
     def "enrollmentContainsShift does nothing when enrollment exists but shift is null"() {
         given:
         def institution = institutionService.getDemoInstitution()
@@ -112,17 +138,36 @@ class ParticipationAuxiliaryMethodsTest extends SpockTest {
         noExceptionThrown()
     }
 
-    def "delete without shift and enrollment only removes from volunteer"() {
+    def "enrollmentContainsShift does nothing when enrollment is null and shift exists"() {
         given:
-        def volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        def institution = institutionService.getDemoInstitution()
+        def activityDto = createActivityDto(ACTIVITY_NAME_1, ACTIVITY_REGION_1, 3, ACTIVITY_DESCRIPTION_1,
+                TWO_DAYS_AGO, ONE_DAY_AGO, NOW, null)
+        def activity = new Activity(activityDto, institution, new ArrayList<>())
+        activityRepository.save(activity)
+        def shift = createShift(activity, SHIFT_DESCRIPTION_1, 2, ONE_DAY_AGO, NOW)
         def participation = new Participation()
-        participation.setVolunteer(volunteer)
+        participation.setShift(shift)
+        participation.setEnrollment(null)
+
+        when:
+        def method = Participation.class.getDeclaredMethod("enrollmentContainsShift")
+        method.setAccessible(true)
+        method.invoke(participation)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "delete without shift and enrollment does not fail"() {
+        given:
+        def participation = new Participation()
 
         when:
         participation.delete()
 
         then:
-        volunteer.getParticipations().isEmpty()
+        noExceptionThrown()
     }
 
     def "delete with shift and enrollment removes from all associations"() {
@@ -136,7 +181,6 @@ class ParticipationAuxiliaryMethodsTest extends SpockTest {
         def volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
         def enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
         def participation = new Participation()
-        participation.setVolunteer(volunteer)
         participation.setShift(shift)
         participation.setEnrollment(enrollment)
 
@@ -144,7 +188,6 @@ class ParticipationAuxiliaryMethodsTest extends SpockTest {
         participation.delete()
 
         then:
-        volunteer.getParticipations().isEmpty()
         !shift.getParticipations().contains(participation)
         !enrollment.getParticipations().contains(participation)
     }

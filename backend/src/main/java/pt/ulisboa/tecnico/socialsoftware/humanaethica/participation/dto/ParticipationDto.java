@@ -22,7 +22,7 @@ public class ParticipationDto {
     public ParticipationDto(Participation participation,  User.Role userRole) {
         this.id = participation.getId();
         this.shiftId = participation.getShift() != null ? participation.getShift().getId() : null;
-        this.volunteerId = participation.getVolunteer().getId();
+        this.volunteerId = participation.getVolunteer() != null ? participation.getVolunteer().getId() : null;
         this.enrollmentId = participation.getEnrollment() != null ? participation.getEnrollment().getId() : null;
         this.acceptanceDate = DateHandler.toISOString(participation.getAcceptanceDate());
 
