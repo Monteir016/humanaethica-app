@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage.*;
@@ -102,8 +103,8 @@ public class Enrollment {
     }
 
     public void setShifts(List<Shift> shifts) {
-        this.shifts = shifts;
-        for (Shift shift : shifts) {
+        this.shifts = shifts == null ? new ArrayList<>() : shifts;
+        for (Shift shift : this.shifts) {
             shift.addEnrollment(this);
         }
     }
@@ -125,6 +126,7 @@ public class Enrollment {
         enrollOnce();
         enrollBeforeDeadline();
         shiftsBelongToSameActivity();
+        shiftsDoNotOverlap();
     }
 
     private void motivationIsRequired() {
@@ -151,6 +153,24 @@ public class Enrollment {
             Activity expected = this.shifts.get(0).getActivity();
             if (this.shifts.stream().anyMatch(s -> s.getActivity() != expected)) {
                 throw new HEException(ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES);
+            }
+        }
+    }
+
+    private void shiftsDoNotOverlap() {
+        if (this.shifts.size() < 2) {
+            return;
+        }
+
+        List<Shift> sortedShifts = this.shifts.stream()
+                .sorted(Comparator.comparing(Shift::getStartingDate))
+                .toList();
+
+        for (int i = 1; i < sortedShifts.size(); i++) {
+            Shift previousShift = sortedShifts.get(i - 1);
+            Shift currentShift = sortedShifts.get(i);
+            if (previousShift.getEndingDate().isAfter(currentShift.getStartingDate())) {
+                throw new HEException(ENROLLMENT_OVERLAPPING_SHIFTS);
             }
         }
     }

@@ -185,6 +185,30 @@ class CreateEnrollmentServiceTest extends SpockTest {
         enrollmentRepository.findAll().size() == 0
     }
 
+    def 'create enrollment and fail when shifts overlap in the same activity'() {
+        given:
+        def institution = institutionService.getDemoInstitution()
+        def activityDto = createActivityDto(ACTIVITY_NAME_2, ACTIVITY_REGION_1, 2, ACTIVITY_DESCRIPTION_1,
+                IN_ONE_DAY, IN_TWO_DAYS, IN_THREE_DAYS, null)
+        def activity = new Activity(activityDto, institution, new ArrayList<>())
+        activityRepository.save(activity)
+
+        def shiftOne = createShift(activity, SHIFT_DESCRIPTION_1, 1, IN_TWO_DAYS, IN_TWO_DAYS.plusHours(2))
+        def shiftTwo = createShift(activity, SHIFT_DESCRIPTION_2, 1, IN_TWO_DAYS.plusHours(1), IN_TWO_DAYS.plusHours(3))
+
+        def enrollmentDto = new EnrollmentDto()
+        enrollmentDto.motivation = ENROLLMENT_MOTIVATION_1
+        enrollmentDto.shiftIds = [shiftOne.id, shiftTwo.id]
+
+        when:
+        enrollmentService.createEnrollment(volunteer.id, enrollmentDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_OVERLAPPING_SHIFTS
+        enrollmentRepository.findAll().size() == 0
+    }
+
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfiguration {}
 }

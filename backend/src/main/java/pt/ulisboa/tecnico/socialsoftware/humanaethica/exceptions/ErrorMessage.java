@@ -48,6 +48,7 @@ public enum ErrorMessage {
     ENROLLMENT_VOLUNTEER_IS_ALREADY_ENROLLED("The volunteer is already enrolled"),
     ENROLLMENT_AFTER_DEADLINE("The enrollment period is already closed"),
     ENROLLMENT_SHIFTS_FROM_DIFFERENT_ACTIVITIES("All shifts in an enrollment must belong to the same activity"),
+    ENROLLMENT_OVERLAPPING_SHIFTS("Shifts in an enrollment cannot have overlapping periods"),
     PARTICIPATION_IS_FULL("No vacancies"),
     PARTICIPATION_ACCEPTANCE_BEFORE_DEADLINE("The enrollment period is still open"),
     PARTICIPATION_NOT_FOUND("Participation not found with id %d"),
