@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -76,6 +77,20 @@ class DeleteParticipationMethodTest extends SpockTest {
         then: "the other participation remains"
         activity.getParticipations().size() == 1
         activity.getParticipations().contains(otherParticipation)
+    }
+
+    def "delete participation with enrollment also removes from enrollment"() {
+        given: "the participation is associated with an enrollment"
+        def enrollment = new Enrollment()
+        participation.setEnrollment(enrollment)
+
+        when: "the participation is deleted"
+        participation.delete()
+
+        then: "the participation is removed from activity, volunteer, and enrollment"
+        activity.getParticipations().size() == 0
+        volunteer.getParticipations().size() == 0
+        enrollment.getParticipations().size() == 0
     }
 
     def "delete one of multiple participations in volunteer"() {

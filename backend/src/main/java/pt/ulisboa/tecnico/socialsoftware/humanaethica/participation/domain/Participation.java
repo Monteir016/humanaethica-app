@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.ParticipationService;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer;
@@ -79,6 +78,9 @@ public class Participation {
     public void delete(){
         volunteer.deleteParticipation(this);
         activity.deleteParticipation(this);
+        if (enrollment != null) {
+            enrollment.deleteParticipation(this);
+        }
     }
 
     public Integer getId() {
@@ -162,6 +164,9 @@ public class Participation {
 
     public void setEnrollment(Enrollment enrollment) {
         this.enrollment = enrollment;
+        if (enrollment != null) {
+            enrollment.addParticipation(this);
+        }
     }
 
     private void verifyInvariants() {

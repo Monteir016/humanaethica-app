@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -71,6 +72,30 @@ class DeleteEnrollmentMethodTest extends SpockTest {
 
     }
    
+    def "add participation to enrollment"() {
+        given: "a participation"
+        def participation = Mock(Participation)
+
+        when: "the participation is added to the enrollment"
+        enrollmentOne.addParticipation(participation)
+
+        then: "the enrollment contains the participation"
+        enrollmentOne.getParticipations().size() == 1
+        enrollmentOne.getParticipations().contains(participation)
+    }
+
+    def "delete participation from enrollment"() {
+        given: "a participation already in the enrollment"
+        def participation = Mock(Participation)
+        enrollmentOne.addParticipation(participation)
+
+        when: "the participation is removed from the enrollment"
+        enrollmentOne.deleteParticipation(participation)
+
+        then: "the enrollment no longer contains the participation"
+        enrollmentOne.getParticipations().size() == 0
+    }
+
     def "try to delete enrollment after deadline"() {
         given:
         def activityDtoTwo
