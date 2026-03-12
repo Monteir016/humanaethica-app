@@ -27,8 +27,7 @@ public class EnrollmentDto {
         this.volunteerName = enrollment.getVolunteer().getName();
         this.motivation = enrollment.getMotivation();
         this.enrollmentDateTime = DateHandler.toISOString(enrollment.getEnrollmentDateTime());
-        this.isParticipating = enrollment.getActivity().getParticipations().stream()
-                .anyMatch(participation -> participation.getVolunteer().getId().equals(enrollment.getVolunteer().getId()));
+        this.isParticipating = !enrollment.getParticipations().isEmpty();
         this.shiftIds = enrollment.getShifts().stream()
                 .map(Shift::getId)
                 .toList();

@@ -8,6 +8,7 @@ public class ParticipationDto {
     private Integer id;
     private Integer activityId;
     private Integer volunteerId;
+    private Integer enrollmentId;
     private Integer memberRating;
     private Integer volunteerRating;
     private String memberReview;
@@ -22,6 +23,7 @@ public class ParticipationDto {
         this.id = participation.getId();
         this.activityId = participation.getActivity().getId();
         this.volunteerId = participation.getVolunteer().getId();
+        this.enrollmentId = participation.getEnrollment() != null ? participation.getEnrollment().getId() : null;
         this.acceptanceDate = DateHandler.toISOString(participation.getAcceptanceDate());
 
         if (userRole == User.Role.MEMBER) {
@@ -64,6 +66,14 @@ public class ParticipationDto {
 
     public void setVolunteerId(Integer volunteerId) {
         this.volunteerId = volunteerId;
+    }
+
+    public Integer getEnrollmentId() {
+        return enrollmentId;
+    }
+
+    public void setEnrollmentId(Integer enrollmentId) {
+        this.enrollmentId = enrollmentId;
     }
 
     public Integer getMemberRating() {

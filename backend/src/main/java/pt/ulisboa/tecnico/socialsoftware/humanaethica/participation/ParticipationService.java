@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.repository.ActivityRepository;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.EnrollmentRepository;
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto;
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation;
@@ -28,6 +30,8 @@ public class ParticipationService {
     private ActivityRepository activityRepository;
     @Autowired
     private ParticipationRepository participationRepository;
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ParticipationDto> getParticipationsByActivity(Integer activityId) {
@@ -83,6 +87,15 @@ public class ParticipationService {
 
 
         Participation participation = new Participation(activity, volunteer, participationDto);
+
+        Enrollment enrollment = enrollmentRepository.getEnrollmentsByActivityId(activityId).stream()
+                .filter(e -> e.getVolunteer().getId().equals(volunteer.getId()))
+                .findFirst()
+                .orElse(null);
+        if (enrollment != null) {
+            participation.setEnrollment(enrollment);
+        }
+
         participationRepository.save(participation);
 
         return new ParticipationDto(participation, User.Role.MEMBER);
