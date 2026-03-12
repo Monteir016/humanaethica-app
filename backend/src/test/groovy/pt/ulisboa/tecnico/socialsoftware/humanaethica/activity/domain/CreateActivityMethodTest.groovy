@@ -8,8 +8,11 @@ import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.dto.ActivityDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.domain.Participation
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.report.domain.Report
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.shift.domain.Shift
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.theme.domain.Theme
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.Volunteer
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.utils.DateHandler
 import spock.lang.Unroll
 
@@ -274,6 +277,54 @@ class CreateActivityMethodTest extends SpockTest {
         activity.getShifts().size() == 1
         !activity.getShifts().contains(shift1)
         activity.getShifts().contains(shift2)
+    }
+
+    def "set reports on activity"() {
+        given:
+        def activity = new Activity()
+        def report = Mock(Report)
+
+        when:
+        activity.setReports([report])
+
+        then:
+        activity.getReports().size() == 1
+        activity.getReports().get(0) == report
+    }
+
+    def "set shifts on activity"() {
+        given:
+        def activity = new Activity()
+        def shift = Mock(Shift)
+
+        when:
+        activity.setShifts([shift])
+
+        then:
+        activity.getShifts().size() == 1
+        activity.getShifts().get(0) == shift
+    }
+
+    def "get number of participating volunteers from shifts participations"() {
+        given:
+        def activity = new Activity()
+        def shiftOne = Mock(Shift)
+        def shiftTwo = Mock(Shift)
+        def participationOne = Mock(Participation)
+        def participationTwo = Mock(Participation)
+        def participationThree = Mock(Participation)
+        def volunteerOne = Mock(Volunteer)
+        def volunteerTwo = Mock(Volunteer)
+
+        participationOne.getVolunteer() >> volunteerOne
+        participationTwo.getVolunteer() >> volunteerTwo
+        participationThree.getVolunteer() >> volunteerOne
+        shiftOne.getParticipations() >> [participationOne, participationTwo]
+        shiftTwo.getParticipations() >> [participationThree]
+        activity.setShifts([shiftOne, shiftTwo])
+
+        expect:
+        activity.getNumberOfParticipatingVolunteers() == 2
     }
 
     @TestConfiguration

@@ -50,7 +50,7 @@ public class HEPermissionEvaluator implements PermissionEvaluator {
                 case "PARTICIPATION.MANAGER":
                     Participation participation = participationRepository.findById(id).orElse(null);
                     if (participation == null) return false;
-                    return participation.getActivity().getInstitution().getId().equals(((Member)authUser.getUser()).getInstitution().getId());
+                    return participation.getShift().getActivity().getInstitution().getId().equals(((Member)authUser.getUser()).getInstitution().getId());
                 case "ENROLLMENT.MANAGER":
                     Enrollment enrollment = enrollmentRepository.findById(id).orElse(null);
                     if (enrollment == null) return false;

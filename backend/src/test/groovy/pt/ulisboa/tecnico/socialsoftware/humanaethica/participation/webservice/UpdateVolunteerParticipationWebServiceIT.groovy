@@ -10,7 +10,6 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
-import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.dto.EnrollmentDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.institution.domain.Institution
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
@@ -59,7 +58,7 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
         participationDto.volunteerReview = VOLUNTEER_REVIEW
         participationDto.volunteerId = volunteer.id
 
-        participationService.createParticipation(activity.id,participationDto)
+        createParticipation(activity, volunteer, participationDto)
         participationId = participationRepository.findAll().get(0).getId()
     }
 
@@ -215,4 +214,3 @@ class UpdateVolunteerParticipationWebServiceIT extends SpockTest {
 
 
 }
-

@@ -5,9 +5,11 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.auth.domain.AuthUser
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.user.domain.User
 import spock.lang.Unroll
 
 import java.time.LocalDateTime
@@ -32,6 +34,9 @@ class CreateParticipationServiceTest extends SpockTest {
 
         activity = new Activity(activityDto, institution, new ArrayList<>())
         activityRepository.save(activity)
+
+        createShift(activity, SHIFT_DESCRIPTION_1, 3, ONE_DAY_AGO, NOW)
+        createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
     }
 
     def 'create participation as member' () {
@@ -107,6 +112,78 @@ class CreateParticipationServiceTest extends SpockTest {
         ""                                  | 5      || ErrorMessage.PARTICIPATION_REVIEW_LENGTH_INVALID
         VOLUNTEER_REVIEW                    | -1     || ErrorMessage.PARTICIPATION_RATING_BETWEEN_ONE_AND_FIVE
         VOLUNTEER_REVIEW                    | 10     || ErrorMessage.PARTICIPATION_RATING_BETWEEN_ONE_AND_FIVE
+    }
+
+    def 'create participation and fail when enrollment has no shifts'() {
+        given:
+        def participationDto = new ParticipationDto()
+        participationDto.memberRating = 5
+        participationDto.memberReview = MEMBER_REVIEW
+        participationDto.volunteerId = volunteer.id
+        def enrollment = enrollmentRepository.getEnrollmentsByActivityId(activity.id).get(0)
+        enrollment.setShifts([])
+
+        when:
+        participationService.createParticipation(activity.id, participationDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_REQUIRES_SHIFTS
+        participationRepository.findAll().isEmpty()
+    }
+
+    def 'create participation and fail when activity enrollments belong to other volunteer'() {
+        given:
+        def volunteerEnrollment = enrollmentRepository.getEnrollmentsByActivityId(activity.id).stream()
+                .filter(e -> e.getVolunteer().getId().equals(volunteer.id))
+                .findFirst()
+                .orElse(null)
+        enrollmentRepository.delete(volunteerEnrollment)
+
+        def otherVolunteer = createVolunteer(USER_2_NAME, USER_2_USERNAME, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        createEnrollment(activity, otherVolunteer, ENROLLMENT_MOTIVATION_2)
+        def participationDto = new ParticipationDto()
+        participationDto.memberRating = 5
+        participationDto.memberReview = MEMBER_REVIEW
+        participationDto.volunteerId = volunteer.id
+
+        when:
+        participationService.createParticipation(activity.id, participationDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_NOT_FOUND
+        participationRepository.findAll().isEmpty()
+    }
+
+    def 'create participation and fail when volunteer enrollment is in another activity'() {
+        given:
+        def volunteerEnrollment = enrollmentRepository.getEnrollmentsByActivityId(activity.id).stream()
+                .filter(e -> e.getVolunteer().getId().equals(volunteer.id))
+                .findFirst()
+                .orElse(null)
+        enrollmentRepository.delete(volunteerEnrollment)
+
+        def institution = institutionService.getDemoInstitution()
+        def otherActivityDto = createActivityDto(ACTIVITY_NAME_2, ACTIVITY_REGION_2, 3, ACTIVITY_DESCRIPTION_2,
+                TWO_DAYS_AGO, ONE_DAY_AGO, NOW, null)
+        def otherActivity = new Activity(otherActivityDto, institution, new ArrayList<>())
+        activityRepository.save(otherActivity)
+        createShift(otherActivity, SHIFT_DESCRIPTION_2, 3, ONE_DAY_AGO, NOW)
+        createEnrollment(otherActivity, volunteer, ENROLLMENT_MOTIVATION_2)
+
+        def participationDto = new ParticipationDto()
+        participationDto.memberRating = 5
+        participationDto.memberReview = MEMBER_REVIEW
+        participationDto.volunteerId = volunteer.id
+
+        when:
+        participationService.createParticipation(activity.id, participationDto)
+
+        then:
+        def error = thrown(HEException)
+        error.getErrorMessage() == ErrorMessage.ENROLLMENT_NOT_FOUND
+        participationRepository.findAll().isEmpty()
     }
 
     def getVolunteerId(volunteerId) {
