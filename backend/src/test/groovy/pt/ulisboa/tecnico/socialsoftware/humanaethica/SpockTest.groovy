@@ -357,7 +357,7 @@ class SpockTest extends Specification {
         }
         normalizeEnrollment(enrollment, shift)
 
-        def participation = new Participation(activity, domainVolunteer, enrollment, shift, participationDto)
+        def participation = new Participation(activity, enrollment, shift, participationDto)
         participationRepository.save(participation)
         return participation
     }
@@ -377,7 +377,6 @@ class SpockTest extends Specification {
         if (domainVolunteer != null) {
             // Avoid LazyInitialization in tests that build domain objects outside transactions.
             domainVolunteer.setEnrollments(new ArrayList<>())
-            domainVolunteer.setParticipations(new ArrayList<>())
         }
 
         return domainVolunteer

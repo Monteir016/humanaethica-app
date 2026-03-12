@@ -22,6 +22,7 @@ class CreateParticipationMethodTest extends SpockTest {
     Shift shift = Mock()
     Volunteer volunteer = Mock()
     Volunteer otherVolunteer = Mock()
+    Enrollment enrollment = Mock()
     Participation otherParticipation = Mock()
     def participationDto
 
@@ -30,6 +31,8 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto = new ParticipationDto()
         shift.getActivity() >> activity
         activity.getShifts() >> [shift]
+        enrollment.getVolunteer() >> volunteer
+        enrollment.getShifts() >> [shift]
     }
 
     def "member creates a participation"() {
@@ -44,7 +47,7 @@ class CreateParticipationMethodTest extends SpockTest {
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Participation(activity, volunteer, participationDto)
+        def result = new Participation(activity, enrollment, participationDto)
 
         then: "checks results"
         result.memberRating == 5
@@ -55,7 +58,7 @@ class CreateParticipationMethodTest extends SpockTest {
         result.volunteer == volunteer
         and: "check that it is added"
         1 * shift.addParticipation(_)
-        1 * volunteer.addParticipation(_)
+        1 * enrollment.addParticipation(_)
     }
 
     def "create participation and violate participate once invariant"() {
@@ -68,7 +71,7 @@ class CreateParticipationMethodTest extends SpockTest {
         otherParticipation.getVolunteer() >> volunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -87,7 +90,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberRating = null
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -106,7 +109,7 @@ class CreateParticipationMethodTest extends SpockTest {
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -123,7 +126,7 @@ class CreateParticipationMethodTest extends SpockTest {
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -143,7 +146,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberRating = rating
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -166,7 +169,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.volunteerRating = rating
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -189,7 +192,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.volunteerReview = review
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -212,7 +215,7 @@ class CreateParticipationMethodTest extends SpockTest {
         participationDto.memberReview = review
 
         when:
-        new Participation(activity, volunteer, participationDto)
+        new Participation(activity, enrollment, participationDto)
 
         then:
         def error = thrown(HEException)
@@ -227,6 +230,7 @@ class CreateParticipationMethodTest extends SpockTest {
         def enrollment = Mock(Enrollment)
         def shiftInEnrollment = Mock(Shift)
         shiftInEnrollment.getActivity() >> activity
+        enrollment.getVolunteer() >> volunteer
         enrollment.getShifts() >> [shiftInEnrollment]
         activity.getShifts() >> [shiftInEnrollment]
         activity.getParticipations() >> [otherParticipation]
@@ -237,7 +241,7 @@ class CreateParticipationMethodTest extends SpockTest {
         otherParticipation.getVolunteer() >> otherVolunteer
 
         when:
-        def result = new Participation(activity, volunteer, enrollment, shiftInEnrollment, participationDto)
+        def result = new Participation(activity, enrollment, shiftInEnrollment, participationDto)
 
         then: "checks results"
         result.enrollment == enrollment
@@ -264,7 +268,7 @@ class CreateParticipationMethodTest extends SpockTest {
         activity.getShifts() >> [shiftInParticipation]
 
         when:
-        new Participation(activity, volunteer, enrollment, shiftInParticipation, participationDto)
+        new Participation(activity, enrollment, shiftInParticipation, participationDto)
 
         then:
         def error = thrown(HEException)

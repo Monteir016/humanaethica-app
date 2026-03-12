@@ -24,10 +24,6 @@ public class Participation {
     private String volunteerReview;
     private String memberReview;
 
-
-
-    @ManyToOne
-    private Volunteer volunteer;
     @ManyToOne
     private Shift shift;
     @ManyToOne
@@ -35,10 +31,10 @@ public class Participation {
 
     public Participation() {}
 
-    public Participation(Activity activity, Volunteer volunteer, ParticipationDto participationDto) {
+    public Participation(Activity activity, Enrollment enrollment, ParticipationDto participationDto) {
         Shift shift = activity.getShifts().stream().findFirst().orElse(null);
         setShift(shift);
-        setVolunteer(volunteer);
+        setEnrollment(enrollment);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
         setMemberReview(participationDto.getMemberReview());
@@ -48,9 +44,8 @@ public class Participation {
         verifyInvariants();
     }
 
-    public Participation(Activity activity, Volunteer volunteer, Enrollment enrollment, Shift shift, ParticipationDto participationDto) {
+    public Participation(Activity activity, Enrollment enrollment, Shift shift, ParticipationDto participationDto) {
         setShift(shift);
-        setVolunteer(volunteer);
         setEnrollment(enrollment);
         setAcceptanceDate(LocalDateTime.now());
         setMemberRating(participationDto.getMemberRating());
@@ -74,7 +69,6 @@ public class Participation {
     }
 
     public void delete(){
-        volunteer.deleteParticipation(this);
         if (shift != null) {
             shift.deleteParticipation(this);
         }
@@ -143,12 +137,7 @@ public class Participation {
     }
 
     public Volunteer getVolunteer() {
-        return volunteer;
-    }
-
-    public void setVolunteer(Volunteer volunteer) {
-        this.volunteer = volunteer;
-        this.volunteer.addParticipation(this);
+        return this.enrollment != null ? this.enrollment.getVolunteer() : null;
     }
 
     public Shift getShift() {
@@ -184,8 +173,13 @@ public class Participation {
     }
 
     private void participateOnce() {
+        Volunteer volunteer = this.getVolunteer();
+        if (volunteer == null) {
+            return;
+        }
+
         if (this.getActivity().getParticipations().stream()
-                .anyMatch(participation -> participation != this && participation.getVolunteer() == this.volunteer)) {
+                .anyMatch(participation -> participation != this && participation.getVolunteer() == volunteer)) {
             throw new HEException(PARTICIPATION_VOLUNTEER_IS_ALREADY_PARTICIPATING);
         }
     }
@@ -236,4 +230,3 @@ public class Participation {
         }
     }
 }
-

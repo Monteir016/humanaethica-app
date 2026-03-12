@@ -28,6 +28,7 @@ class DeleteParticipationMethodTest extends SpockTest {
     def otherParticipation
     def participationDto
     def shift
+    def enrollment
 
     def setup() {
         otherActivity.getName() >> ACTIVITY_NAME_2
@@ -48,6 +49,7 @@ class DeleteParticipationMethodTest extends SpockTest {
         shift = createShift(activity, SHIFT_DESCRIPTION_1, 2, TWO_DAYS_AGO, ONE_DAY_AGO)
         and: "a volunteer"
         volunteer = createVolunteer(USER_1_NAME, USER_1_PASSWORD, USER_1_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
+        enrollment = createEnrollment(activity, volunteer, ENROLLMENT_MOTIVATION_1)
         and: "a participation"
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
@@ -55,7 +57,7 @@ class DeleteParticipationMethodTest extends SpockTest {
         participationDto.volunteerRating= 5
         participationDto.volunteerReview= VOLUNTEER_REVIEW
 
-        participation = new Participation(activity, volunteer, participationDto)
+        participation = new Participation(activity, enrollment, participationDto)
     }
 
     def "delete participation"() {
@@ -64,14 +66,15 @@ class DeleteParticipationMethodTest extends SpockTest {
 
         then: "checks results"
         activity.getParticipations().size() == 0
-        volunteer.getParticipations().size() == 0
+        enrollment.getParticipations().size() == 0
 
     }
 
     def "delete one of multiple participations in activity"() {
         given: "another participation for the same activity"
         def otherVolunteer = createVolunteer(USER_2_NAME, USER_2_PASSWORD, USER_2_EMAIL, AuthUser.Type.NORMAL, User.State.APPROVED)
-        otherParticipation = new Participation(activity, otherVolunteer, participationDto)
+        def otherEnrollment = createEnrollment(activity, otherVolunteer, ENROLLMENT_MOTIVATION_2)
+        otherParticipation = new Participation(activity, otherEnrollment, participationDto)
 
         when: "one participation is deleted"
         participation.delete()
@@ -82,21 +85,16 @@ class DeleteParticipationMethodTest extends SpockTest {
     }
 
     def "delete participation with enrollment also removes from enrollment"() {
-        given: "the participation is associated with an enrollment"
-        def enrollment = new Enrollment()
-        participation.setEnrollment(enrollment)
-
         when: "the participation is deleted"
         participation.delete()
 
-        then: "the participation is removed from activity, volunteer, and enrollment"
+        then: "the participation is removed from activity and enrollment"
         activity.getParticipations().size() == 0
-        volunteer.getParticipations().size() == 0
         enrollment.getParticipations().size() == 0
     }
 
-    def "delete one of multiple participations in volunteer"() {
-        given: "another participation for the same volunteer"
+    def "delete one of multiple participations in enrollment"() {
+        given: "another participation for the same enrollment"
         def themes = [theme]
         def activityDto
         activityDto = new ActivityDto()
@@ -109,20 +107,21 @@ class DeleteParticipationMethodTest extends SpockTest {
         activityDto.applicationDeadline = DateHandler.toISOString(LocalDateTime.now().minusDays(3))
         def otherActivity = new Activity(activityDto, institution, themes)
         createShift(otherActivity, SHIFT_DESCRIPTION_2, 2, TWO_DAYS_AGO, ONE_DAY_AGO)
+        def otherEnrollment = createEnrollment(otherActivity, volunteer, ENROLLMENT_MOTIVATION_2)
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
         participationDto.memberReview= MEMBER_REVIEW
         participationDto.volunteerRating= 5
         participationDto.volunteerReview= VOLUNTEER_REVIEW
-        otherParticipation = new Participation(otherActivity, volunteer, participationDto)
+        otherParticipation = new Participation(otherActivity, otherEnrollment, participationDto)
 
 
         when: "one participation is deleted"
         participation.delete()
 
         then: "the other participation remains"
-        volunteer.getParticipations().size() == 1
-        volunteer.getParticipations().contains(otherParticipation)
+        otherEnrollment.getParticipations().size() == 1
+        otherEnrollment.getParticipations().contains(otherParticipation)
     }
 
     @TestConfiguration

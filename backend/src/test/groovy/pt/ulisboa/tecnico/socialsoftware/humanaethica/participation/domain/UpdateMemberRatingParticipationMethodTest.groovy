@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.BeanConfiguration
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.SpockTest
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.activity.domain.Activity
+import pt.ulisboa.tecnico.socialsoftware.humanaethica.enrollment.domain.Enrollment
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.ErrorMessage
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.exceptions.HEException
 import pt.ulisboa.tecnico.socialsoftware.humanaethica.participation.dto.ParticipationDto
@@ -20,6 +21,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
     Activity activity = Mock()
     Shift shift = Mock()
     Volunteer volunteer = Mock()
+    Enrollment enrollment = Mock()
     Participation otherParticipation = Mock()
     def participation
     def participationDto
@@ -32,6 +34,8 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         activity.getShifts() >> [shift]
         shift.getActivity() >> activity
         shift.getParticipations() >> [otherParticipation]
+        enrollment.getVolunteer() >> volunteer
+        enrollment.getShifts() >> [shift]
         activity.getApplicationDeadline() >> TWO_DAYS_AGO
         activity.getEndingDate() >> ONE_DAY_AGO
         shift.getParticipantsLimit() >> 3
@@ -39,7 +43,7 @@ class UpdateMemberRatingParticipationMethodTest extends SpockTest {
         participationDto = new ParticipationDto()
         participationDto.memberRating = 4
         participationDto.memberReview = VOLUNTEER_REVIEW
-        participation = new Participation(activity, volunteer, participationDto)
+        participation = new Participation(activity, enrollment, participationDto)
 
 
         participationDtoUpdated = new ParticipationDto()
