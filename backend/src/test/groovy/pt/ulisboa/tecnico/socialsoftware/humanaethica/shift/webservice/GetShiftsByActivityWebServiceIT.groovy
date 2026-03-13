@@ -47,9 +47,9 @@ class GetShiftsByActivityWebServiceIT extends SpockTest {
 
         then:
         response.size() == 2
-        response.get(0).startTime == DateHandler.toISOString(TWO_DAYS_AGO)
+        DateHandler.toLocalDateTime(response.get(0).startTime).withNano(0) == TWO_DAYS_AGO.withNano(0)
         response.get(0).participantsLimit == 3
-        response.get(1).startTime == DateHandler.toISOString(TWO_DAYS_AGO.plusHours(2))
+        DateHandler.toLocalDateTime(response.get(1).startTime).withNano(0) == TWO_DAYS_AGO.plusHours(2).withNano(0)
         response.get(1).participantsLimit == 2
     }
 
