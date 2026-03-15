@@ -84,14 +84,18 @@ export default class ParticipationSelectionDialog extends Vue {
 
   get isReviewValid(): boolean {
     return (
-      !!this.editParticipation.memberReview &&
-      this.editParticipation.memberReview.length >= 10 &&
-      this.editParticipation.memberReview.length < 100
+      !this.editParticipation.memberReview ||
+      (this.editParticipation.memberReview.length >= 10 &&
+        this.editParticipation.memberReview.length < 100)
     );
   }
 
   get isRatingValid(): boolean {
-    return !!this.editParticipation.memberRating;
+    return (
+      !this.editParticipation.memberRating ||
+      (this.editParticipation.memberRating >= 1 &&
+        this.editParticipation.memberRating <= 5)
+    );
   }
 
   isNumberValid(value: any) {
