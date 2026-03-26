@@ -15,6 +15,7 @@ import Enrollment from '@/models/enrollment/Enrollment';
 import Participation from '@/models/participation/Participation';
 import Assessment from '@/models/assessment/Assessment';
 import Report from '@/models/report/Report';
+import Shift from '@/models/shift/Shift';
 
 const httpClient = axios.create();
 httpClient.defaults.timeout = 100000;
@@ -464,6 +465,17 @@ export default class RemoteServices {
       .put(`/activities/${activityId}/report`)
       .then((response) => {
         return new Activity(response.data);
+      })
+      .catch(async (error) => {
+        throw Error(await this.errorMessage(error));
+      });
+  }
+
+  static async createShift(activityId: number, shift: Shift): Promise<Shift> {
+    return httpClient
+      .post(`/activities/${activityId}/shift`, shift)
+      .then((response) => {
+        return new Shift(response.data);
       })
       .catch(async (error) => {
         throw Error(await this.errorMessage(error));
