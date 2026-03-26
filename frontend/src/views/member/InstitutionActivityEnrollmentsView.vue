@@ -204,6 +204,9 @@ export default class InstitutionActivityEnrollmentsView extends Vue {
         this.participations = await RemoteServices.getActivityParticipations(
           this.activity.id,
         );
+        this.activity.shifts = await RemoteServices.getActivityShifts(
+          this.activity.id,
+        );
       } catch (error) {
         await this.$store.dispatch('error', error);
       }
