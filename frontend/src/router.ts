@@ -24,6 +24,7 @@ import InstitutionThemeView from '@/views/member/InstitutionThemeView.vue';
 import MemberView from '@/views/member/MemberView.vue';
 import VolunteerView from '@/views/volunteer/VolunteerView.vue';
 import InstitutionActivityEnrollmentsView from '@/views/member/InstitutionActivityEnrollmentsView.vue';
+import InstitutionActivityShiftsView from '@/views/member/InstitutionActivityShiftsView.vue';
 import InstitutionAssessmentsView from '@/views/member/InstitutionAssessmentsView.vue';
 import VolunteerEnrollmentsView from '@/views/volunteer/VolunteerEnrollmentsView.vue';
 
@@ -150,6 +151,15 @@ const router = new Router({
           meta: {
             requiredAuth: 'None',
             title: APP_NAME + ' - Manage Enrollments - Member',
+          },
+        },
+        {
+          path: 'shifts',
+          name: 'activity-shifts',
+          component: InstitutionActivityShiftsView,
+          meta: {
+            requiredAuth: 'None',
+            title: APP_NAME + ' - Manage Shifts - Member',
           },
         },
         {

@@ -37,6 +37,14 @@
         </v-tooltip>
       </template>
       <template v-slot:[`item.action`]="{ item }">
+        <v-btn
+          class="mr-2"
+          small
+          color="primary"
+          @click="manageShifts(item)"
+          data-cy="manageShifts"
+          >Manage Shifts</v-btn
+        >
         <v-tooltip bottom>
           <template v-slot:activator="{ on }">
             <v-icon
@@ -260,6 +268,11 @@ export default class InstitutionActivitiesView extends Vue {
   async showEnrollments(activity: Activity) {
     await this.$store.dispatch('setActivity', activity);
     await this.$router.push({ name: 'activity-enrollments' });
+  }
+
+  async manageShifts(activity: Activity) {
+    await this.$store.dispatch('setActivity', activity);
+    await this.$router.push({ name: 'activity-shifts' });
   }
 }
 </script>
