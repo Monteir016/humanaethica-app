@@ -1,6 +1,7 @@
 import { ISOtoString } from '@/services/ConvertDateService';
 import Theme from '@/models/theme/Theme';
 import Institution from '@/models/institution/Institution';
+import Shift from '@/models/shift/Shift';
 
 export default class Activity {
   id: number | null = null;
@@ -21,6 +22,7 @@ export default class Activity {
   applicationDeadline!: string;
   formattedApplicationDeadline!: string;
   suspensionJustification!: string;
+  shifts: Shift[] = [];
 
   constructor(jsonObj?: Activity) {
     if (jsonObj) {
@@ -49,6 +51,9 @@ export default class Activity {
           jsonObj.applicationDeadline,
         );
       this.suspensionJustification = jsonObj.suspensionJustification;
+      this.shifts = (jsonObj.shifts ?? []).map((shift: Shift) => {
+        return new Shift(shift);
+      });
     }
   }
 }
