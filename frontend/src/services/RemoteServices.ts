@@ -482,6 +482,23 @@ export default class RemoteServices {
       });
   }
 
+  static async getActivityShifts(activityId: number): Promise<Shift[]> {
+    return httpClient
+      .get(`/activities/${activityId}/shifts`)
+      .then((response) => {
+        if (!Array.isArray(response.data)) {
+          return [];
+        }
+
+        return response.data.map((shift: any) => {
+          return new Shift(shift);
+        });
+      })
+      .catch(async (error) => {
+        throw Error(await this.errorMessage(error));
+      });
+  }
+
   // Enrollment controller
 
   static async getActivityEnrollments(activityId: number) {
