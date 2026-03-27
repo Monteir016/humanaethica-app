@@ -67,7 +67,7 @@ describe('Activity', () => {
       .should('have.length', 1)
       .eq(0)
       .children()
-      .should('have.length', 13)
+      .should('have.length', 14)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0).children().eq(0).should('contain', NAME)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
@@ -75,7 +75,7 @@ describe('Activity', () => {
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0).children().eq(2).should('contain', NUMBER)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
-      .eq(0).children().eq(6).should('contain', DESCRIPTION);
+      .eq(0).children().eq(7).should('contain', DESCRIPTION);
     cy.logout();
 
     cy.demoVolunteerLogin();
