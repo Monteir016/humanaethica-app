@@ -1,0 +1,58 @@
+describe('Shift', () => {
+  const LOCATION =
+    'Cypress E2E shift location string for create success test';
+  const PARTICIPANTS = '5';
+
+  beforeEach(() => {
+    cy.deleteAllButArs();
+    cy.createDemoEntities();
+    cy.createDatabaseInfoForShiftCreation();
+  });
+
+  afterEach(() => {
+    cy.deleteAllButArs();
+  });
+
+  it('member creates a shift successfully', () => {
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitution');
+    cy.intercept('POST', '**/activities/4/shift').as('createShift');
+
+    cy.demoMemberLogin();
+
+    cy.get('[data-cy="institution"]').click();
+    cy.get('[data-cy="activities"]').click();
+    cy.wait('@getInstitution');
+
+    cy.contains('[data-cy="memberActivitiesTable"] tbody tr', 'Shift E2E Activity')
+      .find('[data-cy="manageShifts"]')
+      .click();
+
+    cy.get('[data-cy="activityShiftsTable"]', { timeout: 15000 }).should(
+      'be.visible',
+    );
+    cy.get('[data-cy="activityShiftsTable"]').should(
+      'contain',
+      'No shifts available for this activity.',
+    );
+
+    cy.get('[data-cy="newShift"]').click();
+    cy.get('[data-cy="locationInput"]').should('be.visible').clear().type(LOCATION);
+    cy.get('[data-cy="participantsLimitInput"]').clear().type(PARTICIPANTS);
+
+    cy.pickCtkDateTimeDay('startTimeInput', 0);
+    cy.pickCtkDateTimeDay('endTimeInput', 1);
+
+    cy.get('[data-cy="saveShift"]').should('not.be.disabled').click();
+
+    cy.wait('@createShift').its('response.statusCode').should('eq', 200);
+
+    cy.contains('[data-cy="activityShiftsTable"] tbody tr', LOCATION, {
+      timeout: 20000,
+    }).should('be.visible');
+    cy.contains('[data-cy="activityShiftsTable"] tbody tr', LOCATION).within(
+      () => {
+        cy.get('td').eq(3).should('contain', PARTICIPANTS);
+      },
+    );
+  });
+});

@@ -27,6 +27,19 @@ const yesterday = new Date(now);
 yesterday.setDate(now.getDate() - 1);
 const dayBeforeYesterday = new Date(now);
 dayBeforeYesterday.setDate(now.getDate() - 2);
+const oneWeekFromNow = new Date(now);
+oneWeekFromNow.setDate(now.getDate() + 7);
+const sixtyDaysFromNow = new Date(now);
+sixtyDaysFromNow.setDate(now.getDate() + 60);
+// Shift E2E: activity must already be running; start far enough in the past that any day
+// visible in the current-month CTK grid is still >= activity start (avoids day 1–N < start).
+const ninetyDaysAgo = new Date(now);
+ninetyDaysAgo.setDate(now.getDate() - 90);
+const sixtyDaysAgo = new Date(now);
+sixtyDaysAgo.setDate(now.getDate() - 60);
+sixtyDaysAgo.setHours(0, 0, 0, 0);
+const ninetyDaysFromNow = new Date(now);
+ninetyDaysFromNow.setDate(now.getDate() + 90);
 
 Cypress.Commands.add('deleteAllButArs', () => {
   cy.task('queryDatabase', {
@@ -92,6 +105,26 @@ Cypress.Commands.add('createDemoEntities', () => {
     query: "INSERT INTO " + AUTH_USERS_COLUMNS + generateAuthUserTuple(3, "DEMO", "demo-volunteer", 3),
     credentials: credentials,
   })
+});
+
+/** Approved activity with room for new shifts (no shift rows). Activity id 4. */
+Cypress.Commands.add('createDatabaseInfoForShiftCreation', () => {
+  cy.task('queryDatabase', {
+    query:
+      'INSERT INTO ' +
+      ACTIVITY_COLUMNS +
+      generateActivityTuple(
+        4,
+        'Shift E2E Activity',
+        'Cypress shift creation test',
+        ninetyDaysAgo.toISOString(),
+        sixtyDaysAgo.toISOString(),
+        ninetyDaysFromNow.toISOString(),
+        10,
+        1,
+      ),
+    credentials: credentials,
+  });
 });
 
 Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
