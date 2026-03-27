@@ -36,6 +36,11 @@
           <span>Justification: {{ item.suspensionJustification }}</span>
         </v-tooltip>
       </template>
+      <template v-slot:[`item.shiftsCapacity`]="{ item }">
+        {{
+          `${getTotalShiftsCapacity(item)}/${item.participantsNumberLimit ?? 0}`
+        }}
+      </template>
       <template v-slot:[`item.action`]="{ item }">
         <v-btn
           class="mr-2"
@@ -142,6 +147,12 @@ export default class InstitutionActivitiesView extends Vue {
     {
       text: 'Participants Limit',
       value: 'participantsNumberLimit',
+      align: 'left',
+      width: '5%',
+    },
+    {
+      text: 'Shifts Capacity',
+      value: 'shiftsCapacity',
       align: 'left',
       width: '5%',
     },
@@ -273,6 +284,13 @@ export default class InstitutionActivitiesView extends Vue {
   async manageShifts(activity: Activity) {
     await this.$store.dispatch('setActivity', activity);
     await this.$router.push({ name: 'activity-shifts' });
+  }
+
+  getTotalShiftsCapacity(activity: Activity): number {
+    return (activity.shifts ?? []).reduce(
+      (total, shift) => total + (shift.participantsLimit ?? 0),
+      0,
+    );
   }
 }
 </script>
