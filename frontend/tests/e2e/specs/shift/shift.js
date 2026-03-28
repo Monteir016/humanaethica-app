@@ -55,4 +55,33 @@ describe('Shift', () => {
       },
     );
   });
+
+  it('shows error and blocks save when shift start is after end', () => {
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitution');
+
+    cy.demoMemberLogin();
+
+    cy.get('[data-cy="institution"]').click();
+    cy.get('[data-cy="activities"]').click();
+    cy.wait('@getInstitution');
+
+    cy.contains('[data-cy="memberActivitiesTable"] tbody tr', 'Shift E2E Activity')
+      .find('[data-cy="manageShifts"]')
+      .click();
+
+    cy.get('[data-cy="activityShiftsTable"]', { timeout: 15000 }).should(
+      'be.visible',
+    );
+
+    cy.get('[data-cy="newShift"]').click();
+    cy.get('[data-cy="locationInput"]').should('be.visible').clear().type(LOCATION);
+    cy.get('[data-cy="participantsLimitInput"]').clear().type(PARTICIPANTS);
+
+    // Later calendar day first, earlier second → start > end
+    cy.pickCtkDateTimeDay('startTimeInput', 1);
+    cy.pickCtkDateTimeDay('endTimeInput', 0);
+
+    cy.get('[data-cy="shiftDateRangeError"]').should('be.visible');
+    cy.get('[data-cy="saveShift"]').should('be.disabled');
+  });
 });
