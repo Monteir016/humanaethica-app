@@ -5,6 +5,14 @@
         <span class="headline">Create Shift</span>
       </v-card-title>
       <v-card-text>
+        <v-alert
+          v-if="hasInvalidDateRange"
+          type="error"
+          dense
+          data-cy="shiftDateRangeError"
+        >
+          Start date must be before or equal to end date.
+        </v-alert>
         <v-form ref="form" lazy-validation>
           <v-row>
             <v-col cols="12">
@@ -107,17 +115,26 @@ export default class ShiftDialog extends Vue {
     return parseInt(value) > 0;
   }
 
+  get hasInvalidDateRange(): boolean {
+    if (!this.editShift.startTime || !this.editShift.endTime) return false;
+    const start = new Date(this.editShift.startTime).getTime();
+    const end = new Date(this.editShift.endTime).getTime();
+    return start > end;
+  }
+
   get canSave(): boolean {
     return (
       !!this.editShift.location &&
       this.isLocationValid(this.editShift.location) &&
       !!this.editShift.startTime &&
       !!this.editShift.endTime &&
-      this.isParticipantsLimitValid(this.editShift.participantsLimit)
+      this.isParticipantsLimitValid(this.editShift.participantsLimit) &&
+      !this.hasInvalidDateRange
     );
   }
 
   async saveShift() {
+    if (this.hasInvalidDateRange) return;
     if (
       this.activity.id !== null &&
       (this.$refs.form as Vue & { validate: () => boolean }).validate()
