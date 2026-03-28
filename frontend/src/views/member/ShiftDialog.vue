@@ -10,7 +10,12 @@
             <v-col cols="12">
               <v-text-field
                 label="*Location"
-                :rules="[(v) => !!v || 'Location is required']"
+                :rules="[
+                  (v) => !!v || 'Location is required',
+                  (v) =>
+                    isLocationValid(v) ||
+                    'Location must have between 20 and 200 characters',
+                ]"
                 required
                 v-model="editShift.location"
                 data-cy="locationInput"
@@ -92,6 +97,11 @@ export default class ShiftDialog extends Vue {
   editShift: Shift = new Shift();
   creatingShift: boolean = false;
 
+  isLocationValid(value: string) {
+    const trimmedValue = value?.trim() ?? '';
+    return trimmedValue.length >= 20 && trimmedValue.length <= 200;
+  }
+
   isParticipantsLimitValid(value: any) {
     if (!/^\d+$/.test(String(value))) return false;
     return parseInt(value) > 0;
@@ -100,6 +110,7 @@ export default class ShiftDialog extends Vue {
   get canSave(): boolean {
     return (
       !!this.editShift.location &&
+      this.isLocationValid(this.editShift.location) &&
       !!this.editShift.startTime &&
       !!this.editShift.endTime &&
       this.isParticipantsLimitValid(this.editShift.participantsLimit)
