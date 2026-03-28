@@ -23,6 +23,7 @@ class UpdateActivityWebServiceIT extends SpockTest {
 
     def activityDto
     def activityId
+    def updatedApplicationDeadline
 
     def setup() {
         deleteAll()
@@ -42,8 +43,9 @@ class UpdateActivityWebServiceIT extends SpockTest {
         def activity = activityService.registerActivity(user.id, activityDto)
         activityId = activity.id
         and:
+        updatedApplicationDeadline = NOW.plusHours(12)
         activityDto = createActivityDto(ACTIVITY_NAME_2,ACTIVITY_REGION_2,4,ACTIVITY_DESCRIPTION_2,
-                NOW,IN_ONE_DAY,IN_TWO_DAYS,new ArrayList<>())
+                updatedApplicationDeadline,IN_ONE_DAY,IN_TWO_DAYS,new ArrayList<>())
     }
 
     def "login as member, and update an activity"() {
@@ -66,7 +68,7 @@ class UpdateActivityWebServiceIT extends SpockTest {
         response.description == ACTIVITY_DESCRIPTION_2
         response.startingDate == DateHandler.toISOString(IN_ONE_DAY)
         response.endingDate== DateHandler.toISOString(IN_TWO_DAYS)
-        response.applicationDeadline == DateHandler.toISOString(NOW)
+        response.applicationDeadline == DateHandler.toISOString(updatedApplicationDeadline)
         response.themes.isEmpty()
         and: 'check database'
         activityRepository.count() == 1
@@ -77,7 +79,7 @@ class UpdateActivityWebServiceIT extends SpockTest {
         activity.getDescription() == ACTIVITY_DESCRIPTION_2
         activity.getStartingDate().withNano(0) == IN_ONE_DAY.withNano(0)
         activity.getEndingDate().withNano(0) == IN_TWO_DAYS.withNano(0)
-        activity.getApplicationDeadline().withNano(0) == NOW.withNano(0)
+        activity.getApplicationDeadline().withNano(0) == updatedApplicationDeadline.withNano(0)
         activity.themes.isEmpty()
 
         cleanup:

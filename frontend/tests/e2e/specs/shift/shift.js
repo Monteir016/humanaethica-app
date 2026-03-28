@@ -84,4 +84,36 @@ describe('Shift', () => {
     cy.get('[data-cy="shiftDateRangeError"]').should('be.visible');
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
+
+  it('shows error and blocks save when shift dates are outside activity period', () => {
+    cy.deleteAllButArs();
+    cy.createDemoEntities();
+    cy.createDatabaseInfoForShiftCreationOutsideActivityPeriod();
+
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitution');
+
+    cy.demoMemberLogin();
+
+    cy.get('[data-cy="institution"]').click();
+    cy.get('[data-cy="activities"]').click();
+    cy.wait('@getInstitution');
+
+    cy.contains('[data-cy="memberActivitiesTable"] tbody tr', 'Shift E2E Activity')
+      .find('[data-cy="manageShifts"]')
+      .click();
+
+    cy.get('[data-cy="activityShiftsTable"]', { timeout: 15000 }).should(
+      'be.visible',
+    );
+
+    cy.get('[data-cy="newShift"]').click();
+    cy.get('[data-cy="locationInput"]').should('be.visible').clear().type(LOCATION);
+    cy.get('[data-cy="participantsLimitInput"]').clear().type(PARTICIPANTS);
+
+    cy.pickCtkDateTimeDay('startTimeInput', 0);
+    cy.pickCtkDateTimeDay('endTimeInput', 1);
+
+    cy.get('[data-cy="shiftOutsideActivityPeriodError"]').should('be.visible');
+    cy.get('[data-cy="saveShift"]').should('be.disabled');
+  });
 });

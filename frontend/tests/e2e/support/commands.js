@@ -15,5 +15,3 @@ Cypress.Commands.add('pickCtkDateTimeDay', (idPrefix, dayIndex) => {
     .click({ force: true });
   cy.get(`#${idPrefix}-wrapper .datepicker-button.validate`).click({ force: true });
 });
-
-

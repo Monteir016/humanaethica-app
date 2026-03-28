@@ -127,6 +127,26 @@ Cypress.Commands.add('createDatabaseInfoForShiftCreation', () => {
   });
 });
 
+/** Approved activity with an already-ended period so any selectable future date is invalid. */
+Cypress.Commands.add('createDatabaseInfoForShiftCreationOutsideActivityPeriod', () => {
+  cy.task('queryDatabase', {
+    query:
+      'INSERT INTO ' +
+      ACTIVITY_COLUMNS +
+      generateActivityTuple(
+        4,
+        'Shift E2E Activity',
+        'Cypress shift period validation test',
+        dayBeforeYesterday.toISOString(),
+        dayBeforeYesterday.toISOString(),
+        yesterday.toISOString(),
+        10,
+        1,
+      ),
+    credentials: credentials,
+  });
+});
+
 Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
   cy.task('queryDatabase', {
     query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(1, "A1", "Enrollment is open", tomorrow.toISOString(), tomorrow.toISOString(),
