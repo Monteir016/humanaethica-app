@@ -13,6 +13,14 @@
         >
           Start date must be before or equal to end date.
         </v-alert>
+        <v-alert
+          v-if="hasDatesOutsideActivityPeriod"
+          type="error"
+          dense
+          data-cy="shiftOutsideActivityPeriodError"
+        >
+          Shift dates must be within the activity period.
+        </v-alert>
         <v-form ref="form" lazy-validation>
           <v-row>
             <v-col cols="12">
@@ -122,6 +130,24 @@ export default class ShiftDialog extends Vue {
     return start > end;
   }
 
+  get hasDatesOutsideActivityPeriod(): boolean {
+    if (
+      !this.editShift.startTime ||
+      !this.editShift.endTime ||
+      !this.activity.startingDate ||
+      !this.activity.endingDate
+    ) {
+      return false;
+    }
+
+    const shiftStart = new Date(this.editShift.startTime).getTime();
+    const shiftEnd = new Date(this.editShift.endTime).getTime();
+    const activityStart = new Date(this.activity.startingDate).getTime();
+    const activityEnd = new Date(this.activity.endingDate).getTime();
+
+    return shiftStart < activityStart || shiftEnd > activityEnd;
+  }
+
   get canSave(): boolean {
     return (
       !!this.editShift.location &&
@@ -129,12 +155,13 @@ export default class ShiftDialog extends Vue {
       !!this.editShift.startTime &&
       !!this.editShift.endTime &&
       this.isParticipantsLimitValid(this.editShift.participantsLimit) &&
-      !this.hasInvalidDateRange
+      !this.hasInvalidDateRange &&
+      !this.hasDatesOutsideActivityPeriod
     );
   }
 
   async saveShift() {
-    if (this.hasInvalidDateRange) return;
+    if (this.hasInvalidDateRange || this.hasDatesOutsideActivityPeriod) return;
     if (
       this.activity.id !== null &&
       (this.$refs.form as Vue & { validate: () => boolean }).validate()
