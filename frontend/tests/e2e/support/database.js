@@ -127,6 +127,42 @@ Cypress.Commands.add('createDatabaseInfoForShiftCreation', () => {
   });
 });
 
+/**
+ * Activity id 4, participant limit 10; one existing shift with capacity 8.
+ * A new shift with participants limit 3 exceeds the activity limit (8 + 3 > 10).
+ */
+Cypress.Commands.add('createDatabaseInfoForShiftCapacityExceedsActivityLimit', () => {
+  cy.task('queryDatabase', {
+    query:
+      'INSERT INTO ' +
+      ACTIVITY_COLUMNS +
+      generateActivityTuple(
+        4,
+        'Shift E2E Activity',
+        'Cypress shift total capacity validation test',
+        ninetyDaysAgo.toISOString(),
+        sixtyDaysAgo.toISOString(),
+        ninetyDaysFromNow.toISOString(),
+        10,
+        1,
+      ),
+    credentials: credentials,
+  });
+  cy.task('queryDatabase', {
+    query:
+      'INSERT INTO ' +
+      SHIFT_COLUMNS +
+      generateShiftTuple(
+        1,
+        dayAfterTomorrow.toISOString(),
+        tomorrow.toISOString(),
+        8,
+        4,
+      ),
+    credentials: credentials,
+  });
+});
+
 /** Approved activity with an already-ended period so any selectable future date is invalid. */
 Cypress.Commands.add('createDatabaseInfoForShiftCreationOutsideActivityPeriod', () => {
   cy.task('queryDatabase', {
