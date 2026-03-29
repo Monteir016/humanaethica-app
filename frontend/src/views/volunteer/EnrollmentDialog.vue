@@ -31,6 +31,16 @@
                 required
                 data-cy="shiftIdsInput"
               ></v-select>
+              <v-alert
+                v-if="selectedShiftsOverlap"
+                type="error"
+                dense
+                class="mt-2"
+                data-cy="enrollmentShiftOverlapError"
+              >
+                Selected shifts overlap in time. Remove one or pick shifts that
+                do not overlap.
+              </v-alert>
             </v-col>
             <v-col cols="12">
               <v-textarea
@@ -76,6 +86,24 @@ import Enrollment from '@/models/enrollment/Enrollment';
 import Activity from '@/models/activity/Activity';
 import Shift from '@/models/shift/Shift';
 
+/** Parses display times from Shift (YYYY-MM-DD HH:mm). */
+function parseShiftInstant(s: string): number {
+  return new Date(s.replace(' ', 'T')).getTime();
+}
+
+function intervalsOverlap(
+  startA: string,
+  endA: string,
+  startB: string,
+  endB: string,
+): boolean {
+  const a0 = parseShiftInstant(startA);
+  const a1 = parseShiftInstant(endA);
+  const b0 = parseShiftInstant(startB);
+  const b1 = parseShiftInstant(endB);
+  return a0 < b1 && b0 < a1;
+}
+
 @Component({
   methods: { ISOtoString },
 })
@@ -105,11 +133,46 @@ export default class EnrollmentDialog extends Vue {
       }));
   }
 
+  get selectedShiftsOverlap(): boolean {
+    if (!this.isCreatingEnrollment) {
+      return false;
+    }
+    const ids = this.editEnrollment.shiftIds;
+    if (ids.length < 2) {
+      return false;
+    }
+    const byId = new Map<number, Shift>();
+    for (const shift of this.activity?.shifts ?? []) {
+      if (shift.id !== null) {
+        byId.set(shift.id as number, shift);
+      }
+    }
+    const selected = ids
+      .map((id) => byId.get(id))
+      .filter((s): s is Shift => s != null);
+    for (let i = 0; i < selected.length; i++) {
+      for (let j = i + 1; j < selected.length; j++) {
+        if (
+          intervalsOverlap(
+            selected[i].startTime,
+            selected[i].endTime,
+            selected[j].startTime,
+            selected[j].endTime,
+          )
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   get canSave(): boolean {
     return (
       !!this.editEnrollment.motivation &&
       this.editEnrollment.motivation.length >= 10 &&
-      (!this.isCreatingEnrollment || this.editEnrollment.shiftIds.length > 0)
+      (!this.isCreatingEnrollment || this.editEnrollment.shiftIds.length > 0) &&
+      (!this.isCreatingEnrollment || !this.selectedShiftsOverlap)
     );
   }
 
@@ -133,6 +196,7 @@ export default class EnrollmentDialog extends Vue {
     else if (
       this.editEnrollment.activityId !== null &&
       this.editEnrollment.shiftIds.length > 0 &&
+      !this.selectedShiftsOverlap &&
       (this.$refs.form as Vue & { validate: () => boolean }).validate()
     ) {
       try {
