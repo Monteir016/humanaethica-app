@@ -3,6 +3,8 @@ import { ISOtoString } from '@/services/ConvertDateService';
 export default class Participation {
   id: number | null = null;
   activityId: number | null = null;
+  enrollmentId: number | null = null;
+  shiftId: number | null = null;
   volunteerId: number | null | undefined = null;
   memberRating!: number;
   memberReview!: string;
@@ -14,6 +16,8 @@ export default class Participation {
     if (jsonObj) {
       this.id = jsonObj.id;
       this.activityId = jsonObj.activityId;
+      this.enrollmentId = jsonObj.enrollmentId ?? null;
+      this.shiftId = jsonObj.shiftId ?? null;
       this.volunteerId = jsonObj.volunteerId;
       this.memberRating = jsonObj.memberRating;
       this.memberReview = jsonObj.memberReview;

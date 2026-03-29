@@ -108,6 +108,8 @@
       v-if="currentParticipation && editParticipationSelectionDialog"
       v-model="editParticipationSelectionDialog"
       :participation="currentParticipation"
+      :enrollments="enrollments"
+      :activity-shifts="activity.shifts"
       v-on:save-participation="onSaveParticipation"
       v-on:close-participation-dialog="onCloseParticipationDialog"
     />
@@ -227,29 +229,13 @@ export default class InstitutionActivityEnrollmentsView extends Vue {
       this.currentParticipation.activityId = activityId;
       this.currentParticipation.volunteerId = volunteerId;
       this.editParticipationSelectionDialog = true;
-    } else if (this.checkIfActivityHasEnded()) {
+    } else {
       this.currentParticipation = new Participation();
       this.currentParticipation.activityId = activityId;
       this.currentParticipation.volunteerId = volunteerId;
+      this.currentParticipation.enrollmentId = enrollment.id;
       this.editParticipationSelectionDialog = true;
-    } else {
-      this.createParticipation(activityId!, volunteerId!);
     }
-  }
-
-  async createParticipation(activityId: number, volunteerId: number) {
-    this.currentParticipation = new Participation();
-    this.currentParticipation.activityId = activityId;
-    this.currentParticipation.volunteerId = volunteerId;
-    await RemoteServices.createParticipation(
-      this.currentParticipation!.activityId!,
-      this.currentParticipation!,
-    );
-    this.currentParticipation = null;
-    this.enrollments = await RemoteServices.getActivityEnrollments(activityId!);
-    this.participations = await RemoteServices.getActivityParticipations(
-      activityId!,
-    );
   }
 
   checkIfActivityHasEnded() {
@@ -272,13 +258,14 @@ export default class InstitutionActivityEnrollmentsView extends Vue {
   }
 
   async onSaveParticipation(participation: Participation) {
-    let enrollment = this.enrollments.find(
-      (e) => e.volunteerId === participation.volunteerId,
-    );
     this.participations = await RemoteServices.getActivityParticipations(
-      participation.activityId,
+      participation.activityId!,
     );
-    if (enrollment) enrollment.participating = true;
+    if (this.activity.id != null) {
+      this.enrollments = await RemoteServices.getActivityEnrollments(
+        this.activity.id,
+      );
+    }
 
     this.currentParticipation = null;
     this.editParticipationSelectionDialog = false;
