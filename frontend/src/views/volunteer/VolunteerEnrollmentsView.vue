@@ -149,6 +149,7 @@
         v-if="currentEnrollment && editEnrollmentDialog"
         v-model="editEnrollmentDialog"
         :enrollment="currentEnrollment"
+        :activity="selectedEnrollmentActivity"
         v-on:update-enrollment="onUpdateEnrollment"
         v-on:close-enrollment-dialog="onCloseEnrollmentDialog"
       />
@@ -210,6 +211,7 @@ export default class VolunteerEnrollmentsView extends Vue {
 
   currentEnrollment: Enrollment | null = null;
   editEnrollmentDialog: boolean = false;
+  selectedEnrollmentActivity: Activity | null = null;
 
   currentAssessment: Assessment | null = null;
   editAssessmentDialog: boolean = false;
@@ -401,18 +403,21 @@ export default class VolunteerEnrollmentsView extends Vue {
       (e: Enrollment) => e.activityId == activity.id,
     );
     this.currentEnrollment = this.enrollments[index];
+    this.selectedEnrollmentActivity = activity;
     this.editEnrollmentDialog = true;
   }
 
   onCloseEnrollmentDialog() {
     this.editEnrollmentDialog = false;
     this.currentEnrollment = null;
+    this.selectedEnrollmentActivity = null;
   }
 
   async onUpdateEnrollment(enrollment: Enrollment) {
     this.enrollments.push(enrollment);
     this.editEnrollmentDialog = false;
     this.currentEnrollment = null;
+    this.selectedEnrollmentActivity = null;
     this.enrollments = await RemoteServices.getVolunteerEnrollments();
   }
 
