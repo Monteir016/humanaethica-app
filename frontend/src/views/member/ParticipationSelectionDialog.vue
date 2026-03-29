@@ -12,6 +12,31 @@
       </v-card-title>
       <v-card-text>
         <v-form ref="form" lazy-validation>
+          <v-row v-if="isCreateMode">
+            <v-col cols="12">
+              <v-select
+                v-model="selectedEnrollmentId"
+                :items="enrollments"
+                item-value="id"
+                label="Enrollment"
+                :item-text="enrollmentLabel"
+                :rules="[(v) => v != null || 'Enrollment is required']"
+                data-cy="participationEnrollmentSelect"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-select
+                v-model="selectedShiftId"
+                :items="shiftsForSelectedEnrollment"
+                item-value="id"
+                label="Shift"
+                :item-text="shiftLabel"
+                :disabled="selectedEnrollmentId == null"
+                :rules="[(v) => v != null || 'Shift is required']"
+                data-cy="participationShiftSelect"
+              />
+            </v-col>
+          </v-row>
           <v-row>
             <v-col cols="12" class="d-flex align-center">
               <v-text-field
@@ -25,7 +50,12 @@
               <v-textarea
                 label="Review"
                 v-model="editParticipation.memberReview"
-                :rules="[(v) => !!v || 'Review is required']"
+                :rules="[
+                  (v) =>
+                    !v ||
+                    (v.length >= 10 && v.length < 100) ||
+                    'Review must be 10–100 characters if provided',
+                ]"
                 data-cy="participantsReviewInput"
                 auto-grow
                 rows="1"
@@ -45,7 +75,7 @@
           Close
         </v-btn>
         <v-btn
-          v-if="isReviewValid && isRatingValid"
+          v-if="canSave"
           color="primary"
           dark
           variant="text"
@@ -59,10 +89,12 @@
   </v-dialog>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Model } from 'vue-property-decorator';
+import { Vue, Component, Prop, Model, Watch } from 'vue-property-decorator';
 import RemoteServices from '@/services/RemoteServices';
 import { ISOtoString } from '@/services/ConvertDateService';
 import Participation from '@/models/participation/Participation';
+import Enrollment from '@/models/enrollment/Enrollment';
+import Shift from '@/models/shift/Shift';
 
 @Component({
   methods: { ISOtoString },
@@ -71,15 +103,62 @@ export default class ParticipationSelectionDialog extends Vue {
   @Model('dialog', Boolean) dialog!: boolean;
   @Prop({ type: Participation, required: true })
   readonly participation!: Participation;
+  @Prop({ type: Array, required: true })
+  readonly enrollments!: Enrollment[];
+  @Prop({ type: Array, required: true })
+  readonly activityShifts!: Shift[];
 
-  participations: Participation[] = [];
   editParticipation: Participation = new Participation();
 
-  async created() {
-    this.editParticipation = new Participation(this.participation);
-    this.participations = await RemoteServices.getActivityParticipations(
-      this.editParticipation.activityId,
+  selectedEnrollmentId: number | null = null;
+  selectedShiftId: number | null = null;
+
+  get isCreateMode(): boolean {
+    return this.editParticipation.id === null;
+  }
+
+  get shiftsForSelectedEnrollment(): Shift[] {
+    if (this.selectedEnrollmentId == null) {
+      return [];
+    }
+    const enrollment = this.enrollments.find(
+      (e) => e.id === this.selectedEnrollmentId,
     );
+    if (!enrollment || !enrollment.shiftIds.length) {
+      return [];
+    }
+    return this.activityShifts.filter(
+      (s) => s.id != null && enrollment.shiftIds.includes(s.id),
+    );
+  }
+
+  enrollmentLabel(enrollment: Enrollment): string {
+    const name = enrollment.volunteerName ?? 'Volunteer';
+    const id = enrollment.id != null ? `#${enrollment.id}` : '';
+    return `${name} ${id}`.trim();
+  }
+
+  shiftLabel(shift: Shift): string {
+    const start = shift.startTime ? ISOtoString(shift.startTime) : '';
+    const end = shift.endTime ? ISOtoString(shift.endTime) : '';
+    const loc = shift.location || '';
+    return `${start} → ${end}${loc ? ` · ${loc}` : ''}`;
+  }
+
+  created() {
+    this.editParticipation = new Participation(this.participation);
+    this.selectedEnrollmentId = this.participation.enrollmentId ?? null;
+    this.selectedShiftId = this.participation.shiftId ?? null;
+  }
+
+  @Watch('selectedEnrollmentId')
+  onEnrollmentIdChanged(
+    newVal: number | null,
+    oldVal: number | null | undefined,
+  ) {
+    if (oldVal !== undefined && newVal !== oldVal) {
+      this.selectedShiftId = null;
+    }
   }
 
   get isReviewValid(): boolean {
@@ -98,16 +177,30 @@ export default class ParticipationSelectionDialog extends Vue {
     );
   }
 
+  get canSave(): boolean {
+    if (!this.isReviewValid || !this.isRatingValid) {
+      return false;
+    }
+    if (this.isCreateMode) {
+      return this.selectedEnrollmentId != null && this.selectedShiftId != null;
+    }
+    return true;
+  }
+
   isNumberValid(value: any) {
     if (value === null || value === undefined || value === '') return true;
     if (!/^\d+$/.test(value)) return false;
-    const parsedValue = parseInt(value);
+    const parsedValue = parseInt(value, 10);
     return parsedValue >= 1 && parsedValue <= 5;
   }
 
   async createUpdateParticipation() {
     if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
       try {
+        if (this.isCreateMode) {
+          this.editParticipation.enrollmentId = this.selectedEnrollmentId;
+          this.editParticipation.shiftId = this.selectedShiftId;
+        }
         const result =
           this.editParticipation.id !== null
             ? await RemoteServices.updateParticipationMember(
@@ -115,7 +208,8 @@ export default class ParticipationSelectionDialog extends Vue {
                 this.editParticipation,
               )
             : await RemoteServices.createParticipation(
-                this.editParticipation.activityId!,
+                this.selectedShiftId!,
+                this.selectedEnrollmentId!,
                 this.editParticipation,
               );
         this.$emit('save-participation', result);
