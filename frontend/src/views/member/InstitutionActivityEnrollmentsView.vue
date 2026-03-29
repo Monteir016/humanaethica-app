@@ -110,6 +110,7 @@
       :participation="currentParticipation"
       :enrollments="enrollments"
       :activity-shifts="activity.shifts"
+      :participations="participations"
       v-on:save-participation="onSaveParticipation"
       v-on:close-participation-dialog="onCloseParticipationDialog"
     />

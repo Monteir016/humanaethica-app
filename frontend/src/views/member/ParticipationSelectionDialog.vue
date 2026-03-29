@@ -25,14 +25,24 @@
               />
             </v-col>
             <v-col cols="12">
+              <div
+                v-if="allShiftsFullForSelectedEnrollment"
+                data-cy="shiftCapacityFullAlert"
+              >
+                <v-alert type="warning" dense outlined class="mb-2">
+                  All shifts for this enrollment are at capacity. You cannot add
+                  another participation on a full shift.
+                </v-alert>
+              </div>
               <v-select
                 v-model="selectedShiftId"
-                :items="shiftsForSelectedEnrollment"
+                :items="shiftSelectItems"
                 item-value="id"
                 label="Shift"
+                item-disabled="disabled"
                 :item-text="shiftLabel"
                 :disabled="selectedEnrollmentId == null"
-                :rules="[(v) => v != null || 'Shift is required']"
+                :rules="shiftSelectRules"
                 data-cy="participationShiftSelect"
               />
             </v-col>
@@ -96,6 +106,8 @@ import Participation from '@/models/participation/Participation';
 import Enrollment from '@/models/enrollment/Enrollment';
 import Shift from '@/models/shift/Shift';
 
+type ShiftSelectItem = Shift & { disabled: boolean };
+
 @Component({
   methods: { ISOtoString },
 })
@@ -107,6 +119,8 @@ export default class ParticipationSelectionDialog extends Vue {
   readonly enrollments!: Enrollment[];
   @Prop({ type: Array, required: true })
   readonly activityShifts!: Shift[];
+  @Prop({ type: Array, required: true })
+  readonly participations!: Participation[];
 
   editParticipation: Participation = new Participation();
 
@@ -132,17 +146,79 @@ export default class ParticipationSelectionDialog extends Vue {
     );
   }
 
+  get shiftSelectItems(): ShiftSelectItem[] {
+    return this.shiftsForSelectedEnrollment.map((s) => ({
+      ...s,
+      disabled: this.isShiftAtCapacity(s),
+    }));
+  }
+
+  get allShiftsFullForSelectedEnrollment(): boolean {
+    if (this.selectedEnrollmentId == null) {
+      return false;
+    }
+    const items = this.shiftSelectItems;
+    if (items.length === 0) {
+      return false;
+    }
+    return items.every((s) => s.disabled);
+  }
+
+  get shiftSelectRules(): ((v: number | null) => true | string)[] {
+    return [
+      (v) => v != null || 'Shift is required',
+      (v) => {
+        if (v == null) {
+          return true;
+        }
+        const shift = this.activityShifts.find((s) => s.id === v);
+        if (shift && this.isShiftAtCapacity(shift)) {
+          return 'This shift is at capacity';
+        }
+        return true;
+      },
+    ];
+  }
+
+  participationCountForShift(shiftId: number | null): number {
+    if (shiftId == null) {
+      return 0;
+    }
+    const sid = Number(shiftId);
+    return this.participations.filter(
+      (p) => p.shiftId != null && Number(p.shiftId) === sid,
+    ).length;
+  }
+
+  isShiftAtCapacity(shift: Shift): boolean {
+    if (shift.id == null) {
+      return true;
+    }
+    const limit = Number(shift.participantsLimit);
+    if (!Number.isFinite(limit) || limit <= 0) {
+      return false;
+    }
+    return this.participationCountForShift(shift.id) >= limit;
+  }
+
   enrollmentLabel(enrollment: Enrollment): string {
     const name = enrollment.volunteerName ?? 'Volunteer';
     const id = enrollment.id != null ? `#${enrollment.id}` : '';
     return `${name} ${id}`.trim();
   }
 
-  shiftLabel(shift: Shift): string {
+  shiftLabel(shift: ShiftSelectItem): string {
     const start = shift.startTime ? ISOtoString(shift.startTime) : '';
     const end = shift.endTime ? ISOtoString(shift.endTime) : '';
     const loc = shift.location || '';
-    return `${start} → ${end}${loc ? ` · ${loc}` : ''}`;
+    const base = `${start} → ${end}${loc ? ` · ${loc}` : ''}`;
+    const cap =
+      shift.id != null ? this.participationCountForShift(shift.id) : 0;
+    const limit = shift.participantsLimit;
+    if (shift.disabled) {
+      return `${base} (full, ${cap}/${limit})`;
+    }
+    return `${base} (${cap}/${limit})`;
   }
 
   created() {
@@ -182,7 +258,16 @@ export default class ParticipationSelectionDialog extends Vue {
       return false;
     }
     if (this.isCreateMode) {
-      return this.selectedEnrollmentId != null && this.selectedShiftId != null;
+      if (this.selectedEnrollmentId == null || this.selectedShiftId == null) {
+        return false;
+      }
+      const shift = this.activityShifts.find(
+        (s) => s.id === this.selectedShiftId,
+      );
+      if (shift && this.isShiftAtCapacity(shift)) {
+        return false;
+      }
+      return true;
     }
     return true;
   }
