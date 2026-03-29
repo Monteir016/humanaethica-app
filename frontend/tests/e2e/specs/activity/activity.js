@@ -22,10 +22,10 @@ describe('Activity', () => {
     //     startingDate: '2024-01-14T12:00:00+00:00',
     //     endingDate: '2024-01-15T12:00:00+00:00'
     //   };
-    cy.intercept('POST', '/activities').as('register');
+    cy.intercept('POST', '**/activities').as('register');
     // intercept get institutions
-    cy.intercept('GET', '/users/*/getInstitution').as('getInstitutions');
-    cy.intercept('GET', '/themes/availableThemes').as('availableTeams')
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitutions');
+    cy.intercept('GET', '**/themes/availableThemes').as('availableTeams')
     // go to create activity form
     cy.get('[data-cy="institution"]').click();
 
@@ -80,10 +80,10 @@ describe('Activity', () => {
 
     cy.demoVolunteerLogin();
     // intercept requests
-    cy.intercept('GET', '/activities').as('getActivities');
-    cy.intercept('GET', '/assessments/volunteer').as('getVolunteerAssessments');
-    cy.intercept('GET', '/participations/volunteer').as('getVolunteerParticipations');
-    cy.intercept('GET', '/enrollments/volunteer').as('getVolunteerEnrollments');
+    cy.intercept('GET', '**/activities').as('getActivities');
+    cy.intercept('GET', '**/assessments/volunteer').as('getVolunteerAssessments');
+    cy.intercept('GET', '**/participations/volunteer').as('getVolunteerParticipations');
+    cy.intercept('GET', '**/enrollments/volunteer').as('getVolunteerEnrollments');
     // go to volunteer activities view
     cy.get('[data-cy="volunteerActivities"]').click();
     // check request was done
@@ -109,9 +109,9 @@ describe('Activity', () => {
 
     cy.demoAdminLogin();
     // intercept get requests
-    cy.intercept('GET', '/activities').as('getActivities');
-    cy.intercept('GET', '/themes').as('getThemes');
-    cy.intercept('GET', '/institutions').as('getInstitutions');
+    cy.intercept('GET', '**/activities').as('getActivities');
+    cy.intercept('GET', '**/themes').as('getThemes');
+    cy.intercept('GET', '**/institutions').as('getInstitutions');
     // go to admin activities view
     cy.get('[data-cy="admin"]').click();
     cy.get('[data-cy="adminActivities"]').click();

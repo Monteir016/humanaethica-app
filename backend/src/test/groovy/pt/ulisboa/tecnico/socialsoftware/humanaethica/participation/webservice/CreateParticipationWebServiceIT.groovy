@@ -70,6 +70,8 @@ class CreateParticipationWebServiceIT extends SpockTest {
                 .block()
 
         then:
+        response.enrollmentId == enrollment.id
+        response.shiftId == shift.id
         response.memberRating == 5
         response.memberReview == MEMBER_REVIEW
         and:

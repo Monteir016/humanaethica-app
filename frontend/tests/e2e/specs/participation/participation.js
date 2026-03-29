@@ -32,8 +32,8 @@ describe('Participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did a good job';
     waitForBackend();
 
-    cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-    cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
+    cy.intercept('GET', '**/activities/1/enrollments').as('enrollments');
+    cy.intercept('POST', '**/participations/*/enrollment/*').as('participation');
 
     // member login and check that there are 2 activities with 2 enrollments
     cy.demoMemberLogin()
@@ -102,8 +102,8 @@ describe('Participation', () => {
     const VOLUNTEER_REVIEW = 'The activity was well organized';
     waitForBackend();
 
-  cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-  cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
+  cy.intercept('GET', '**/activities/1/enrollments').as('enrollments');
+  cy.intercept('POST', '**/participations/*/enrollment/*').as('participation');
 
 
     // member login and check that there are 2 activities with 2 enrollments
@@ -313,8 +313,9 @@ describe('Participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did an okay job';
     waitForBackend();
 
-    cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-    cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
+    cy.intercept('GET', '**/activities/1/enrollments').as('enrollments');
+    cy.intercept('POST', '**/participations/*/enrollment/*').as('participation');
+    cy.intercept('DELETE', '**/participations/*').as('deleteParticipation');
 
     // member login and check that there are 2 activities with 2 enrollments
     cy.demoMemberLogin()
@@ -370,6 +371,7 @@ describe('Participation', () => {
       .eq(0)
       .find('[data-cy="deleteParticipantButton"]').click()
     cy.get('[data-cy="deleteParticipationDialogButton"]').click();
+    cy.wait('@deleteParticipation');
 
 
     // Verify that the participation status is now false
@@ -426,8 +428,8 @@ describe('Participation shift capacity', () => {
     const MEMBER_REVIEW = 'Shift capacity edge volunteer review';
     waitForBackend();
 
-    cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-    cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
+    cy.intercept('GET', '**/activities/1/enrollments').as('enrollments');
+    cy.intercept('POST', '**/participations/*/enrollment/*').as('participation');
 
     cy.demoMemberLogin();
     cy.get('[data-cy="institution"]').click();
@@ -459,8 +461,8 @@ describe('Participation shift capacity', () => {
   it('blocks create when shift is already at capacity', () => {
     waitForBackend();
 
-    cy.intercept('GET', '/activities/2/enrollments').as('enrollmentsA2');
-    cy.intercept('POST', '/participations/*/enrollment/*').as(
+    cy.intercept('GET', '**/activities/2/enrollments').as('enrollmentsA2');
+    cy.intercept('POST', '**/participations/*/enrollment/*').as(
       'createParticipationPost',
     );
 

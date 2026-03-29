@@ -13,8 +13,8 @@ describe('Report', () => {
   it('create report', () => {
     const JUSTIFICATION = 'Justification Exampe';
 
-    cy.intercept('POST', '/activities/1/reports').as('report');
-    cy.intercept('GET', '/activities/1/reports').as('reports');
+    cy.intercept('POST', '**/activities/1/reports').as('report');
+    cy.intercept('GET', '**/activities/1/reports').as('reports');
 
     // volunteer login, report the activtiy and check that is reported
     cy.demoVolunteerLogin()

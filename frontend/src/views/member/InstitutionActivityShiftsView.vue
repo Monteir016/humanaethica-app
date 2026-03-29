@@ -36,9 +36,7 @@
                 </v-btn>
               </span>
             </template>
-            <span>
-              Only approved activities can add shifts.
-            </span>
+            <span>Only approved activities can add shifts.</span>
           </v-tooltip>
           <v-btn
             color="primary"

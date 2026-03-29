@@ -70,6 +70,8 @@ class GetParticipationsByActivityWebServiceIT extends SpockTest {
 
         then:
         response.size() == 2
+        response.get(0).enrollmentId != null
+        response.get(1).enrollmentId != null
         response.get(0).memberRating == 1
         response.get(1).memberRating == 2
     }

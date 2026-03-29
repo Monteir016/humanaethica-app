@@ -276,10 +276,11 @@ export default class InstitutionActivityEnrollmentsView extends Vue {
     this.participations = await RemoteServices.getActivityParticipations(
       participation.activityId,
     );
-    let enrollment = this.enrollments.find(
-      (e) => e.volunteerId === participation.volunteerId,
-    );
-    if (enrollment) enrollment.participating = false;
+    if (this.activity.id != null) {
+      this.enrollments = await RemoteServices.getActivityEnrollments(
+        this.activity.id,
+      );
+    }
     this.currentParticipation = null;
     this.editParticipationDeletionDialog = false;
   }

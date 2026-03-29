@@ -38,6 +38,7 @@ services:
       dockerfile: Dockerfile
       args:
         NODE_ENV: dev
+        VUE_APP_ROOT_API: /api
     image: humanaethica-frontend                                                     
     container_name: humanaethica-frontend
     depends_on:

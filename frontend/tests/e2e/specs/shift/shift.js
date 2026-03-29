@@ -81,7 +81,9 @@ describe('Shift', () => {
     cy.pickCtkDateTimeDay('startTimeInput', 1);
     cy.pickCtkDateTimeDay('endTimeInput', 0);
 
-    cy.get('[data-cy="shiftDateRangeError"]').should('be.visible');
+    cy.get('[data-cy="shiftDateRangeError"]')
+      .scrollIntoView()
+      .should('be.visible');
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
 
@@ -113,7 +115,9 @@ describe('Shift', () => {
     cy.pickCtkDateTimeDay('startTimeInput', 0);
     cy.pickCtkDateTimeDay('endTimeInput', 1);
 
-    cy.get('[data-cy="shiftOutsideActivityPeriodError"]').should('be.visible');
+    cy.get('[data-cy="shiftOutsideActivityPeriodError"]')
+      .scrollIntoView()
+      .should('be.visible');
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
 
@@ -146,9 +150,9 @@ describe('Shift', () => {
     cy.pickCtkDateTimeDay('startTimeInput', 0);
     cy.pickCtkDateTimeDay('endTimeInput', 1);
 
-    cy.get('[data-cy="shiftTotalCapacityExceedsActivityError"]').should(
-      'be.visible',
-    );
+    cy.get('[data-cy="shiftTotalCapacityExceedsActivityError"]')
+      .scrollIntoView()
+      .should('be.visible');
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
 
