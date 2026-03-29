@@ -22,9 +22,24 @@
             class="mx-2"
           />
           <v-spacer />
-          <v-btn color="primary" dark @click="newShift" data-cy="newShift">
-            New Shift
-          </v-btn>
+          <v-tooltip bottom :disabled="canCreateShift">
+            <template v-slot:activator="{ on, attrs }">
+              <span v-bind="attrs" v-on="on">
+                <v-btn
+                  color="primary"
+                  dark
+                  :disabled="!canCreateShift"
+                  @click="newShift"
+                  data-cy="newShift"
+                >
+                  New Shift
+                </v-btn>
+              </span>
+            </template>
+            <span>
+              Only approved activities can add shifts.
+            </span>
+          </v-tooltip>
           <v-btn
             color="primary"
             dark
@@ -65,6 +80,10 @@ export default class InstitutionActivityShiftsView extends Vue {
   search: string = '';
   loadingShifts: boolean = false;
   editShiftDialog: boolean = false;
+
+  get canCreateShift(): boolean {
+    return this.activity.state === 'APPROVED';
+  }
 
   headers: object = [
     {
@@ -123,6 +142,9 @@ export default class InstitutionActivityShiftsView extends Vue {
   }
 
   newShift() {
+    if (!this.canCreateShift) {
+      return;
+    }
     this.editShiftDialog = true;
   }
 

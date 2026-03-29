@@ -116,4 +116,31 @@ describe('Shift', () => {
     cy.get('[data-cy="shiftOutsideActivityPeriodError"]').should('be.visible');
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
+
+  it('disables New Shift when activity is not approved', () => {
+    cy.deleteAllButArs();
+    cy.createDemoEntities();
+    cy.createDatabaseInfoForShiftCreationNotApproved();
+
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitution');
+
+    cy.demoMemberLogin();
+
+    cy.get('[data-cy="institution"]').click();
+    cy.get('[data-cy="activities"]').click();
+    cy.wait('@getInstitution');
+
+    cy.contains(
+      '[data-cy="memberActivitiesTable"] tbody tr',
+      'Shift E2E Not Approved Activity',
+    )
+      .find('[data-cy="manageShifts"]')
+      .click();
+
+    cy.get('[data-cy="activityShiftsTable"]', { timeout: 15000 }).should(
+      'be.visible',
+    );
+    cy.get('[data-cy="newShift"]').should('be.disabled');
+    cy.get('[data-cy="locationInput"]').should('not.exist');
+  });
 });

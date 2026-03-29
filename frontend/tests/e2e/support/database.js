@@ -147,6 +147,27 @@ Cypress.Commands.add('createDatabaseInfoForShiftCreationOutsideActivityPeriod', 
   });
 });
 
+/** Same window as shift E2E approved activity, but state not APPROVED (id 4). */
+Cypress.Commands.add('createDatabaseInfoForShiftCreationNotApproved', () => {
+  cy.task('queryDatabase', {
+    query:
+      'INSERT INTO ' +
+      ACTIVITY_COLUMNS +
+      generateActivityTuple(
+        4,
+        'Shift E2E Not Approved Activity',
+        'Cypress new shift disabled when not approved',
+        ninetyDaysAgo.toISOString(),
+        sixtyDaysAgo.toISOString(),
+        ninetyDaysFromNow.toISOString(),
+        10,
+        1,
+        'SUSPENDED',
+      ),
+    credentials: credentials,
+  });
+});
+
 Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
   cy.task('queryDatabase', {
     query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(1, "A1", "Enrollment is open", tomorrow.toISOString(), tomorrow.toISOString(),
@@ -436,7 +457,18 @@ function generateInstitutionTuple(id, name, nif) {
     nif + "', '2024-02-06 17:58:21.402134')";
 }
 
-function generateActivityTuple(id, name, description, deadline, start, end, participants, institutionId) {
+function generateActivityTuple(
+  id,
+  name,
+  description,
+  deadline,
+  start,
+  end,
+  participants,
+  institutionId,
+  state,
+) {
+  const activityState = state == null ? 'APPROVED' : state;
   return "VALUES ('"
     + id + "', '"
     + deadline +
@@ -446,7 +478,7 @@ function generateActivityTuple(id, name, description, deadline, start, end, part
     + name + "', '" +
     participants +
     "', 'Lisbon',  '"
-    + start + "', 'APPROVED', " +
+    + start + "', '" + activityState + "', " +
     institutionId + ")";
 }
 
