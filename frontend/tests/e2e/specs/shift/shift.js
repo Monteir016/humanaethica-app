@@ -117,6 +117,41 @@ describe('Shift', () => {
     cy.get('[data-cy="saveShift"]').should('be.disabled');
   });
 
+  it('shows error and blocks save when total shift capacity exceeds activity limit', () => {
+    cy.deleteAllButArs();
+    cy.createDemoEntities();
+    cy.createDatabaseInfoForShiftCapacityExceedsActivityLimit();
+
+    cy.intercept('GET', '**/users/*/getInstitution').as('getInstitution');
+
+    cy.demoMemberLogin();
+
+    cy.get('[data-cy="institution"]').click();
+    cy.get('[data-cy="activities"]').click();
+    cy.wait('@getInstitution');
+
+    cy.contains('[data-cy="memberActivitiesTable"] tbody tr', 'Shift E2E Activity')
+      .find('[data-cy="manageShifts"]')
+      .click();
+
+    cy.get('[data-cy="activityShiftsTable"]', { timeout: 15000 }).should(
+      'be.visible',
+    );
+    cy.get('[data-cy="activityShiftsTable"]').should('contain', '8');
+
+    cy.get('[data-cy="newShift"]').click();
+    cy.get('[data-cy="locationInput"]').should('be.visible').clear().type(LOCATION);
+    cy.get('[data-cy="participantsLimitInput"]').clear().type('3');
+
+    cy.pickCtkDateTimeDay('startTimeInput', 0);
+    cy.pickCtkDateTimeDay('endTimeInput', 1);
+
+    cy.get('[data-cy="shiftTotalCapacityExceedsActivityError"]').should(
+      'be.visible',
+    );
+    cy.get('[data-cy="saveShift"]').should('be.disabled');
+  });
+
   it('disables New Shift when activity is not approved', () => {
     cy.deleteAllButArs();
     cy.createDemoEntities();

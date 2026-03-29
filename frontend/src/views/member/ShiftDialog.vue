@@ -21,6 +21,15 @@
         >
           Shift dates must be within the activity period.
         </v-alert>
+        <v-alert
+          v-if="hasTotalCapacityExceededActivity"
+          type="error"
+          dense
+          data-cy="shiftTotalCapacityExceedsActivityError"
+        >
+          Total participants across shifts cannot exceed the activity
+          participant limit.
+        </v-alert>
         <v-form ref="form" lazy-validation>
           <v-row>
             <v-col cols="12">
@@ -148,6 +157,25 @@ export default class ShiftDialog extends Vue {
     return shiftStart < activityStart || shiftEnd > activityEnd;
   }
 
+  get existingShiftsCapacityTotal(): number {
+    return (this.activity.shifts ?? []).reduce((sum, shift) => {
+      const cap = Number(shift.participantsLimit);
+      return sum + (Number.isFinite(cap) && cap > 0 ? cap : 0);
+    }, 0);
+  }
+
+  get hasTotalCapacityExceededActivity(): boolean {
+    const limit = Number(this.activity.participantsNumberLimit);
+    if (!Number.isFinite(limit) || limit <= 0) {
+      return false;
+    }
+    if (!this.isParticipantsLimitValid(this.editShift.participantsLimit)) {
+      return false;
+    }
+    const newLimit = parseInt(String(this.editShift.participantsLimit), 10);
+    return this.existingShiftsCapacityTotal + newLimit > limit;
+  }
+
   get canSave(): boolean {
     return (
       !!this.editShift.location &&
@@ -156,12 +184,19 @@ export default class ShiftDialog extends Vue {
       !!this.editShift.endTime &&
       this.isParticipantsLimitValid(this.editShift.participantsLimit) &&
       !this.hasInvalidDateRange &&
-      !this.hasDatesOutsideActivityPeriod
+      !this.hasDatesOutsideActivityPeriod &&
+      !this.hasTotalCapacityExceededActivity
     );
   }
 
   async saveShift() {
-    if (this.hasInvalidDateRange || this.hasDatesOutsideActivityPeriod) return;
+    if (
+      this.hasInvalidDateRange ||
+      this.hasDatesOutsideActivityPeriod ||
+      this.hasTotalCapacityExceededActivity
+    ) {
+      return;
+    }
     if (
       this.activity.id !== null &&
       (this.$refs.form as Vue & { validate: () => boolean }).validate()
