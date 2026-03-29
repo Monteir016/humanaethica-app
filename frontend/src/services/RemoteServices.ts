@@ -591,11 +591,15 @@ export default class RemoteServices {
   }
 
   static async createParticipation(
-    activityId: number,
+    shiftId: number,
+    enrollmentId: number,
     participation: Participation,
   ) {
     return httpClient
-      .post(`/activities/${activityId}/participations`, participation)
+      .post(
+        `/participations/${shiftId}/enrollment/${enrollmentId}`,
+        participation,
+      )
       .then((response) => {
         return new Participation(response.data);
       })
@@ -606,7 +610,7 @@ export default class RemoteServices {
 
   static async deleteParticipation(participationId: number) {
     return httpClient
-      .delete(`participations/${participationId}`)
+      .delete(`/participations/${participationId}`)
       .then((response) => {
         return new Participation(response.data);
       })
