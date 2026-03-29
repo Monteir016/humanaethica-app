@@ -1,4 +1,23 @@
 describe('Participation', () => {
+  const backendBaseUrl = () =>
+    Cypress.config('baseUrl').includes('frontend')
+      ? 'http://backend:8080'
+      : 'http://localhost:8080';
+
+  const waitForBackend = () => {
+    cy.request({
+      url: `${backendBaseUrl()}/auth/demo/member`,
+      retryOnNetworkFailure: true,
+    }).its('status').should('eq', 200);
+  };
+
+  const selectFirstVuetifyOption = (dataCy) => {
+    cy.get(`[data-cy="${dataCy}"]`).click();
+    cy.get('.v-menu__content.menuable__content__active .v-list-item')
+      .first()
+      .click();
+  };
+
   beforeEach(() => {
     cy.deleteAllButArs()
     cy.createDemoEntities();
@@ -9,11 +28,12 @@ describe('Participation', () => {
     cy.deleteAllButArs()
   });
 
-  it.skip('create participation', () => {
+  it('create participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did a good job';
+    waitForBackend();
 
     cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-    cy.intercept('POST', '/activities/1/participations').as('participation');
+    cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
 
     // member login and check that there are 2 activities with 2 enrollments
     cy.demoMemberLogin()
@@ -23,12 +43,12 @@ describe('Participation', () => {
       .should('have.length', 2)
       .eq(0)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(1)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
 
     // open enrollments view for first activity
@@ -50,6 +70,8 @@ describe('Participation', () => {
       .eq(0)
       .find('[data-cy="selectParticipantButton"]')
       .click();
+    selectFirstVuetifyOption('participationEnrollmentSelect');
+    selectFirstVuetifyOption('participationShiftSelect');
     // write ranking
     cy.get('[data-cy="participantsNumberInput"]').type(3);
     // write review
@@ -68,19 +90,20 @@ describe('Participation', () => {
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0)
       .children()
-      .eq(4).should('contain', '2')
+      .eq(5).should('contain', '2')
 
     cy.logout();
 
   });
 
-  it.skip('update participation', () => {
+  it('update participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did an okay job';
     const MEMBER_REVIEW_2 = 'The volunteer did a good job';
     const VOLUNTEER_REVIEW = 'The activity was well organized';
+    waitForBackend();
 
   cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-  cy.intercept('POST', '/activities/1/participations').as('participation');
+  cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
 
 
     // member login and check that there are 2 activities with 2 enrollments
@@ -91,12 +114,12 @@ describe('Participation', () => {
       .should('have.length', 2)
       .eq(0)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(1)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
 
     // open enrollments view for first activity
@@ -118,6 +141,8 @@ describe('Participation', () => {
       .eq(0)
       .find('[data-cy="selectParticipantButton"]')
       .click();
+    selectFirstVuetifyOption('participationEnrollmentSelect');
+    selectFirstVuetifyOption('participationShiftSelect');
     // write ranking
     cy.get('[data-cy="participantsNumberInput"]').type(3);
     //write review
@@ -182,7 +207,7 @@ describe('Participation', () => {
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0)
       .children()
-      .eq(4).should('contain', '2')
+      .eq(5).should('contain', '2')
 
     cy.logout();
 
@@ -231,12 +256,12 @@ describe('Participation', () => {
       .should('have.length', 2)
       .eq(0)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(1)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
 
     // open enrollments view for first activity
@@ -272,11 +297,12 @@ describe('Participation', () => {
 
   });
 
-  it.skip('delete participation', () => {
+  it('delete participation', () => {
     const MEMBER_REVIEW_1 = 'The volunteer did an okay job';
+    waitForBackend();
 
     cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
-    cy.intercept('POST', '/activities/1/participations').as('participation');
+    cy.intercept('POST', '/participations/*/enrollment/*').as('participation');
 
     // member login and check that there are 2 activities with 2 enrollments
     cy.demoMemberLogin()
@@ -286,12 +312,12 @@ describe('Participation', () => {
       .should('have.length', 2)
       .eq(0)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(1)
       .children()
-      .eq(3)
+      .eq(4)
       .should('contain', 2)
 
     // open enrollments view for first activity
@@ -313,6 +339,8 @@ describe('Participation', () => {
       .eq(0)
       .find('[data-cy="selectParticipantButton"]')
       .click();
+    selectFirstVuetifyOption('participationEnrollmentSelect');
+    selectFirstVuetifyOption('participationShiftSelect');
 
     // write ranking
     cy.get('[data-cy="participantsNumberInput"]').type(3);
@@ -345,7 +373,7 @@ describe('Participation', () => {
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0)
       .children()
-      .eq(4).should('contain', '1')
+      .eq(5).should('contain', '1')
     cy.logout();
 
   });
