@@ -217,6 +217,9 @@ Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
   const a1s1 = a1EnrollmentShiftSlot(9, 10);
   const a1s4 = a1EnrollmentShiftSlot(12, 13);
   const a1s5 = a1EnrollmentShiftSlot(15, 16);
+  /** Overlap on the same day (E2E issue #15): 10:00–11:00 vs 10:00–12:00. */
+  const a1s6 = a1EnrollmentShiftSlot(10, 11);
+  const a1s7 = a1EnrollmentShiftSlot(10, 12);
   cy.task('queryDatabase', {
     query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(1, "A1", "Enrollment is open", tomorrow.toISOString(), tomorrow.toISOString(),
       tomorrow.toISOString(), 10, 1),
@@ -232,6 +235,14 @@ Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
   })
   cy.task('queryDatabase', {
     query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(5, a1s5.end, a1s5.start, 1, 1),
+    credentials: credentials,
+  })
+  cy.task('queryDatabase', {
+    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(6, a1s6.end, a1s6.start, 1, 1),
+    credentials: credentials,
+  })
+  cy.task('queryDatabase', {
+    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(7, a1s7.end, a1s7.start, 1, 1),
     credentials: credentials,
   })
   cy.task('queryDatabase', {
