@@ -338,8 +338,8 @@ Cypress.Commands.add('createDatabaseInfoForParticipations', () => {
     credentials: credentials,
   })
   cy.task('queryDatabase', {
-    query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(2, "A2", "Has no vacancies", dayBeforeYesterday.toISOString(), yesterday.toISOString(),
-      yesterday.toISOString(), 1, 1),
+    query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(2, "A2", "Shift 2 capped; activity has spare slots", dayBeforeYesterday.toISOString(), yesterday.toISOString(),
+      yesterday.toISOString(), 10, 1),
     credentials: credentials,
   })
   cy.task('queryDatabase', {
