@@ -9,7 +9,7 @@ describe('Enrollment', () => {
     cy.deleteAllButArs()
   });
 
-  it('create enrollment selecting two of three shifts', () => {
+  it('create enrollment selecting two non-overlapping shifts (of five)', () => {
     const MOTIVATION = 'I am very keen to help other people.';
 
     cy.intercept('POST', '/enrollments').as('enroll');
@@ -33,7 +33,7 @@ describe('Enrollment', () => {
       .find('[data-cy="applyButton"]')
       .click();
     cy.get('[data-cy="shiftIdsInput"]').click();
-    cy.get('.v-menu__content').filter(':visible').find('.v-list-item').should('have.length', 3);
+    cy.get('.v-menu__content').filter(':visible').find('.v-list-item').should('have.length', 5);
     cy.get('.v-menu__content')
       .filter(':visible')
       .contains('.v-list-item', '09:00')
@@ -80,6 +80,35 @@ describe('Enrollment', () => {
           .should('contain', MOTIVATION);
       });
 
+    cy.logout();
+  });
+
+  it('blocks enrollment when two selected shifts overlap in time', () => {
+    const MOTIVATION = 'I am very keen to help other people.';
+
+    cy.demoVolunteerLogin();
+    cy.get('[data-cy="volunteerActivities"]').click();
+    cy.contains('[data-cy="volunteerActivitiesTable"] tbody tr', 'A1')
+      .find('[data-cy="applyButton"]')
+      .click();
+    cy.get('[data-cy="shiftIdsInput"]').click();
+    // Two overlapping slots on "tomorrow": 10:00–11:00 (id 6) and 10:00–12:00 (id 7)
+    cy.get('.v-menu__content')
+      .filter(':visible')
+      .find('.v-list-item')
+      .filter(':contains("10:00")')
+      .filter(':contains("11:00")')
+      .click();
+    cy.get('.v-menu__content')
+      .filter(':visible')
+      .find('.v-list-item')
+      .filter(':contains("10:00")')
+      .filter(':contains("12:00")')
+      .click();
+    cy.get('body').type('{esc}');
+    cy.get('[data-cy="enrollmentShiftOverlapError"]').should('be.visible');
+    cy.get('[data-cy="motivationInput"]').should('be.visible').type(MOTIVATION);
+    cy.get('[data-cy="saveEnrollment"]').should('not.exist');
     cy.logout();
   });
 
