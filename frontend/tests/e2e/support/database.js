@@ -41,6 +41,15 @@ sixtyDaysAgo.setHours(0, 0, 0, 0);
 const ninetyDaysFromNow = new Date(now);
 ninetyDaysFromNow.setDate(now.getDate() + 90);
 
+/** Non-overlapping start/end on `tomorrow` for activity A1 enrollment E2E (shift ids 1, 4, 5). */
+function a1EnrollmentShiftSlot(hourStart, hourEnd) {
+  const s = new Date(tomorrow);
+  s.setHours(hourStart, 0, 0, 0);
+  const e = new Date(tomorrow);
+  e.setHours(hourEnd, 0, 0, 0);
+  return { start: s.toISOString(), end: e.toISOString() };
+}
+
 Cypress.Commands.add('deleteAllButArs', () => {
   cy.task('queryDatabase', {
     query: "DELETE FROM ASSESSMENT",
@@ -205,13 +214,24 @@ Cypress.Commands.add('createDatabaseInfoForShiftCreationNotApproved', () => {
 });
 
 Cypress.Commands.add('createDatabaseInfoForEnrollments', () => {
+  const a1s1 = a1EnrollmentShiftSlot(9, 10);
+  const a1s4 = a1EnrollmentShiftSlot(12, 13);
+  const a1s5 = a1EnrollmentShiftSlot(15, 16);
   cy.task('queryDatabase', {
     query: "INSERT INTO " + ACTIVITY_COLUMNS + generateActivityTuple(1, "A1", "Enrollment is open", tomorrow.toISOString(), tomorrow.toISOString(),
-      tomorrow.toISOString(), 1, 1),
+      tomorrow.toISOString(), 10, 1),
     credentials: credentials,
   })
   cy.task('queryDatabase', {
-    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(1, tomorrow.toISOString(), tomorrow.toISOString(), 1, 1),
+    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(1, a1s1.end, a1s1.start, 1, 1),
+    credentials: credentials,
+  })
+  cy.task('queryDatabase', {
+    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(4, a1s4.end, a1s4.start, 1, 1),
+    credentials: credentials,
+  })
+  cy.task('queryDatabase', {
+    query: "INSERT INTO " + SHIFT_COLUMNS + generateShiftTuple(5, a1s5.end, a1s5.start, 1, 1),
     credentials: credentials,
   })
   cy.task('queryDatabase', {

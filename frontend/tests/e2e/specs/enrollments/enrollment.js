@@ -9,61 +9,76 @@ describe('Enrollment', () => {
     cy.deleteAllButArs()
   });
 
-  it.skip('create enrollment', () => {
+  it('create enrollment selecting two of three shifts', () => {
     const MOTIVATION = 'I am very keen to help other people.';
 
     cy.intercept('POST', '/enrollments').as('enroll');
     cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
 
-
-    // member login and check that there is activity with 0 enrollments
-    cy.demoMemberLogin()
+    cy.demoMemberLogin();
     cy.get('[data-cy="institution"]').click();
     cy.get('[data-cy="activities"]').click();
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .should('have.length', 3)
       .eq(0)
       .children()
-      .should('have.length', 13)
-      .eq(3)
-      .should('contain', 0)
+      .should('have.length', 14)
+      .eq(4)
+      .should('contain', 0);
     cy.logout();
 
-    // volunteer login, creates enrollments
-    cy.demoVolunteerLogin()
+    cy.demoVolunteerLogin();
     cy.get('[data-cy="volunteerActivities"]').click();
-    cy.get('[data-cy="volunteerActivitiesTable"] tbody tr')
-      .eq(0)
-      .find('[data-cy="applyButton"]').click();
-    cy.get('[data-cy="motivationInput"]').type(MOTIVATION);
-    cy.get('[data-cy="saveEnrollment"]').click()
-    cy.wait('@enroll')
-    cy.logout()
+    cy.contains('[data-cy="volunteerActivitiesTable"] tbody tr', 'A1')
+      .find('[data-cy="applyButton"]')
+      .click();
+    cy.get('[data-cy="shiftIdsInput"]').click();
+    cy.get('.v-menu__content').filter(':visible').find('.v-list-item').should('have.length', 3);
+    cy.get('.v-menu__content')
+      .filter(':visible')
+      .contains('.v-list-item', '09:00')
+      .click();
+    cy.get('.v-menu__content')
+      .filter(':visible')
+      .contains('.v-list-item', '12:00')
+      .click();
+    cy.get('body').type('{esc}');
+    cy.get('[data-cy="motivationInput"]').should('be.visible').type(MOTIVATION);
+    cy.get('[data-cy="saveEnrollment"]').click();
+    cy.wait('@enroll').then((interception) => {
+      const raw = interception.request.body;
+      const body = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const shiftIds = body.shiftIds;
+      expect(shiftIds).to.have.length(2);
+      expect(shiftIds).to.have.members([1, 4]);
+    });
+    cy.logout();
 
-    // member login and check that there is activity with 1 enrollment
-    cy.demoMemberLogin()
+    cy.demoMemberLogin();
     cy.get('[data-cy="institution"]').click();
     cy.get('[data-cy="activities"]').click();
 
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0)
       .children()
-      .eq(3)
-      .should('contain', 1)
+      .eq(4)
+      .should('contain', 1);
 
-    // open enrollments view for first activity
     cy.get('[data-cy="memberActivitiesTable"] tbody tr')
       .eq(0)
-      .find('[data-cy="showEnrollments"]').click()
+      .find('[data-cy="showEnrollments"]')
+      .click();
     cy.wait('@enrollments');
-    // check that there are 1 enrollment
+    // GET /activities/:id/enrollments returns one row per shift link; 2 shifts => 2 rows, same motivation.
     cy.get('[data-cy="activityEnrollmentsTable"] tbody tr')
-      .should('have.length', 1)
-      .eq(0)
-      .children()
-      .should('have.length', 7)
-      .eq(1)
-      .should('contain', MOTIVATION)
+      .should('have.length', 2)
+      .each(($tr) => {
+        cy.wrap($tr)
+          .children()
+          .should('have.length', 7)
+          .eq(1)
+          .should('contain', MOTIVATION);
+      });
 
     cy.logout();
   });
