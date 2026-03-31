@@ -47,6 +47,8 @@ class CreateParticipationServiceTest extends SpockTest {
         then:
         result.memberRating == 5
         result.memberReview == MEMBER_REVIEW
+        result.enrollmentId == enrollment.id
+        result.shiftId == shift.id
         and:
         participationRepository.findAll().size() == 1
         def storedParticipation = participationRepository.findAll().get(0)

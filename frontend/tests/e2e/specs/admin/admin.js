@@ -8,7 +8,7 @@ describe('Admin', () => {
   });
 
   it('admin demon login and get users', () => {
-    cy.intercept('GET', '/users').as(
+    cy.intercept('GET', '**/users').as(
       'users'
     );
 
@@ -24,7 +24,7 @@ describe('Admin', () => {
   });
 
   it('ars login and get users', () => {
-    cy.intercept('GET', '/users').as(
+    cy.intercept('GET', '**/users').as(
       'users'
     );
 
@@ -46,7 +46,7 @@ describe('Admin', () => {
     cy.createDatabaseInfoForEnrollments()
     cy.demoAdminLogin()
 
-    cy.intercept('GET', '/institutions').as('activities')
+    cy.intercept('GET', '**/institutions').as('activities')
 
     // List activities.
     cy.get('[data-cy="admin"]').click()

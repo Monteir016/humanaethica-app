@@ -46,7 +46,7 @@
                 data-cy="locationInput"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="12">
               <v-text-field
                 label="*Participants Limit"
                 :rules="[
@@ -59,7 +59,7 @@
                 data-cy="participantsLimitInput"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="12" md="6">
               <VueCtkDateTimePicker
                 id="startTimeInput"
                 v-model="editShift.startTime"
@@ -68,7 +68,7 @@
                 data-cy="startTimeInput"
               ></VueCtkDateTimePicker>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="12" md="6">
               <VueCtkDateTimePicker
                 id="endTimeInput"
                 v-model="editShift.endTime"

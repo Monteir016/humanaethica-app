@@ -13,11 +13,11 @@ describe('Assessment', () => {
   it('create assessment', () => {
     const REVIEW = 'The institution has provided all the information.';
 
-    cy.intercept('GET', '/enrollments/volunteer').as('enrollments');
-    cy.intercept('GET', '/participations/volunteer').as('participations');
-    cy.intercept('GET', '/assessments/volunteer').as('assessments');
-    cy.intercept('POST', '/institutions/1/assessments').as('review');
-    cy.intercept('GET', '/institutions/1/assessments').as('reviews');
+    cy.intercept('GET', '**/enrollments/volunteer').as('enrollments');
+    cy.intercept('GET', '**/participations/volunteer').as('participations');
+    cy.intercept('GET', '**/assessments/volunteer').as('assessments');
+    cy.intercept('POST', '**/institutions/1/assessments').as('review');
+    cy.intercept('GET', '**/institutions/1/assessments').as('reviews');
 
     // volunteer writes assessment
     cy.demoVolunteerLogin();
@@ -61,8 +61,8 @@ describe('Assessment', () => {
   it('edit assessment', () => {
       const UPDATE = "This is an update.";
 
-      cy.intercept('GET', '/assessments/volunteer').as('assessments');
-      cy.intercept('PUT', '/assessments/1').as('review');
+      cy.intercept('GET', '**/assessments/volunteer').as('assessments');
+      cy.intercept('PUT', '**/assessments/1').as('review');
 
       // volunteer updates assessment
       cy.demoVolunteerLogin();
@@ -100,8 +100,8 @@ describe('Assessment', () => {
     });
 
     it('delete assessment', () => {
-      cy.intercept('GET', '/assessments/volunteer').as('assessments');
-      cy.intercept('DELETE', '/assessments/1').as('delete');
+      cy.intercept('GET', '**/assessments/volunteer').as('assessments');
+      cy.intercept('DELETE', '**/assessments/1').as('delete');
 
       // volunteer updates assessment
       cy.demoVolunteerLogin();

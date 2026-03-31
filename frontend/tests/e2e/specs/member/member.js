@@ -26,7 +26,7 @@ describe('Volunteer', () => {
   it('suspend activity', () => {
     const JUSTIFICATION = 'This activity will be suspended for testing.';
 
-    cy.intercept('GET', '/users/2/getInstitution').as('activities')
+    cy.intercept('GET', '**/users/2/getInstitution').as('activities')
 
     // List activities.
     cy.get('[data-cy="institution"]').click()

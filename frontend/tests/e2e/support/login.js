@@ -1,7 +1,7 @@
 Cypress.Commands.add('userLogin', (username, password) => {
   cy.visit('/');
 
-  cy.intercept('POST', '/auth/user*').as(
+  cy.intercept('POST', '**/auth/user*').as(
     'userLogin'
   );
 
@@ -16,7 +16,7 @@ Cypress.Commands.add('userLogin', (username, password) => {
 Cypress.Commands.add('demoAdminLogin', () => {
   cy.visit('/');
 
-  cy.intercept('POST', '/auth/user').as(
+  cy.intercept('POST', '**/auth/user').as(
     'authAdmin'
   );
   cy.get('[data-cy="demoAdminLoginButton"]').click();
@@ -26,7 +26,7 @@ Cypress.Commands.add('demoAdminLogin', () => {
 Cypress.Commands.add('demoMemberLogin', () => {
   cy.visit('/');
 
-  cy.intercept('GET', '/auth/demo/member').as(
+  cy.intercept('GET', '**/auth/demo/member').as(
     'authMember'
   );
   cy.get('[data-cy="demoMemberLoginButton"]').click();
@@ -36,7 +36,7 @@ Cypress.Commands.add('demoMemberLogin', () => {
 Cypress.Commands.add('demoVolunteerLogin', () => {
   cy.visit('/');
 
-  cy.intercept('GET', '/auth/demo/volunteer').as(
+  cy.intercept('GET', '**/auth/demo/volunteer').as(
     'authVolunteer'
   );
   cy.get('[data-cy="demoVolunteerLoginButton"]').click();

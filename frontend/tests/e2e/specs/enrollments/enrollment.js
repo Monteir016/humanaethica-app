@@ -12,8 +12,8 @@ describe('Enrollment', () => {
   it('create enrollment selecting two non-overlapping shifts (of five)', () => {
     const MOTIVATION = 'I am very keen to help other people.';
 
-    cy.intercept('POST', '/enrollments').as('enroll');
-    cy.intercept('GET', '/activities/1/enrollments').as('enrollments');
+    cy.intercept('POST', '**/enrollments').as('enroll');
+    cy.intercept('GET', '**/activities/1/enrollments').as('enrollments');
 
     cy.demoMemberLogin();
     cy.get('[data-cy="institution"]').click();
