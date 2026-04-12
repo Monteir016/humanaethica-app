@@ -10,3 +10,7 @@ data/access.log
 data/error.log
 
 .vscode/settings.json
+
+# Local env and optional tooling
+.env
+parser_standalone.py

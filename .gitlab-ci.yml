@@ -1,5 +1,7 @@
+# Set CI/CD variable HUMANAETHICA_CI_IMAGE to a Docker image with JDK 21, Maven, Node.js,
+# and PostgreSQL tooling compatible with backend/frontend test jobs (see project Dockerfiles).
 image:
-  name: "registry.rnl.tecnico.ulisboa.pt/es/humanaethica-base-es26"
+  name: "$HUMANAETHICA_CI_IMAGE"
 
 stages:
   - prepare
@@ -20,10 +22,8 @@ variables:
   cypress_psql_db_port: "5432"
 
 
-# Docker-in-Docker is broken on gitlab ATM
-# https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29130
-# JFF: RNL's runners do not have permission for this. We pushed the
-#      container manually.
+# Docker-in-Docker is unreliable on some shared GitLab runners; see GitLab runner issue #29130.
+# If your runner cannot build images in CI, build and push the image manually when the Dockerfile changes.
 gitlab-build-image:
   image: docker:stable
   services:
